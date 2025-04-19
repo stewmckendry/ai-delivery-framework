@@ -25,6 +25,7 @@ echo "🌿 Creating branch: $BRANCH_NAME"
 # Commenting out stash for now — it's likely wiping the .diff
 # git stash --include-untracked
 
+# Fetch latest changes and checkout main
 git fetch origin
 git checkout main
 git pull origin main
