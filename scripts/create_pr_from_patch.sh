@@ -30,11 +30,11 @@ fi
 # Step 3: Ensure clean state and checkout main
 git fetch origin
 
-if git rev-parse --verify main >/dev/null 2>&1; then
-  git checkout main
-  git pull origin main
+if git show-ref --quiet refs/remotes/origin/main; then
+  echo "📥 Fetching and checking out origin/main"
+  git checkout -B main origin/main
 else
-  echo "❌ ERROR: main branch not found"
+  echo "❌ ERROR: origin/main not found"
   exit 1
 fi
 
