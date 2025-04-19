@@ -1,0 +1,34 @@
+name: 📊 Daily Metrics Report
+
+on:
+  schedule:
+    - cron: '0 13 * * *'  # Daily at 9am ET
+  workflow_dispatch:
+
+jobs:
+  update-metrics:
+    runs-on: ubuntu-latest
+    name: Update Velocity and Burndown
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Run metrics tracker
+        run: python scripts/metrics_tracker.py
+
+      - name: Run report updater
+        run: python scripts/update_metrics_report.py
+
+      - name: Commit and push changes
+        run: |
+          git config user.name "chatgpt-bot"
+          git config user.email "chatgpt-bot@users.noreply.github.com"
+          git add .metrics/velocity.md .metrics/burndown.md
+          git commit -m "📊 Auto-update: velocity and burndown reports"
+          git push

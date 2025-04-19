@@ -1,0 +1,49 @@
+name: 🧠 Apply GPT Patch and PR
+
+on:
+  push:
+    paths:
+      - '.patches/*.diff'
+
+jobs:
+  apply-patch:
+    runs-on: ubuntu-latest
+    name: Apply and PR Patch
+
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v3
+
+    - name: Set up Git config
+      run: |
+        git config --global user.name "chatgpt-bot"
+        git config --global user.email "chatgpt-bot@users.noreply.github.com"
+
+    - name: Detect patch file
+      id: detect
+      run: |
+        PATCH_FILE=$(find .patches -name '*.diff' | head -n 1)
+        echo "PATCH_FILE=$PATCH_FILE" >> $GITHUB_OUTPUT
+
+    - name: Apply patch on new branch
+      run: |
+        PATCH_FILE="${{ steps.detect.outputs.PATCH_FILE }}"
+        BRANCH="chatgpt/auto/$(basename $PATCH_FILE .diff)"
+        git checkout -b "$BRANCH"
+        patch -p1 < "$PATCH_FILE"
+        git add .
+        git commit -m "[AutoPatch] Apply $(basename $PATCH_FILE)"
+        git push origin "$BRANCH"
+
+    - name: Create pull request
+      uses: peter-evans/create-pull-request@v5
+      with:
+        branch: ${{ github.ref_name }}
+        title: "🤖 AutoPatch: ${{ github.ref_name }}"
+        commit-message: "Auto-applied patch and opened PR"
+        body: |
+          This PR was automatically generated from a GPT pod patch file:
+          - Patch: `${{ steps.detect.outputs.PATCH_FILE }}`
+          - Branch: `chatgpt/auto/...`
+
+          Please review and merge if appropriate. ✨

@@ -1,0 +1,98 @@
+name: 🧠 Enhanced GPT Patch Flow
+
+on:
+  push:
+    paths:
+      - '.patches/*.diff'
+
+jobs:
+  apply-and-pr:
+    runs-on: ubuntu-latest
+    name: Apply Patch + Create Rich PR
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v3
+
+      - name: Set Git Config
+        run: |
+          git config --global user.name "chatgpt-bot"
+          git config --global user.email "chatgpt-bot@users.noreply.github.com"
+
+      - name: Detect Patch File
+        id: detect
+        run: |
+          PATCH_FILE=$(find .patches -name '*.diff' | head -n 1)
+          PATCH_NAME=$(basename "$PATCH_FILE" .diff)
+          echo "patch_file=$PATCH_FILE" >> $GITHUB_OUTPUT
+          echo "patch_name=$PATCH_NAME" >> $GITHUB_OUTPUT
+
+      - name: Create Feature Branch
+        run: |
+          BRANCH=chatgpt/auto/${{ steps.detect.outputs.patch_name }}
+          git checkout -b "$BRANCH"
+          patch -p1 < "${{ steps.detect.outputs.patch_file }}"
+          git add .
+          git commit -m "[AutoPatch] Apply ${{ steps.detect.outputs.patch_name }}"
+          git push origin "$BRANCH"
+
+      - name: Extract Log Content (if present)
+        id: logs
+        run: |
+          get_or_default() { [ -f "$1" ] && echo "$(cat $1)" || echo "_Not provided._"; }
+          echo "changelog<<EOF" >> $GITHUB_OUTPUT
+          get_or_default docs/changelog.md >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+          echo "trace<<EOF" >> $GITHUB_OUTPUT
+          get_or_default logs/thought_trace.md >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+          echo "handoff<<EOF" >> $GITHUB_OUTPUT
+          get_or_default docs/wow/handoff_log.yaml >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Validate Required Logs
+        run: |
+          if [ ! -s docs/changelog.md ]; then
+            echo "❌ Missing or empty changelog.md"
+            exit 1
+          fi
+          if [ ! -s logs/thought_trace.md ]; then
+            echo "❌ Missing or empty thought_trace.md"
+            exit 1
+          fi
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v5
+        with:
+          branch: chatgpt/auto/${{ steps.detect.outputs.patch_name }}
+          title: "🤖 GPT Patch: ${{ steps.detect.outputs.patch_name }}"
+          commit-message: "Auto-applied patch and opened PR"
+          body: |
+            This PR was generated automatically from `${{ steps.detect.outputs.patch_file }}`.
+
+            ## 📒 Changelog
+            ${{ steps.logs.outputs.changelog }}
+
+            ## 🧠 Thought Trace
+            ${{ steps.logs.outputs.trace }}
+
+            ## 🔁 Handoff Log
+            ${{ steps.logs.outputs.handoff }}
+
+            Please review and merge if appropriate.
+
+      - name: Add Pod Label (based on patch name)
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const podType = '${{ steps.detect.outputs.patch_name }}'.split('_')[2] || 'unknown';
+            const label = podType + '-pod';
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request?.number || context.run_id,
+              labels: [label]
+            });
