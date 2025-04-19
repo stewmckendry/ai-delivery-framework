@@ -31,7 +31,13 @@ git checkout main
 git pull origin main
 
 # Step 3: Create and switch to new feature branch
-git checkout -b "$BRANCH_NAME"
+if git show-ref --verify --quiet refs/heads/"$BRANCH_NAME"; then
+  echo "Branch $BRANCH_NAME already exists, checking it out..."
+  git checkout "$BRANCH_NAME"
+else
+  git checkout -b "$BRANCH_NAME"
+fi
+
 
 # Debug check
 echo "🧾 Checking existence of $PATCH_FILE"
