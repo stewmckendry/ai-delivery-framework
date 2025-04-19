@@ -1,0 +1,28 @@
+weekly_snapshots:
+  - week: "2025-04-18"
+    pods:
+      dev:
+        patch_count: 5
+        features:
+          - "symptom parser"
+          - "auto validator"
+        merged: 4
+        proposed: 5
+        handoffs: 2
+        thought_traces: 3
+      qa:
+        patch_count: 2
+        features:
+          - "test harness"
+          - "bug sweep"
+        merged: 2
+        proposed: 2
+        handoffs: 1
+        thought_traces: 0
+    features_delivered:
+      - "symptom parser"
+      - "auto validator"
+      - "test harness"
+    features_outstanding:
+      - "guidance reasoning"
+      - "report wizard"
