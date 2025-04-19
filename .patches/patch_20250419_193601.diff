@@ -1,0 +1,7 @@
+diff --git a/test_file_16.md b/test_file_16.md
+new file mode 100644
+index 0000000..1453d01
+--- /dev/null
++++ b/test_file_16.md
+@@ -0,0 +1 @@
++clean test
