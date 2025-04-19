@@ -1,0 +1,10 @@
+diff --git a/test_file_7.md b/test_file_7.md
+new file mode 100644
+index 0000000..e69de29
+diff --git a/test_file_8.md b/test_file_8.md
+new file mode 100644
+index 0000000..3b18e51
+--- /dev/null
++++ b/test_file_8.md
+@@ -0,0 +1 @@
++hello world

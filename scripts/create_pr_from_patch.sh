@@ -1,12 +1,17 @@
 #!/bin/bash
 set -e
 
-echo "🧐 Starting AI-native patch promotion to feature branch..."
+echo "🧠 Starting AI-native patch promotion to feature branch..."
+
+# Always work from repo root
+ROOT_DIR=$(git rev-parse --show-toplevel)
+cd "$ROOT_DIR"
 
 # Step 1: Find the .diff file
-PATCH_FILE=$(find .patches -name '*.diff' | head -n 1)
-if [ -z "$PATCH_FILE" ]; then
-  echo "❌ No .diff file found in .patches/"
+PATCH_FILE=$(find "$ROOT_DIR/.patches" -name '*.diff' | head -n 1)
+
+if [ ! -f "$PATCH_FILE" ]; then
+  echo "❌ ERROR: Patch file not found at $PATCH_FILE"
   exit 1
 fi
 
@@ -17,7 +22,9 @@ echo "📄 Found patch: $PATCH_FILE"
 echo "🌿 Creating branch: $BRANCH_NAME"
 
 # Step 2: Ensure clean state and checkout main
-git stash --include-untracked
+# Commenting out stash for now — it's likely wiping the .diff
+# git stash --include-untracked
+
 git fetch origin
 git checkout main
 git pull origin main
@@ -25,8 +32,15 @@ git pull origin main
 # Step 3: Create and switch to new feature branch
 git checkout -b "$BRANCH_NAME"
 
+# Debug check
+echo "🧾 Checking existence of $PATCH_FILE"
+ls -l "$PATCH_FILE" || echo "🚫 Still not found..."
+echo "📂 Current directory: $(pwd)"
+echo "📁 Contents of .patches:"
+ls -la .patches || echo "🚫 .patches folder not found"
+
 # Step 4: Apply the patch
-patch -p1 < "$PATCH_FILE"
+cat "$PATCH_FILE" | patch -p1
 
 # Step 5: Stage supporting logs if present
 [ -f docs/changelog.md ] && git add docs/changelog.md
