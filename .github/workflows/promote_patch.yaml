@@ -1,0 +1,26 @@
+name: Promote GPT Patch
+
+description: Automatically promotes any new .diff file from .patches into a new branch and opens a pull request.
+
+on:
+  push:
+    paths:
+      - '.patches/*.diff'
+
+jobs:
+  promote:
+    name: Promote Patch to PR
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Git config
+        run: |
+          git config --global user.name "chatgpt-bot"
+          git config --global user.email "chatgpt-bot@users.noreply.github.com"
+
+      - name: Promote patch via script
+        run: |
+          bash scripts/create_pr_from_patch.sh
