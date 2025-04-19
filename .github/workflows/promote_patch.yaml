@@ -21,6 +21,13 @@ jobs:
           git config --global user.name "chatgpt-bot"
           git config --global user.email "chatgpt-bot@users.noreply.github.com"
 
+      - name: Extract triggered patch name
+        id: extract
+        run: |
+          echo "TRIGGERED_PATCH=$(echo '${{ github.event.head_commit.modified[0] }}' | xargs basename)" >> $GITHUB_ENV
+
       - name: Promote patch via script
         run: |
           bash scripts/create_pr_from_patch.sh
+        env:
+          TRIGGERED_PATCH: ${{ env.TRIGGERED_PATCH }}
