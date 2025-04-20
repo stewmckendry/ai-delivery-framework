@@ -1,7 +1,5 @@
 name: Promote GPT Patch
 
-description: Automatically promotes any new .diff file from .patches into a new branch and opens a pull request.
-
 on:
   push:
     paths:
@@ -9,9 +7,7 @@ on:
 
 jobs:
   promote:
-    name: Promote Patch to PR
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -24,10 +20,9 @@ jobs:
       - name: Extract triggered patch name
         id: extract
         run: |
-          echo "TRIGGERED_PATCH=$(echo '${{ github.event.head_commit.modified[0] }}' | xargs basename)" >> $GITHUB_ENV
+          echo "TRIGGERED_PATCH=$(basename '${{ github.event.head_commit.added[0] }}')" >> $GITHUB_ENV
 
-      - name: Promote patch via script
-        run: |
-          bash scripts/create_pr_from_patch.sh
+      - name: Promote patch to feature branch
+        run: bash scripts/create_pr_from_patch.sh
         env:
           TRIGGERED_PATCH: ${{ env.TRIGGERED_PATCH }}
