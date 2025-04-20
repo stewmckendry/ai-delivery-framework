@@ -1,3 +1,4 @@
+```bash
 #!/bin/bash
 set -e
 
@@ -35,6 +36,7 @@ fi
 # Step 3: Ensure clean state and checkout main
 if git show-ref --quiet refs/remotes/origin/main; then
   echo "📥 Fetching and checking out origin/main"
+  git fetch origin
   git checkout -B main origin/main
 else
   echo "❌ ERROR: origin/main not found"
@@ -104,3 +106,5 @@ echo "🧹 Cleaned up patch file: $PATCH_FILE"
 
 echo "✅ Patch promoted to branch and ready for PR review!"
 echo "🚀 Done!"
+```
+
