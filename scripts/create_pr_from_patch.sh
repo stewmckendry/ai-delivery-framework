@@ -88,10 +88,14 @@ else
   echo "ℹ️ GitHub CLI not found. PR not created automatically."
 fi
 
-# Optional: Pop stash back (for local dev, not CI)
-if git stash list | grep -q "autostash-before-patch-apply"; then
-  echo "🔓 Restoring stashed changes..."
-  git stash pop || echo "⚠️ Merge conflict on stash pop; resolve manually."
+# Optional: Pop stash back (only in local dev, not CI)
+if [ -z "$CI" ]; then
+  if git stash list | grep -q "autostash-before-patch-apply"; then
+    echo "🔓 Restoring stashed changes..."
+    git stash pop || echo "⚠️ Merge conflict on stash pop. Run 'git status' and resolve manually."
+  fi
+else
+  echo "💡 Skipping stash pop in CI (safe mode)"
 fi
 
 # Optional: Clean up the patch so it doesn’t get reapplied
