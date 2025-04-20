@@ -1,152 +1,119 @@
-# 📁 scripts/generate_patch.py
-# This script generates a Git patch, logs relevant metadata, and can optionally auto-promote the patch to a new branch + PR.
-
+import os
+import sys
 import argparse
 import subprocess
+import difflib
 import yaml
-from pathlib import Path
 from datetime import datetime
-import os
+from pathlib import Path
 
-# Define directories for patches and logs
-PATCH_DIR = Path(".patches")
-PATCH_DIR.mkdir(parents=True, exist_ok=True)
+# Paths
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+PATCHES_DIR = PROJECT_ROOT / ".patches"
+LOGS_DIR = PROJECT_ROOT / ".logs"
+PATCHES_DIR.mkdir(exist_ok=True)
+LOGS_DIR.mkdir(exist_ok=True)
 
-METRICS_PATH = Path(".metrics/metrics.yaml")
-CHANGELOG_PATH = Path(".logs/changelog.yaml")
-THOUGHT_TRACE_PATH = Path(".logs/thought_trace.yaml")
-HANDOFF_LOG_PATH = Path(".logs/handoff_log.yaml")
+CHANGELOG_PATH = LOGS_DIR / "changelog.yaml"
+HANDOFF_LOG_PATH = LOGS_DIR / "handoff_log.yaml"
+THOUGHT_TRACE_PATH = LOGS_DIR / "thought_trace.yaml"
 
-# Ensure all log files exist
-for log_path in [CHANGELOG_PATH, THOUGHT_TRACE_PATH, HANDOFF_LOG_PATH]:
-    log_path.parent.mkdir(parents=True, exist_ok=True)
+
+def get_staged_files():
+    result = subprocess.run(["git", "diff", "--name-only", "--cached"], capture_output=True, text=True)
+    return result.stdout.strip().split("\n") if result.stdout else []
+
+
+def file_exists_in_repo(file_path):
+    result = subprocess.run(["git", "ls-files", file_path], capture_output=True, text=True)
+    return result.returncode == 0 and result.stdout.strip() != ""
+
+
+def generate_diff(staged_files, patch_path):
+    with open(patch_path, "w") as patch_file:
+        for file in staged_files:
+            subprocess.run(["git", "diff", "--cached", file], stdout=patch_file)
+
+
+def append_to_log(log_path, entry):
     if not log_path.exists():
         with open(log_path, "w") as f:
-            yaml.safe_dump([], f)
-
-# Capture the staged Git diff
-def get_git_diff():
-    result = subprocess.run(["git", "diff", "--cached"], capture_output=True, text=True)
-    return result.stdout.strip()
-
-# Capture the list of changed files
-def get_changed_files():
-    result = subprocess.run(["git", "diff", "--cached", "--name-only"], capture_output=True, text=True)
-    return result.stdout.strip().split("\n")
-
-# Determine tags for the patch based on file types and patch type
-def determine_tags(files, patch_type):
-    tags = set()
-    if any("test" in f.lower() or "tests/" in f for f in files):
-        tags.add("tests")
-    if any("docs" in f.lower() or "readme" in f.lower() for f in files):
-        tags.add("docs")
-    if patch_type:
-        tags.add(patch_type)
-    return list(tags)
-
-# Stub for updating delivery metrics
-def update_metrics():
-    print("[INFO] Metrics update triggered (stub).")
-
-# Write patch file to .patches/ with timestamped name
-def write_patch_file(content, tags):
-    ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-    patch_path = PATCH_DIR / f"patch_{ts}.diff"
-    with open(patch_path, "w") as f:
-        f.write(content)
-    print(f"[OK] Patch saved: {patch_path}")
-    print(f"[TAG] {', '.join(tags)}")
-    return patch_path
-
-# Append structured entry to any YAML log
-def append_to_log(log_path, entry):
+            yaml.dump([], f)
     with open(log_path, "r") as f:
         data = yaml.safe_load(f) or []
     data.append(entry)
     with open(log_path, "w") as f:
-        yaml.safe_dump(data, f)
+        yaml.dump(data, f)
 
-# Run validation script to check patch quality and structure
-def run_patch_validation():
-    result = subprocess.run(["python", "scripts/validate_patch.py"])
-    if result.returncode != 0:
-        print("[FAIL] Patch validation failed.")
-        exit(1)
 
-# Generate a patch summary (optional)
-def run_summary_generator():
-    subprocess.run(["python", "scripts/generate_summary.py"])
+def check_merge_conflict_risk(staged_files):
+    risky_files = []
+    for file in staged_files:
+        if file_exists_in_repo(file):
+            risky_files.append(file)
+    return risky_files
 
-# If enabled, auto-create a feature branch, apply patch, and open PR
-def autopromote_patch():
-    script = Path("scripts/create_pr_from_patch.sh")
-    if not script.exists():
-        print("⚠️  Promotion script not found. Skipping autopromote.")
-        return
-    subprocess.run(["bash", str(script)])
-
-# Main CLI logic
 
 def main():
-    parser = argparse.ArgumentParser(description="Generate a Git patch with optional tagging")
-    parser.add_argument("--update-metrics", action="store_true", help="Trigger metrics update after patch")
-    parser.add_argument("--skip-log", action="store_true", help="Skip writing patch to .patches")
-    parser.add_argument("--type", choices=["bug", "feature", "infra"], help="Type of patch work")
-    parser.add_argument("--thought", type=str, help="Optional reasoning to include in the thought trace")
-    parser.add_argument("--from-pod", type=str, default="dev", help="Pod handing off work")
-    parser.add_argument("--to-pod", type=str, default="qa", help="Pod receiving work")
-    parser.add_argument("--summary", action="store_true", help="Generate a markdown summary after patch")
-    parser.add_argument("--autopromote", action="store_true", help="Automatically create branch and PR")
-
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--type", required=True, help="Type of patch: bugfix, feature, tests")
+    parser.add_argument("--thought", required=True, help="Thought or purpose behind the patch")
+    parser.add_argument("--autopromote", action="store_true", help="Promote patch immediately")
     args = parser.parse_args()
 
-    diff = get_git_diff()
-    files = get_changed_files()
-
-    if not diff:
+    staged_files = get_staged_files()
+    if not staged_files:
         print("[WARN] No staged changes to commit.")
-        return
+        sys.exit(0)
 
-    run_patch_validation()
+    risky_files = check_merge_conflict_risk(staged_files)
+    if risky_files:
+        print("⚠️ POTENTIAL MERGE CONFLICT: These files already exist in the repo and are staged:")
+        for f in risky_files:
+            print(f"  - {f}")
+        print("👉 Consider running './scripts/reset_conflicts.sh' to discard or unstage.")
 
-    tags = determine_tags(files, args.type)
-    ts = datetime.now().isoformat()
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    patch_filename = f"patch_{timestamp}.diff"
+    patch_path = PATCHES_DIR / patch_filename
 
-    patch_path = None
-    if not args.skip_log:
-        patch_path = write_patch_file(diff, tags)
+    generate_diff(staged_files, patch_path)
+    print("[OK] Patch saved:", patch_path)
 
-    if args.update_metrics:
-        update_metrics()
+    # Thought tag heuristics
+    tags = [args.type]
+    if any("test" in f.lower() for f in staged_files):
+        tags.append("tests")
+    print("[TAG]", ", ".join(set(tags)))
 
-    patch_entry = {
-        "timestamp": ts,
-        "files": files,
-        "tags": tags,
-        "type": args.type or "unspecified"
+    # Log entries
+    changelog_entry = {
+        "timestamp": timestamp,
+        "type": args.type,
+        "files": staged_files,
+        "patch": str(patch_path)
     }
-
-    thought = args.thought or "Patch created with reasoning trace."
+    thought_entry = {
+        "timestamp": timestamp,
+        "thought": args.thought,
+        "files": staged_files,
+        "tags": tags
+    }
     handoff_entry = {
-        "timestamp": ts,
-        "from": args.from_pod,
-        "to": args.to_pod,
-        "reason": "Next pod in flow"
+        "timestamp": timestamp,
+        "patch_file": str(patch_path),
+        "branch_name": f"chatgpt/auto/{patch_filename[:-5]}",
+        "status": "generated"
     }
 
-    # Log patch metadata
-    append_to_log(CHANGELOG_PATH, patch_entry)
-    append_to_log(THOUGHT_TRACE_PATH, {"timestamp": ts, "thought": thought})
+    append_to_log(CHANGELOG_PATH, changelog_entry)
+    append_to_log(THOUGHT_TRACE_PATH, thought_entry)
     append_to_log(HANDOFF_LOG_PATH, handoff_entry)
 
-    if args.summary:
-        run_summary_generator()
-
     if args.autopromote:
-        autopromote_patch()
+        print("🧠 Starting AI-native patch promotion to feature branch...")
+        subprocess.run(["bash", str(PROJECT_ROOT / "scripts" / "create_pr_from_patch.sh")])
 
-    print(f"[PR TAGS] Suggested: {', '.join(tags)}")
 
 if __name__ == "__main__":
     main()
