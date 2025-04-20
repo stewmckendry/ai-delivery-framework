@@ -8,6 +8,7 @@ on:
 jobs:
   promote:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -21,6 +22,9 @@ jobs:
         id: extract
         run: |
           echo "TRIGGERED_PATCH=$(basename '${{ github.event.head_commit.added[0] }}')" >> $GITHUB_ENV
+
+      - name: Debug output
+        run: echo "Triggered patch: ${{ env.TRIGGERED_PATCH }}"
 
       - name: Promote patch to feature branch
         run: bash scripts/create_pr_from_patch.sh
