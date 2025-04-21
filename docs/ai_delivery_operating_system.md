@@ -484,3 +484,39 @@ These will reduce manual effort and ensure pods stay in sync with Git-tracked me
 
 ---
 
+🚀 Next Steps for Implementation
+
+Here are the recommended actions to fully activate and scale the AI-native delivery system:
+
+📁 File & Template Setup
+- Scaffold task.yaml with starter Phase 1 tasks
+- Create an initial memory.yaml with tagged references
+- Add markdown templates to docs/ for:
+  - Feature specs (docs/features/)
+  - QA acceptance criteria (docs/qa/)
+  - E2E test plans (docs/qa/e2e_test_plan.md)
+  - Cutover plan (docs/workflows/cutover_plan.md)
+  - Go-live retrospective (docs/rituals/go_live_retrospective.md)
+  - Run book (docs/release/run_book.md)
+  - Deployment book (docs/release/deployment_book.md)
+  - Launch announcement (docs/release/launch_announcement.md)
+🧠 Prompt + Script Integration 
+- Populate prompts/ with system and pod-specific prompts
+- Build scripts to:
+  - add_task.py: create new task entries
+  - update_memory.py: maintain memory.yaml entries
+  - sync_task_memory.py: ensure tasks and memory align
+  - link_feedback.py: connect logs to task.yaml
+  - load_prompt.py: preview or load prompt contents
+  - load_input_urls.py: get clickable GitHub links from task inputs
+  - validate_ready.py: check DoR compliance
+  - validate_done.py: check DoD compliance
+🔁 GitHub + Patch Pipeline
+- Finalize generate_patch.py logic for outputting .diff
+- Connect GitHub Action to auto-promote patches and open PRs
+- Test PR-based patch delivery loop (task → patch → PR)
+🧪 Pilot + Iterate
+- Apply the operating system to a live project (e.g., Concussion AgentForms)
+- Run Phase 1 tasks with DevPod and Human in the loop
+- Test workflows from memory lookup to prompt to patch to GitHub
+- Conduct a go-live retro on the memory system itself and refine

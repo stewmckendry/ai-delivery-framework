@@ -22,6 +22,7 @@ To enable seamless, automated contribution of code, content, and logs by ChatGPT
 - Runs `copy_patch_to_repo.py` (TBD) to place files in `.patches/`
 - Pushes `.diff` to GitHub repo to trigger patch promotion
 - Reviews PR and merges if correct
+- Can push direct changes to `main` (see below)
 
 ---
 
@@ -49,6 +50,28 @@ python scripts/generate_patch.py --type feature --thought "Add symptom parser" -
 
 ---
 
+## 👤 Human Contributor FAQ
+
+### ✅ Can I push directly to `main`?
+Yes! As long as you do **not** touch the `.patches/` folder, you can safely:
+
+```bash
+git add src/some_code.py
+git commit -m "Update feature"
+git push origin main
+```
+
+This does **not** trigger the patch promotion workflow.
+
+### ❌ When does GitHub Action run?
+Only if you push a `.diff` to the `.patches/` folder. For example:
+```bash
+git add .patches/patch_20250420_130000.diff
+```
+This will trigger `promote_patch.yaml` and try to auto-apply the patch + PR.
+
+---
+
 ## 🛠️ Scripts Overview
 
 ### `scripts/generate_patch.py`
@@ -63,6 +86,10 @@ python scripts/generate_patch.py --type feature --thought "Add symptom parser" -
   - Branch naming
   - Stash/restore local changes
   - Patch cleanup after apply
+
+### `scripts/resolve_merge_conflicts.sh`
+- Auto-cleans known merge conflict scenarios
+- Useful when a file is both staged and patched
 
 ---
 
@@ -89,6 +116,7 @@ bash scripts/resolve_merge_conflicts.sh
 - ❌ **Don't `git add` files before running `generate_patch.py`** → causes merge conflict
 - ✅ Let the patch generator handle staging/committing
 - ❌ Don't commit ChatGPT files manually — use patches
+- ✅ Human can push regular changes to `main` (just avoid `.patches/`)
 
 ---
 
@@ -96,6 +124,7 @@ bash scripts/resolve_merge_conflicts.sh
 - [ ] Finalize `copy_patch_to_repo.py` for human patch uploads
 - [ ] Enhance `generate_patch.py` with path validation + duplicate detection
 - [ ] Enable metadata tagging of patches by Pod and purpose
+- [ ] Add PoD-type-specific folders or manifest to organize output
 
 ---
 
