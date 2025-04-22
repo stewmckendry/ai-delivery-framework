@@ -1,0 +1,18 @@
+{
+    "schema_version": "v1",
+    "name_for_human": "GitHub File Tool",
+    "name_for_model": "github_file_tool",
+    "description_for_model": "Fetch file contents from GitHub using repository path.",
+    "description_for_human": "Use this tool to read any file from a public or private GitHub repo using its path.",
+    "auth": {
+      "type": "user_http",
+      "authorization_type": "bearer"
+    },
+    "api": {
+      "type": "openapi",
+      "url": "https://stewmckendry.github.io/ai-concussion-agent/poc/ChatGPT_Git/openapi.yaml"
+    },
+    "logo_url": "https://stewmckendry.github.io/ai-concussion-agent/poc/ChatGPT_Git/logo.png",
+    "contact_email": "support@yourdomain.com",
+    "legal_info_url": "https://stewmckendry.github.io/ai-concussion-agent/poc/ChatGPT_Git/legal"
+  }

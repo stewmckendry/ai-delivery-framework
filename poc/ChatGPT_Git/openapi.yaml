@@ -1,0 +1,35 @@
+openapi: 3.0.1
+info:
+  title: GitHub File Reader
+  version: 1.0.0
+paths:
+  /repos/{owner}/{repo}/contents/{path}:
+    get:
+      summary: Get the contents of a file
+      operationId: getFileContents
+      parameters:
+        - name: owner
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: repo
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: path
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: ref
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: File content returned
+        '404':
+          description: File not found
