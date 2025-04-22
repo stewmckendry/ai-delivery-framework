@@ -67,22 +67,22 @@
           "404": {
             "description": "File not found"
           }
-        }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     }
   },
   "components": {
     "securitySchemes": {
-      "ApiKeyAuth": {
-        "type": "apiKey",
-        "in": "header",
-        "name": "Authorization"
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
       }
     }
-  },
-  "security": [
-    {
-      "ApiKeyAuth": []
-    }
-  ]
+  }
 }
