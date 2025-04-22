@@ -71,3 +71,12 @@ async def get_batch_files(request: Request):
 def serve_openapi():
     with open("openapi.json", "r") as f:
         return JSONResponse(content=json.load(f))
+
+# ✅ Override default FastAPI-generated OpenAPI with static file
+from fastapi.openapi.utils import get_openapi
+
+def custom_openapi():
+    with open("openapi.json", "r") as f:
+        return json.load(f)
+
+app.openapi = custom_openapi
