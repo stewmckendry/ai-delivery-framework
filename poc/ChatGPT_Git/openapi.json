@@ -7,7 +7,7 @@
   },
   "servers": [
     {
-      "url": "https://api.github.com"
+      "url": "https://stewmckendry.github.io/ai-concussion-agent/poc/ChatGPT_Git"
     }
   ],
   "paths": {
