@@ -1,5 +1,5 @@
 {
-  "openapi": "3.0.1",
+  "openapi": "3.1.0",
   "info": {
     "title": "GitHub File Reader",
     "description": "Fetch file contents from GitHub repos.",
@@ -83,6 +83,7 @@
         "scheme": "bearer",
         "bearerFormat": "JWT"
       }
-    }
+    },
+    "schemas": {}
   }
 }
