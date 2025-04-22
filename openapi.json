@@ -1,9 +1,9 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "GitHub File Reader",
-    "description": "Fetch file contents from GitHub repos.",
-    "version": "v1.0.0"
+    "title": "GitHub File Proxy",
+    "version": "1.0.0",
+    "description": "Fetches single or multiple files from a GitHub repo using path-based access."
   },
   "servers": [
     {
@@ -15,36 +15,19 @@
     "/repos/{owner}/{repo}/contents/{path}": {
       "get": {
         "operationId": "getGitHubFile",
-        "summary": "Get a file from a GitHub repo",
+        "summary": "Fetch a single file from a GitHub repo",
+        "security": [
+          { "bearerAuth": [] }
+        ],
         "parameters": [
-          {
-            "name": "owner",
-            "in": "path",
-            "required": true,
-            "schema": { "type": "string" }
-          },
-          {
-            "name": "repo",
-            "in": "path",
-            "required": true,
-            "schema": { "type": "string" }
-          },
-          {
-            "name": "path",
-            "in": "path",
-            "required": true,
-            "schema": { "type": "string" }
-          },
-          {
-            "name": "ref",
-            "in": "query",
-            "required": false,
-            "schema": { "type": "string" }
-          }
+          { "name": "owner", "in": "path", "required": true, "schema": { "type": "string" } },
+          { "name": "repo", "in": "path", "required": true, "schema": { "type": "string" } },
+          { "name": "path", "in": "path", "required": true, "schema": { "type": "string" } },
+          { "name": "ref", "in": "query", "required": false, "schema": { "type": "string" } }
         ],
         "responses": {
           "200": {
-            "description": "File found",
+            "description": "GitHub file content",
             "content": {
               "application/json": {
                 "schema": {
@@ -55,7 +38,8 @@
                     "sha": { "type": "string" },
                     "content": {
                       "type": "string",
-                      "description": "Base64-encoded file contents"
+                      "format": "byte",
+                      "description": "Base64-encoded content"
                     },
                     "encoding": { "type": "string" }
                   },
@@ -67,12 +51,67 @@
           "404": {
             "description": "File not found"
           }
-        },
+        }
+      }
+    },
+    "/batch-files": {
+      "post": {
+        "operationId": "getBatchFiles",
+        "summary": "Fetch multiple files from a GitHub repo",
         "security": [
-          {
-            "bearerAuth": []
+          { "bearerAuth": [] }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "owner": { "type": "string" },
+                  "repo": { "type": "string" },
+                  "paths": {
+                    "type": "array",
+                    "items": { "type": "string" }
+                  },
+                  "ref": { "type": "string" }
+                },
+                "required": ["owner", "repo", "paths"]
+              }
+            }
           }
-        ]
+        },
+        "responses": {
+          "200": {
+            "description": "Multiple file contents returned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "files": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": { "type": "string" },
+                          "content": {
+                            "type": "string",
+                            "format": "byte",
+                            "description": "Base64-encoded content"
+                          },
+                          "error": { "type": "string" }
+                        },
+                        "required": ["path"]
+                      }
+                    }
+                  },
+                  "required": ["files"]
+                }
+              }
+            }
+          }
+        }
       }
     }
   },
@@ -83,7 +122,6 @@
         "scheme": "bearer",
         "bearerFormat": "JWT"
       }
-    },
-    "schemas": {}
+    }
   }
 }

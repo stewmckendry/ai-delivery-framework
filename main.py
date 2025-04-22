@@ -20,24 +20,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Load the static OpenAPI schema from a file
-def load_custom_openapi():
-    with open("openapi.json", "r") as f:
-        return json.load(f)
-
-# Override FastAPI's built-in OpenAPI generator
-def custom_openapi():
-    return load_custom_openapi()
-
-app.openapi = custom_openapi
-
 @app.get("/")
 async def root():
     return {"message": "GitHub File Proxy is running."}
-
-@app.get("/legal")
-async def legal():
-    return {"message": "Placeholder for privacy page."}
 
 @app.get("/repos/{owner}/{repo}/contents/{path:path}")
 async def get_file(owner: str, repo: str, path: str, ref: str = None):
@@ -55,6 +40,32 @@ async def get_file(owner: str, repo: str, path: str, ref: str = None):
         return response.json()
     else:
         raise HTTPException(status_code=response.status_code, detail=response.text)
+
+@app.post("/batch-files")
+async def get_batch_files(request: Request):
+    body = await request.json()
+    owner = body.get("owner")
+    repo = body.get("repo")
+    paths = body.get("paths", [])
+    ref = body.get("ref")
+
+    headers = {
+        "Authorization": f"Bearer {GITHUB_TOKEN}",
+        "Accept": "application/vnd.github+json"
+    }
+
+    async with httpx.AsyncClient() as client:
+        results = []
+        for path in paths:
+            url = f"{GITHUB_API}/repos/{owner}/{repo}/contents/{path}"
+            params = {"ref": ref} if ref else {}
+            resp = await client.get(url, headers=headers, params=params)
+            if resp.status_code == 200:
+                results.append({"path": path, "content": resp.json()})
+            else:
+                results.append({"path": path, "error": resp.text})
+
+    return {"files": results}
 
 @app.get("/openapi.json")
 def serve_openapi():
