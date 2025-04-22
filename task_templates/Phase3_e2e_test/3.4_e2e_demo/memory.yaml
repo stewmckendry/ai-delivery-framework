@@ -1,0 +1,14 @@
+template: true
+
+e2e_test_results:
+  - path: test/e2e/e2e_test_results.md
+    raw_url: https://raw.githubusercontent.com/stewmckendry/ai-concussion-agent/main/test/e2e/e2e_test_results.md
+    repo: stewmckendry/ai-concussion-agent
+    file_type: markdown
+    description: Used to select representative scenarios and capture demo highlights
+    tags: [demo, review, e2e]
+    pod_owner: WoWPod
+    created_date: 2025-04-22
+    last_updated_by: QAPod
+    last_update_date: 2025-04-22
+    notes: Input for review planning and storytelling

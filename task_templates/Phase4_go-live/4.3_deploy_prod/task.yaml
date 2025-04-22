@@ -1,0 +1,18 @@
+template: true
+
+tasks:
+  4.3_go_live_deployment:
+    description: Deploy the application into production following the final approved checklist
+    assigned_pod: DevPod
+    status: pending
+    prompt: prompts/dev/4.3_go_live_deployment.txt
+    inputs:
+      - docs/release/cutover_checklist.md
+    outputs:
+      - .logs/deployments/go_live_log.md
+    feedback_file: .logs/feedback/4.3_go_live_deployment.md
+    ready: true
+    done: false
+    created_by: human
+    created_at: 2025-04-22T14:00:00
+    updated_at: 2025-04-22T14:00:00

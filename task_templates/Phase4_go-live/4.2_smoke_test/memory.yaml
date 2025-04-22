@@ -1,0 +1,14 @@
+template: true
+
+smoke_test_plan:
+  - path: test/e2e/e2e_test_plan.md
+    raw_url: https://raw.githubusercontent.com/stewmckendry/ai-concussion-agent/main/test/e2e/e2e_test_plan.md
+    repo: stewmckendry/ai-concussion-agent
+    file_type: markdown
+    description: List of end-to-end test scenarios used to select smoke tests
+    tags: [qa, smoke, prod_tests]
+    pod_owner: QAPod
+    created_date: 2025-04-22
+    last_updated_by: QAPod
+    last_update_date: 2025-04-22
+    notes: Used to identify critical flows to validate in prod

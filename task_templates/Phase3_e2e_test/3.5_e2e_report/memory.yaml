@@ -1,0 +1,27 @@
+template: true
+
+e2e_test_results:
+  - path: test/e2e/e2e_test_results.md
+    raw_url: https://raw.githubusercontent.com/stewmckendry/ai-concussion-agent/main/test/e2e/e2e_test_results.md
+    repo: stewmckendry/ai-concussion-agent
+    file_type: markdown
+    description: Pass/fail/block outcomes from end-to-end test execution
+    tags: [quality, defects, metrics]
+    pod_owner: DeliveryPod
+    created_date: 2025-04-22
+    last_updated_by: QAPod
+    last_update_date: 2025-04-22
+    notes: Used to calculate QA and delivery quality metrics
+
+quality_metrics:
+  - path: metrics/metrics.yaml
+    raw_url: https://raw.githubusercontent.com/stewmckendry/ai-concussion-agent/main/metrics/metrics.yaml
+    repo: stewmckendry/ai-concussion-agent
+    file_type: yaml
+    description: Consolidated delivery and test statistics
+    tags: [metrics, velocity, quality]
+    pod_owner: DeliveryPod
+    created_date: 2025-04-20
+    last_updated_by: WoWPod
+    last_update_date: 2025-04-22
+    notes: Final source for QA sign-off report

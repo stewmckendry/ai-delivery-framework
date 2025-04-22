@@ -1,0 +1,14 @@
+template: true
+
+cutover_checklist:
+  - path: docs/release/cutover_checklist.md
+    raw_url: https://raw.githubusercontent.com/stewmckendry/ai-concussion-agent/main/docs/release/cutover_checklist.md
+    repo: stewmckendry/ai-concussion-agent
+    file_type: markdown
+    description: Final go-live sequence including rollback and checks
+    tags: [cutover, production, deployment]
+    pod_owner: DeliveryPod
+    created_date: 2025-04-22
+    last_updated_by: DeliveryPod
+    last_update_date: 2025-04-22
+    notes: Executed by DevPod

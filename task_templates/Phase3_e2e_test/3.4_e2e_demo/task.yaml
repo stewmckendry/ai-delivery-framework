@@ -1,0 +1,18 @@
+template: true
+
+tasks:
+  3.4_coordinate_e2e_demo:
+    description: Organize and document an end-to-end walkthrough, review, or demo of key app workflows
+    assigned_pod: WoWPod
+    status: pending
+    prompt: prompts/wow/3.4_coordinate_e2e_demo.txt
+    inputs:
+      - test/e2e/e2e_test_results.md
+    outputs:
+      - docs/reviews/e2e_review_notes.md
+    feedback_file: .logs/feedback/3.4_coordinate_e2e_demo.md
+    ready: true
+    done: false
+    created_by: human
+    created_at: 2025-04-22T13:00:00
+    updated_at: 2025-04-22T13:00:00

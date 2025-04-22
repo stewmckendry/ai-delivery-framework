@@ -1,0 +1,18 @@
+template: true
+
+tasks:
+  4.1_create_cutover_plan:
+    description: Define a clear and time-bound cutover checklist and go-live plan, covering key responsibilities and risks
+    assigned_pod: DeliveryPod
+    status: pending
+    prompt: prompts/delivery/4.1_create_cutover_plan.txt
+    inputs:
+      - docs/deployment/deployment_guide.md
+    outputs:
+      - docs/release/cutover_checklist.md
+    feedback_file: .logs/feedback/4.1_create_cutover_plan.md
+    ready: true
+    done: false
+    created_by: human
+    created_at: 2025-04-22T14:00:00
+    updated_at: 2025-04-22T14:00:00

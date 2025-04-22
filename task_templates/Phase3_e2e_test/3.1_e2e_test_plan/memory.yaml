@@ -1,0 +1,27 @@
+template: true
+
+feature_list:
+  - path: docs/features/feature_list.md
+    raw_url: https://raw.githubusercontent.com/stewmckendry/ai-concussion-agent/main/docs/features/feature_list.md
+    repo: stewmckendry/ai-concussion-agent
+    file_type: markdown
+    description: List of all defined product features for the current release
+    tags: [features, planning]
+    pod_owner: DevPod
+    created_date: 2025-04-20
+    last_updated_by: DevPod
+    last_update_date: 2025-04-22
+    notes: Source for scenario grouping and prioritization
+
+acceptance_matrix:
+  - path: docs/qa/acceptance_matrix.md
+    raw_url: https://raw.githubusercontent.com/stewmckendry/ai-concussion-agent/main/docs/qa/acceptance_matrix.md
+    repo: stewmckendry/ai-concussion-agent
+    file_type: markdown
+    description: Final list of feature acceptance criteria
+    tags: [qa, criteria]
+    pod_owner: QAPod
+    created_date: 2025-04-20
+    last_updated_by: QAPod
+    last_update_date: 2025-04-22
+    notes: Used to align E2E scenarios with acceptance logic

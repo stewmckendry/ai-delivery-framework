@@ -1,0 +1,14 @@
+template: true
+
+e2e_test_plan:
+  - path: test/e2e/e2e_test_plan.md
+    raw_url: https://raw.githubusercontent.com/stewmckendry/ai-concussion-agent/main/test/e2e/e2e_test_plan.md
+    repo: stewmckendry/ai-concussion-agent
+    file_type: markdown
+    description: Full set of E2E test scenarios including flows, conditions, and expected outcomes
+    tags: [e2e, qa, test_plan]
+    pod_owner: QAPod
+    created_date: 2025-04-22
+    last_updated_by: QAPod
+    last_update_date: 2025-04-22
+    notes: Guide for executing full app validation

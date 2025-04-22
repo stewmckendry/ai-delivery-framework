@@ -1,0 +1,14 @@
+template: true
+
+deployment_guide:
+  - path: docs/deployment/deployment_guide.md
+    raw_url: https://raw.githubusercontent.com/stewmckendry/ai-concussion-agent/main/docs/deployment/deployment_guide.md
+    repo: stewmckendry/ai-concussion-agent
+    file_type: markdown
+    description: Technical and procedural deployment reference
+    tags: [deployment, release]
+    pod_owner: DevPod
+    created_date: 2025-04-21
+    last_updated_by: DevPod
+    last_update_date: 2025-04-22
+    notes: Basis for final cutover plan

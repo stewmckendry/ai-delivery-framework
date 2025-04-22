@@ -1,0 +1,14 @@
+template: true
+
+e2e_test_results:
+  - path: test/e2e/e2e_test_results.md
+    raw_url: https://raw.githubusercontent.com/stewmckendry/ai-concussion-agent/main/test/e2e/e2e_test_results.md
+    repo: stewmckendry/ai-concussion-agent
+    file_type: markdown
+    description: Test result log with outcomes, environment, and linked issues
+    tags: [e2e, test_results]
+    pod_owner: QAPod
+    created_date: 2025-04-22
+    last_updated_by: QAPod
+    last_update_date: 2025-04-22
+    notes: Reference for fixing broken E2E scenarios

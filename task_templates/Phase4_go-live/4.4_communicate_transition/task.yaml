@@ -1,0 +1,18 @@
+template: true
+
+tasks:
+  4.4_announce_go_live:
+    description: Notify stakeholders of the successful release, outline changes, next steps, and support transition
+    assigned_pod: Human
+    status: pending
+    prompt: prompts/human/4.4_announce_go_live.txt
+    inputs:
+      - .logs/deployments/go_live_log.md
+    outputs:
+      - docs/release/release_announcement.md
+    feedback_file: .logs/feedback/4.4_announce_go_live.md
+    ready: true
+    done: false
+    created_by: human
+    created_at: 2025-04-22T14:00:00
+    updated_at: 2025-04-22T14:00:00
