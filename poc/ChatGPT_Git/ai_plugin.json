@@ -10,7 +10,7 @@
     },
     "api": {
       "type": "openapi",
-      "url": "https://stewmckendry.github.io/ai-concussion-agent/poc/ChatGPT_Git/openapi.yaml"
+      "url": "https://stewmckendry.github.io/ai-concussion-agent/poc/ChatGPT_Git/openapi.json"
     },
     "logo_url": "https://stewmckendry.github.io/ai-concussion-agent/poc/ChatGPT_Git/logo.png",
     "contact_email": "support@yourdomain.com",
