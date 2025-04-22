@@ -33,5 +33,13 @@ paths:
       responses:
         '200':
           description: File content returned
+          content:
+            application/json:
+              schema:
+                type: object
         '404':
           description: File not found
+          content:
+            application/json:
+              schema:
+                type: object
