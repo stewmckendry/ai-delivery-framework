@@ -1,6 +1,8 @@
+# 📁 github_proxy/main.py
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-import httpx, os
+from fastapi.responses import JSONResponse
+import httpx, os, json
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -22,7 +24,6 @@ app.add_middleware(
 async def root():
     return {"message": "GitHub File Proxy is running."}
 
-
 @app.get("/repos/{owner}/{repo}/contents/{path:path}")
 async def get_file(owner: str, repo: str, path: str, ref: str = None):
     headers = {
@@ -39,3 +40,8 @@ async def get_file(owner: str, repo: str, path: str, ref: str = None):
         return response.json()
     else:
         raise HTTPException(status_code=response.status_code, detail=response.text)
+
+@app.get("/openapi.json")
+def serve_openapi():
+    with open("openapi.json", "r") as f:
+        return JSONResponse(content=json.load(f))
