@@ -20,6 +20,17 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Load the static OpenAPI schema from a file
+def load_custom_openapi():
+    with open("openapi.json", "r") as f:
+        return json.load(f)
+
+# Override FastAPI's built-in OpenAPI generator
+def custom_openapi():
+    return load_custom_openapi()
+
+app.openapi = custom_openapi
+
 @app.get("/")
 async def root():
     return {"message": "GitHub File Proxy is running."}
