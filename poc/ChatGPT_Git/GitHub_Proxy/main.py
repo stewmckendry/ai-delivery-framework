@@ -18,6 +18,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.get("/")
+async def root():
+    return {"message": "GitHub File Proxy is running."}
+
+
 @app.get("/repos/{owner}/{repo}/contents/{path:path}")
 async def get_file(owner: str, repo: str, path: str, ref: str = None):
     headers = {
