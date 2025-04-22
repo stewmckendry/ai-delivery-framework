@@ -1,8 +1,9 @@
 {
-  "openapi": "3.0.1",
+  "openapi": "3.1.0",
   "info": {
     "title": "GitHub File Reader",
-    "version": "1.0.0"
+    "description": "Fetch file contents from GitHub repos.",
+    "version": "v1.0.0"
   },
   "servers": [
     {
@@ -12,45 +13,55 @@
   "paths": {
     "/repos/{owner}/{repo}/contents/{path}": {
       "get": {
-        "summary": "Get the contents of a file",
-        "operationId": "getFileContents",
+        "operationId": "getGitHubFile",
+        "summary": "Get a file from a GitHub repo",
         "parameters": [
           {
             "name": "owner",
             "in": "path",
             "required": true,
-            "schema": {
-              "type": "string"
-            }
+            "schema": { "type": "string" }
           },
           {
             "name": "repo",
             "in": "path",
             "required": true,
-            "schema": {
-              "type": "string"
-            }
+            "schema": { "type": "string" }
           },
           {
             "name": "path",
             "in": "path",
             "required": true,
-            "schema": {
-              "type": "string"
-            }
+            "schema": { "type": "string" }
           },
           {
             "name": "ref",
             "in": "query",
             "required": false,
-            "schema": {
-              "type": "string"
-            }
+            "schema": { "type": "string" }
           }
         ],
         "responses": {
           "200": {
-            "description": "File content returned"
+            "description": "File found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "name": { "type": "string" },
+                    "path": { "type": "string" },
+                    "sha": { "type": "string" },
+                    "content": {
+                      "type": "string",
+                      "description": "Base64-encoded file contents"
+                    },
+                    "encoding": { "type": "string" }
+                  },
+                  "required": ["name", "path", "content"]
+                }
+              }
+            }
           },
           "404": {
             "description": "File not found"
