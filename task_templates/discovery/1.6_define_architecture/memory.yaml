@@ -1,0 +1,26 @@
+template: true
+
+architecture:
+  - path: docs/architecture/solution_overview.md
+    repo: stewmckendry/ai-concussion-agent
+    raw_url: https://raw.githubusercontent.com/stewmckendry/ai-concussion-agent/main/docs/architecture/solution_overview.md
+    file_type: markdown
+    description: Overview of the technical architecture, patterns, and deployment
+    tags: [architecture, solution_design]
+    pod_owner: DevPod
+    created_date: 2025-04-22
+    last_updated_by: Human
+    last_update_date: 2025-04-22
+    notes: System-level view for reference by all pods
+
+  - path: docs/architecture/standards.md
+    repo: stewmckendry/ai-concussion-agent
+    raw_url: https://raw.githubusercontent.com/stewmckendry/ai-concussion-agent/main/docs/architecture/standards.md
+    file_type: markdown
+    description: Code, documentation, and interface standards
+    tags: [standards, architecture]
+    pod_owner: ResearchPod
+    created_date: 2025-04-22
+    last_updated_by: Human
+    last_update_date: 2025-04-22
+    notes: Shared coding standards across pods

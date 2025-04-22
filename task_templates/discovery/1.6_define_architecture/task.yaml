@@ -1,0 +1,21 @@
+template: true
+
+tasks:
+  1.6_define_architecture_and_standards:
+    description: Draft initial solution architecture and coding or design standards
+    assigned_pod: DevPod
+    status: pending
+    prompt: prompts/dev/define_architecture.txt
+    inputs:
+      - docs/project_goals.md
+      - docs/features/feature_*.md
+      - docs/research/spikes/spike_*.md
+    outputs:
+      - docs/architecture/solution_overview.md
+      - docs/architecture/standards.md
+    feedback_file: .logs/feedback/1.6_define_architecture_and_standards.md
+    ready: true
+    done: false
+    created_by: human
+    created_at: 2025-04-22T10:00:00
+    updated_at: 2025-04-22T10:00:00

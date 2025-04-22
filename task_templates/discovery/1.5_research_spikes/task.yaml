@@ -1,0 +1,19 @@
+template: true
+
+tasks:
+  1.5_research_spikes:
+    description: Investigate and document unresolved questions, unknowns, or tool comparisons
+    assigned_pod: ResearchPod
+    status: pending
+    prompt: prompts/research/research_spikes.txt
+    inputs:
+      - docs/project_goals.md
+      - docs/features/feature_*.md
+    outputs:
+      - docs/research/spikes/spike_*.md
+    feedback_file: .logs/feedback/1.5_research_spikes.md
+    ready: true
+    done: false
+    created_by: human
+    created_at: 2025-04-22T10:00:00
+    updated_at: 2025-04-22T10:00:00
