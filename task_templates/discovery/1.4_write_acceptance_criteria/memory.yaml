@@ -1,0 +1,27 @@
+template: true
+
+features:
+  - path: docs/features/feature_*.md
+    repo: stewmckendry/ai-concussion-agent
+    raw_url: https://raw.githubusercontent.com/stewmckendry/ai-concussion-agent/main/docs/features/feature_sample.md
+    file_type: markdown
+    description: Feature descriptions, functionality specs, hypotheses
+    tags: [features]
+    pod_owner: DevPod
+    created_date: 2025-04-22
+    last_updated_by: Human
+    last_update_date: 2025-04-22
+    notes: Draft feature specs
+
+acceptance_criteria:
+  - path: docs/qa/acceptance_matrix.md
+    repo: stewmckendry/ai-concussion-agent
+    raw_url: https://raw.githubusercontent.com/stewmckendry/ai-concussion-agent/main/docs/qa/acceptance_matrix.md
+    file_type: markdown
+    description: Acceptance criteria for key features and flows
+    tags: [qa, acceptance_criteria]
+    pod_owner: QAPod
+    created_date: 2025-04-22
+    last_updated_by: Human
+    last_update_date: 2025-04-22
+    notes: QA framework draft

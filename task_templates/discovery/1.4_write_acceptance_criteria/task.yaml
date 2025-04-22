@@ -1,0 +1,19 @@
+template: true
+
+tasks:
+  1.4_write_acceptance_criteria:
+    description: Write or refine acceptance criteria based on feature specs and QA matrix
+    assigned_pod: QAPod
+    status: pending
+    prompt: prompts/qa/write_acceptance_criteria.txt
+    inputs:
+      - docs/features/feature_*.md
+    outputs:
+      - docs/qa/acceptance_matrix.md
+      - docs/features/feature_*.md
+    feedback_file: .logs/feedback/1.4_write_acceptance_criteria.md
+    ready: true
+    done: false
+    created_by: human
+    created_at: 2025-04-22T10:00:00
+    updated_at: 2025-04-22T10:00:00

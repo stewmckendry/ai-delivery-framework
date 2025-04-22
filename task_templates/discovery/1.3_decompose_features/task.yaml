@@ -1,0 +1,20 @@
+template: true
+
+tasks:
+  1.3_break_into_features:
+    description: Analyze project scope and break it into features, experiments, or hypotheses
+    assigned_pod: DevPod
+    status: pending
+    prompt: prompts/dev/break_into_features.txt
+    inputs:
+      - docs/project_goals.md
+      - docs/personas/user_roles.md
+      - docs/journeys/app_walkthrough.md
+    outputs:
+      - docs/features/feature_*.md
+    feedback_file: .logs/feedback/1.3_break_into_features.md
+    ready: true
+    done: false
+    created_by: human
+    created_at: 2025-04-22T10:00:00
+    updated_at: 2025-04-22T10:00:00

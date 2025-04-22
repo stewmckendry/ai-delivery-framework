@@ -1,0 +1,51 @@
+template: true
+
+user_roles:
+  - path: docs/personas/user_roles.md
+    raw_url: https://raw.githubusercontent.com/stewmckendry/ai-concussion-agent/main/docs/personas/user_roles.md
+    repo: stewmckendry/ai-concussion-agent
+    file_type: markdown
+    description: Personas and user roles that interact with the application
+    tags: [personas, user_flows]
+    pod_owner: DevPod
+    created_date: 2025-04-22
+    last_updated_by: Human
+    last_update_date: 2025-04-22
+    notes: Initial persona sketches
+
+project_goals:
+  - path: docs/project_goals.md
+    repo: stewmckendry/ai-concussion-agent
+    raw_url: https://raw.githubusercontent.com/stewmckendry/ai-concussion-agent/main/docs/project_goals.md
+    file_type: markdown
+    description: Describes overall project goals and vision
+    tags: [project_goals]
+    pod_owner: Human
+    created_date: 2025-04-22
+    last_updated_by: Human
+    last_update_date: 2025-04-22
+    notes: Captured at project kickoff
+
+user_roles:
+  - path: docs/personas/user_roles.md
+    raw_url: https://raw.githubusercontent.com/stewmckendry/ai-concussion-agent/main/docs/personas/user_roles.md
+    file_type: markdown
+    description: Personas and user roles that interact with the application
+    tags: [personas, user_flows]
+    pod_owner: DevPod
+    created_date: 2025-04-22
+    last_updated_by: Human
+    last_update_date: 2025-04-22
+    notes: Initial persona sketches
+
+app_walkthrough:
+  - path: docs/journeys/app_walkthrough.md
+    raw_url: https://raw.githubusercontent.com/stewmckendry/ai-concussion-agent/main/docs/journeys/app_walkthrough.md
+    file_type: markdown
+    description: End-to-end walkthrough of the app from a user perspective
+    tags: [journeys, user_flows]
+    pod_owner: DevPod
+    created_date: 2025-04-22
+    last_updated_by: Human
+    last_update_date: 2025-04-22
+    notes: App experience draft
