@@ -1,0 +1,27 @@
+template: true
+
+metrics_source:
+  - path: metrics/metrics.yaml
+    raw_url: https://raw.githubusercontent.com/stewmckendry/ai-concussion-agent/main/metrics/metrics.yaml
+    repo: stewmckendry/ai-concussion-agent
+    file_type: yaml
+    description: Canonical record of delivery metrics and patch tracking
+    tags: [metrics, velocity, burndown]
+    pod_owner: WoWPod
+    created_date: 2025-04-21
+    last_updated_by: WoWPod
+    last_update_date: 2025-04-22
+    notes: Used to generate retros, velocity and burn logs
+
+sprint_feedback:
+  - path: .logs/feedback/2.*.md
+    raw_url: https://raw.githubusercontent.com/stewmckendry/ai-concussion-agent/main/.logs/feedback/2.x_sample.md
+    repo: stewmckendry/ai-concussion-agent
+    file_type: markdown
+    description: Iteration-wide task feedback and process learnings
+    tags: [feedback, retrospective]
+    pod_owner: Human
+    created_date: 2025-04-22
+    last_updated_by: Human
+    last_update_date: 2025-04-22
+    notes: Source for retro insights and continuous improvement

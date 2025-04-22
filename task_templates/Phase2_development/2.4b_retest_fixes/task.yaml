@@ -1,0 +1,22 @@
+template: true
+
+tasks:
+  2.4b_retest_after_fixes:
+    description: Re-run previously failed or blocked test cases after DevPod fixes, confirm bug resolution, and update QA results and acceptance matrix
+    assigned_pod: QAPod
+    status: pending
+    prompt: prompts/qa/2.4b_retest_after_fixes.txt
+    inputs:
+      - test/feature_<feature_id>/qa_test_results.md
+      - src/feature_<feature_id>/**/*
+      - tests/feature_<feature_id>/**/*
+      - docs/qa/acceptance_matrix.md
+    outputs:
+      - test/feature_<feature_id>/qa_test_results.md         # Updated test case statuses
+      - docs/qa/acceptance_matrix.md                         # Final validation record
+    feedback_file: .logs/feedback/2.4b_retest_after_fixes.md
+    ready: true
+    done: false
+    created_by: human
+    created_at: 2025-04-22T12:00:00
+    updated_at: 2025-04-22T12:00:00

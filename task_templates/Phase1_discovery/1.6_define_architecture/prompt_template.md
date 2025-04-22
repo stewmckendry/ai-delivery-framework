@@ -20,7 +20,7 @@ inputs:
   repo: stewmckendry/ai-concussion-agent
 
 📡 TOOL USE:
-Use GitHub File Tool to load project context + spike outputs.
+Use the GitHub File Tool’s POST /batch-files endpoint to fetch all inputs.
 
 Then:
 # 🧠 AI-Native App Documentation Instructions

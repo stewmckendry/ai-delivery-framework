@@ -1,0 +1,51 @@
+template: true
+
+project_goals:
+  - path: docs/project_goals.md
+    file_type: markdown
+    description: Describes overall project goals and vision
+    tags: [project_goals, planning]
+    pod_owner: Human
+    created_date: 2025-04-22
+    last_updated_by: Human
+    last_update_date: 2025-04-22
+
+feature_list:
+  - path: docs/features/feature_list.md
+    file_type: markdown
+    description: List of features and their metadata for implementation
+    tags: [features, planning]
+    pod_owner: DevPod
+    created_date: 2025-04-22
+    last_updated_by: DevPod
+    last_update_date: 2025-04-22
+
+pod_assignments:
+  - path: docs/pods/pod_assignments.md
+    file_type: markdown
+    description: Mapping of features to assigned pods
+    tags: [pods, team_structure]
+    pod_owner: DevPod
+    created_date: 2025-04-22
+    last_updated_by: DevPod
+    last_update_date: 2025-04-22
+
+specs:
+  - path: docs/specs/spec_<feature_id>.md
+    file_type: markdown
+    description: Technical specification for each feature
+    tags: [specs, features, architecture]
+    pod_owner: DevPod
+    created_date: 2025-04-22
+    last_updated_by: DevPod
+    last_update_date: 2025-04-22
+
+acceptance_matrix:
+  - path: docs/qa/acceptance_matrix.md
+    file_type: markdown
+    description: QA matrix containing test cases and acceptance criteria
+    tags: [qa, testing, acceptance]
+    pod_owner: QAPod
+    created_date: 2025-04-22
+    last_updated_by: QAPod
+    last_update_date: 2025-04-22

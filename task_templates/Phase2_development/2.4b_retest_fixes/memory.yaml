@@ -1,0 +1,27 @@
+template: true
+
+qa_retest_log:
+  - path: test/feature_<feature_id>/qa_test_results.md
+    raw_url: https://raw.githubusercontent.com/stewmckendry/ai-concussion-agent/main/test/feature_<feature_id>/qa_test_results.md
+    repo: stewmckendry/ai-concussion-agent
+    file_type: markdown
+    description: Updated test execution log after bugfix verification
+    tags: [qa, retest]
+    pod_owner: QAPod
+    created_date: 2025-04-22
+    last_updated_by: QAPod
+    last_update_date: 2025-04-22
+    notes: Includes original and retest results
+
+acceptance_matrix:
+  - path: docs/qa/acceptance_matrix.md
+    raw_url: https://raw.githubusercontent.com/stewmckendry/ai-concussion-agent/main/docs/qa/acceptance_matrix.md
+    repo: stewmckendry/ai-concussion-agent
+    file_type: markdown
+    description: Master table of testable feature criteria and QA coverage
+    tags: [qa, acceptance_criteria]
+    pod_owner: QAPod
+    created_date: 2025-04-20
+    last_updated_by: QAPod
+    last_update_date: 2025-04-22
+    notes: Updated after test validation

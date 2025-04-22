@@ -1,0 +1,19 @@
+template: true
+
+tasks:
+  2.8_prepare_deployment_guide:
+    description: Create a clear, reproducible deployment guide covering environments, configuration, tooling, and steps for deploying the current feature set
+    assigned_pod: DevPod
+    status: pending
+    prompt: prompts/dev/2.8_prepare_deployment_guide.txt
+    inputs:
+      - docs/specs/spec_<feature_id>.md
+      - .patches/patch_<timestamp>.diff
+    outputs:
+      - docs/deployment/deployment_guide.md
+    feedback_file: .logs/feedback/2.8_prepare_deployment_guide.md
+    ready: true
+    done: false
+    created_by: human
+    created_at: 2025-04-22T12:00:00
+    updated_at: 2025-04-22T12:00:00

@@ -1,0 +1,27 @@
+template: true
+
+qa_test_results:
+  - path: test/feature_<feature_id>/qa_test_results.md
+    raw_url: https://raw.githubusercontent.com/stewmckendry/ai-concussion-agent/main/test/feature_<feature_id>/qa_test_results.md
+    repo: stewmckendry/ai-concussion-agent
+    file_type: markdown
+    description: QA log of test cases, outcomes, and diagnostic notes
+    tags: [qa, test_results, bugs]
+    pod_owner: QAPod
+    created_date: 2025-04-22
+    last_updated_by: QAPod
+    last_update_date: 2025-04-22
+    notes: Captures outcomes from original QA run
+
+spec_bugfix_target:
+  - path: docs/specs/spec_<feature_id>.md
+    raw_url: https://raw.githubusercontent.com/stewmckendry/ai-concussion-agent/main/docs/specs/spec_<feature_id>.md
+    repo: stewmckendry/ai-concussion-agent
+    file_type: markdown
+    description: Feature spec being updated with bugfix coverage
+    tags: [spec, bugfix, update]
+    pod_owner: DevPod
+    created_date: 2025-04-21
+    last_updated_by: DevPod
+    last_update_date: 2025-04-22
+    notes: Updated after QA review

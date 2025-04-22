@@ -1,0 +1,18 @@
+template: true
+
+tasks:
+  1.7_feedback_summary:
+    description: Summarize chat feedback, discussion notes, and key decisions
+    assigned_pod: Human
+    status: pending
+    prompt: prompts/human/summarize_feedback.txt
+    inputs:
+      - .logs/feedback/*.md
+    outputs:
+      - .logs/feedback/1.7_feedback_summary.md
+    feedback_file: .logs/feedback/1.7_feedback_summary.md
+    ready: true
+    done: false
+    created_by: human
+    created_at: 2025-04-22T10:00:00
+    updated_at: 2025-04-22T10:00:00

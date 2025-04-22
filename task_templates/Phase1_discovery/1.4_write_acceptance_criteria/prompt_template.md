@@ -14,7 +14,7 @@ inputs:
   repo: stewmckendry/ai-concussion-agent
 
 📡 TOOL USE:
-Use the GitHub File Tool to retrieve both feature spec(s) and QA matrix.
+Use the GitHub File Tool’s POST /batch-files endpoint to fetch all inputs.
 
 Then:
 1. Summarize and refine feature intent and requirements
