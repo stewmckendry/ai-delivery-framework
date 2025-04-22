@@ -35,6 +35,10 @@ app.openapi = custom_openapi
 async def root():
     return {"message": "GitHub File Proxy is running."}
 
+@app.get("/legal")
+async def legal():
+    return {"message": "Placeholder for privacy page."}
+
 @app.get("/repos/{owner}/{repo}/contents/{path:path}")
 async def get_file(owner: str, repo: str, path: str, ref: str = None):
     headers = {
