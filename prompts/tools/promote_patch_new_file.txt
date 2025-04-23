@@ -14,11 +14,23 @@ You have created a new file as part of your task output: `docs/return_to_play.md
 Please:
 1. Format a unified diff that represents adding this new file
 2. Use the correct Git-style diff structure:
-   - `--- /dev/null`
-   - `+++ b/docs/return_to_play.md`
-   - Followed by `+` for each line of content
-3. Call the `promote_patch` tool with:
-   - task_id: "2.5_document_return_to_play"
-   - summary: "Added initial return-to-play protocol document"
-   - output_folders: ["docs"]
-   - diff: (your unified diff)
+   - Header lines:
+     - `--- /dev/null`
+     - `+++ b/docs/return_to_play.md`
+   - Use a valid hunk header with line numbers (even for new files):
+     - Example: `@@ -0,0 +1,5 @@`
+   - Include each new line prefixed with `+`
+   - Avoid using lines that begin with + - directly after the +. Either add a space, quote the line, or rewrite the list format.
+   - Ensure that the diff is clear and easy to read, maintaining proper formatting.
+3. Ensure the patch is valid and parsable by `git apply`
+4. Call the `promote_patch` tool with:
+   - task_id
+   - summary
+   - output_folders
+   - diff: (your complete unified diff content)
+5. The tool will return:
+   - download_url (for .diff file)
+   - metadata_url (for .json metadata)
+6. Ask the human to download both files and place them in:
+   - `.patches/` (diff)
+   - `.logs/patches/` (json)

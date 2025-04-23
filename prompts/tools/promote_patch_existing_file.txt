@@ -13,12 +13,22 @@ You have finalized the updated version of the file: `docs/project_goals.md`.
 
 Please:
 1. Compare your updated version to the original version (fetched using `getGitHubFile`)
-2. Generate a unified diff in standard Git format:
-   - Start with: `--- a/docs/project_goals.md`
-   - Then: `+++ b/docs/project_goals.md`
-   - Show only the differences using `@@` and `+/-` notation
-3. Call the `promote_patch` tool with:
-   - task_id: "1.1_capture_project_goals"
-   - summary: "Refined project goals and improved formatting"
-   - output_folders: ["docs"]
-   - diff: (your unified diff)
+2. Generate a unified diff in **standard Git format**, using valid syntax:
+   - Header lines:
+     - `--- a/docs/project_goals.md`
+     - `+++ b/docs/project_goals.md`
+   - **Hunk header must include line numbers**, like:
+     - `@@ -1,5 +1,7 @@` ← required syntax
+   - Use `-` to show lines removed, `+` for lines added
+3. Ensure the diff starts with the correct header and contains valid hunks
+4. Call the `promote_patch` tool with:
+   - task_id
+   - summary
+   - output_folders
+   - diff: (your complete, valid unified diff content)
+5. The tool will return:
+   - download_url (for .diff file)
+   - metadata_url (for .json metadata)
+6. Ask the human to download both files and place them in:
+   - `.patches/` (diff)
+   - `.logs/patches/` (json)

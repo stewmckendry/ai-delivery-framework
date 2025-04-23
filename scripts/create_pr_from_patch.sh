@@ -39,8 +39,14 @@ TASK_ID=$(jq -r '.task_id' "$PATCH_JSON")
 SUMMARY=$(jq -r '.summary' "$PATCH_JSON")
 BRANCH_NAME="chatgpt/auto/${PATCH_NAME}"
 
-# Step 3: Create branch, apply patch
-git checkout -b "$BRANCH_NAME"
+# Step 3: Create branch (or reuse existing), apply patch
+if git show-ref --quiet refs/heads/"$BRANCH_NAME"; then
+  echo "🔁 Branch $BRANCH_NAME already exists. Resetting to main."
+  git checkout "$BRANCH_NAME"
+  git reset --hard origin/main
+else
+  git checkout -b "$BRANCH_NAME"
+fi
 git apply "$PATCH_FILE"
 
 # Step 4: Commit and push
