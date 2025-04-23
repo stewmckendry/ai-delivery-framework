@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.responses import FileResponse
 from pathlib import Path
-import httpx, os, json
+import httpx, os, json, re
 from dotenv import load_dotenv
 from fastapi import APIRouter
 from pydantic import BaseModel
@@ -96,6 +96,9 @@ class PromotePatchOutput(BaseModel):
 class ValidateDiffInput(BaseModel):
     diff: str
 
+class ValidateHunkLengthInput(BaseModel):
+    diff: str
+
 @app.post("/promote_patch", response_model=PromotePatchOutput)
 def promote_patch(data: PromotePatchInput):
     patch_file = f"patch_{data.task_id}.diff"
@@ -164,6 +167,46 @@ def validate_diff(data: ValidateDiffInput):
     finally:
         if 'tmp_path' in locals() and os.path.exists(tmp_path):
             os.unlink(tmp_path)
+
+
+@app.post("/validate_hunk_length")
+def validate_hunk_length(data: ValidateHunkLengthInput):
+    lines = data.diff.splitlines()
+    current_hunk = None
+    plus_count = 0
+    minus_count = 0
+    hunk_results = []
+
+    for line in lines:
+        if line.startswith("@@"):
+            if current_hunk:
+                hunk_results.append(current_hunk)
+            match = re.match(r"@@ -\d+(?:,\d+)? \+(\d+)(?:,(\d+))? @@", line)
+            if match:
+                start_plus = int(match.group(1))
+                plus_declared = int(match.group(2)) if match.group(2) else 1
+                current_hunk = {
+                    "hunk_header": line,
+                    "plus_declared": plus_declared,
+                    "plus_actual": 0
+                }
+        elif line.startswith("+") and not line.startswith("+++ "):
+            if current_hunk:
+                current_hunk["plus_actual"] += 1
+
+    if current_hunk:
+        hunk_results.append(current_hunk)
+
+    errors = []
+    for hunk in hunk_results:
+        if hunk["plus_actual"] != hunk["plus_declared"]:
+            errors.append({
+                "hunk": hunk["hunk_header"],
+                "expected": hunk["plus_declared"],
+                "found": hunk["plus_actual"]
+            })
+
+    return {"valid": len(errors) == 0, "errors": errors}
 
 
 @app.get("/patches/{patch_name}")

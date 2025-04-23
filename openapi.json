@@ -262,6 +262,69 @@
           }
         }
       }
+    },
+    "/validate_hunk_length": {
+      "post": {
+        "operationId": "validateHunkLength",
+        "summary": "Validate declared vs actual line counts in each patch hunk",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "diff": { "type": "string" }
+                },
+                "required": ["diff"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Validation result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["valid", "errors"],
+                  "properties": {
+                    "valid": { "type": "boolean" },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "hunk": { "type": "string" },
+                          "expected": { "type": "integer" },
+                          "found": { "type": "integer" }
+                        },
+                        "required": ["hunk", "expected", "found"]
+                      }
+                    }
+                  }
+                },
+                "examples": {
+                  "error": {
+                    "summary": "Hunk mismatch",
+                    "value": {
+                      "valid": false,
+                      "errors": [
+                        {
+                          "hunk": "@@ -1,15 +1,53 @@",
+                          "expected": 53,
+                          "found": 41
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
