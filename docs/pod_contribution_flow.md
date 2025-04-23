@@ -21,22 +21,21 @@ Enable any Pod to:
 
 ### Step 2: Generate Patch via Custom GPT Action
 - Pod calls the `promote_patch` **custom GPT action**, which:
-  - Simulates running `generate_patch.py` in the sandbox
-  - Collects staged file changes and constructs a `.diff`
-  - Saves the `.diff` file to disk on the server
+  - Accepts `task_id`, `summary`, `output_folders`, and the full `diff` string
+  - Saves the `.diff` file to `/mnt/data/.patches/` on the FastAPI backend
   - Returns metadata and a **`download_url`**:
     ```json
     {
-      "patch_file": "patch_20250422_103045_2.3_build_metrics_tool.diff",
-      "task_id": "2.3_build_metrics_tool",
-      "summary": "Added metrics tracker logic",
-      "output_folders": ["docs", "metrics"],
-      "download_url": "https://your-api/patches/patch_20250422_103045_2.3_build_metrics_tool.diff"
+      "patch_file": "patch_1.1_capture_project_goals.diff",
+      "task_id": "1.1_capture_project_goals",
+      "summary": "Refined project goals and improved formatting",
+      "output_folders": ["docs"],
+      "download_url": "https://ai-concussion-agent-production.up.railway.app/patches/patch_1.1_capture_project_goals.diff"
     }
     ```
   - The human clicks the `download_url` to save the patch into `chatgpt_repo/.patches/`
 
-> ⚠️ **Note:** Since ChatGPT cannot access or clone the repo directly, it determines file destinations using the `outputs` field in `task.yaml`. These serve as hints about where the human should place the generated content, and help structure metadata for patch creation.
+> ⚠️ **Note:** GPT generates the unified diff. For new files, it uses `--- /dev/null` as the original file. For modified files, it compares against the fetched original.
 
 ### Step 3: Promote Patch via Script
 - Human saves the downloaded `.diff` file into `chatgpt_repo/.patches/`
@@ -78,6 +77,59 @@ Enable any Pod to:
 
 ---
 
+## 🧠 Prompt Templates
+
+### `promote_patch_existing_file.txt`
+```txt
+---
+tool: promote_patch
+task_id: 1.1_capture_project_goals
+output_folders: ["docs"]
+use_case: existing_file
+input_file: docs/project_goals.md
+summary: Refined project goals and improved formatting
+---
+
+🎯 PROMOTE PATCH – EXISTING FILE
+
+You have finalized the updated version of the file: `docs/project_goals.md`.
+
+Please:
+1. Compare your updated version to the original version (fetched using `getGitHubFile`)
+2. Generate a unified diff in standard Git format
+3. Call the `promote_patch` tool with the patch metadata and diff.
+```
+
+### `promote_patch_new_file.txt`
+```txt
+---
+tool: promote_patch
+task_id: 2.5_document_return_to_play
+output_folders: ["docs"]
+use_case: new_file
+new_file: docs/return_to_play.md
+summary: Added initial return-to-play protocol document
+---
+
+🆕 PROMOTE PATCH – NEW FILE
+
+You have created a new file as part of your task output: `docs/return_to_play.md`.
+
+Please:
+1. Format a unified diff that represents adding this new file
+2. Use the correct Git-style diff structure:
+   - `--- /dev/null`
+   - `+++ b/docs/return_to_play.md`
+   - Followed by `+` for each line of content
+3. Call the `promote_patch` tool with:
+   - task_id
+   - summary
+   - output_folders
+   - diff
+```
+
+---
+
 ## 📁 Directory Conventions
 
 | Folder | Purpose |
@@ -93,16 +145,17 @@ Enable any Pod to:
 ## 📌 Custom GPT Action: `promote_patch`
 
 A tool that can be called by a ChatGPT Pod when a task output is finalized. It:
-- Simulates running `generate_patch.py` inside the GPT sandbox
-- Writes the `.diff` file to server-side storage
-- Returns metadata and a `download_url`
+- Accepts metadata and real unified diff string
+- Saves the `.diff` to server disk
+- Returns a `download_url` for the human to fetch and promote
 
 **Input Parameters:**
 ```json
 {
   "task_id": "string",
+  "summary": "string",
   "output_folders": ["string"],
-  "summary": "string"
+  "diff": "string"
 }
 ```
 
@@ -117,7 +170,14 @@ A tool that can be called by a ChatGPT Pod when a task output is finalized. It:
 }
 ```
 
-Used as the final step in the Pod output generation to signal a human to download the patch and run local promotion.
+---
+
+## ✅ Live Test Result: MemoryPod End-to-End
+- **Pod:** MemoryPod GPT
+- **Task:** 1.1_capture_project_goals
+- **Success:** Fetched input → iterated with human → generated diff → promoted patch → returned download link
+- **Download URL:** [patch_1.1_capture_project_goals.diff](https://ai-concussion-agent-production.up.railway.app/patches/patch_1.1_capture_project_goals.diff)
+- **Summary File:** `poc_test_results_e2e_1.md`
 
 ---
 
