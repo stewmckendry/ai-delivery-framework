@@ -8,7 +8,7 @@ PATCH_DIR=".patches"
 LOG_DIR=".logs/patches"
 PATCH_JSON="${LOG_DIR}/${PATCH_NAME%.diff}.json"
 
-if [ ! -f "$PATCH_FILE" ]; then
+if [ ! -f "$PATCH_FILE" ] && [ ! -f "$PATCH_DIR/$PATCH_FILE" ]; then
   echo "❌ ERROR: Patch file not found: $PATCH_FILE"
   exit 1
 fi

@@ -20,6 +20,8 @@ Please:
    - **Hunk header must include line numbers**, like:
      - `@@ -1,5 +1,7 @@` ← required syntax
    - Use `-` to show lines removed, `+` for lines added
+   - Avoid using lines that begin with + - directly after the +. Either add a space, quote the line, or rewrite the list format.
+   - Ensure that the diff is clear and easy to read, maintaining proper formatting.
 3. Ensure the diff starts with the correct header and contains valid hunks
 4. Call the `promote_patch` tool with:
    - task_id
