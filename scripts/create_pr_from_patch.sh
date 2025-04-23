@@ -62,7 +62,7 @@ echo "✅ Branch pushed successfully."
 # Step 6: Restore previous stash
 if [ "$STASHED" -eq 1 ]; then
   echo "📦 Restoring stashed changes..."
-  git stash pop
+  git stash pop || echo "⚠️ Could not pop stash automatically"
   echo "✅ Stashed changes restored successfully."
 fi
 
