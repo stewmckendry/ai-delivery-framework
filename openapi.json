@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "GitHub File Proxy + Promote Patch Tool",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "description": "Fetch GitHub repo files and generate patch metadata for AI-native delivery."
   },
   "servers": [
@@ -16,9 +16,7 @@
       "get": {
         "operationId": "getGitHubFile",
         "summary": "Fetch a single file from a GitHub repo",
-        "security": [
-          { "bearerAuth": [] }
-        ],
+        "security": [{ "bearerAuth": [] }],
         "parameters": [
           { "name": "owner", "in": "path", "required": true, "schema": { "type": "string" } },
           { "name": "repo", "in": "path", "required": true, "schema": { "type": "string" } },
@@ -48,9 +46,7 @@
               }
             }
           },
-          "404": {
-            "description": "File not found"
-          }
+          "404": { "description": "File not found" }
         }
       }
     },
@@ -58,9 +54,7 @@
       "post": {
         "operationId": "getBatchFiles",
         "summary": "Fetch multiple files from a GitHub repo",
-        "security": [
-          { "bearerAuth": [] }
-        ],
+        "security": [{ "bearerAuth": [] }],
         "requestBody": {
           "required": true,
           "content": {
@@ -124,11 +118,11 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["task_id", "summary", "output_folders"],
+                "required": ["task_id", "summary", "output_folders", "diff"],
                 "properties": {
                   "task_id": {
                     "type": "string",
-                    "description": "The ID of the task this patch belongs to (e.g. '2.3_build_metrics_tool')"
+                    "description": "The ID of the task this patch belongs to"
                   },
                   "summary": {
                     "type": "string",
@@ -137,7 +131,11 @@
                   "output_folders": {
                     "type": "array",
                     "items": { "type": "string" },
-                    "description": "List of folders where files were generated (based on task.yaml.outputs)"
+                    "description": "List of output folders changed by the patch"
+                  },
+                  "diff": {
+                    "type": "string",
+                    "description": "Raw unified diff content"
                   }
                 }
               }
@@ -151,32 +149,18 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": ["patch_file", "task_id", "summary", "output_folders"],
+                  "required": ["patch_file", "task_id", "summary", "output_folders", "download_url"],
                   "properties": {
-                    "patch_file": {
-                      "type": "string",
-                      "description": "Path to the generated patch file"
-                    },
-                    "task_id": {
-                      "type": "string"
-                    },
-                    "summary": {
-                      "type": "string"
-                    },
+                    "patch_file": { "type": "string" },
+                    "task_id": { "type": "string" },
+                    "summary": { "type": "string" },
                     "output_folders": {
                       "type": "array",
                       "items": { "type": "string" }
-                    }
-                  }
-                },
-                "examples": {
-                  "success": {
-                    "summary": "Example response",
-                    "value": {
-                      "patch_file": ".patches/patch_20250422_103045_2.3_build_metrics_tool.diff",
-                      "task_id": "2.3_build_metrics_tool",
-                      "summary": "Fixes logic in metrics computation",
-                      "output_folders": ["src", "docs"]
+                    },
+                    "download_url": {
+                      "type": "string",
+                      "format": "uri"
                     }
                   }
                 }
@@ -195,31 +179,22 @@
             "name": "patch_name",
             "in": "path",
             "required": true,
-            "schema": { "type": "string" },
-            "description": "Name of the patch file (e.g. patch_20250422_103045.diff)"
+            "schema": { "type": "string" }
           }
         ],
         "responses": {
           "200": {
-            "description": "Raw patch file returned",
+            "description": "Raw patch file content",
             "content": {
               "text/plain": {
                 "schema": {
                   "type": "string",
                   "description": "Raw unified diff content"
-                },
-                "examples": {
-                  "example": {
-                    "summary": "Example diff",
-                    "value": "--- a/file.txt\n+++ b/file.txt\n@@ -1 +1 @@\n-Hello\n+Hello world"
-                  }
                 }
               }
             }
           },
-          "404": {
-            "description": "Patch not found"
-          }
+          "404": { "description": "Patch not found" }
         }
       }
     }
@@ -231,7 +206,7 @@
         "scheme": "bearer",
         "bearerFormat": "JWT"
       }
-    },
+      },
     "schemas": {}
   }
 }
