@@ -7,6 +7,12 @@ PATCH_NAME=$(basename "$PATCH_FILE")
 PATCH_DIR=".patches"
 LOG_DIR=".logs/patches"
 PATCH_JSON="${LOG_DIR}/${PATCH_NAME%.diff}.json"
+FULL_PATCH_PATH="$PATCH_FILE"
+
+# If it's not a full path, prefix it with PATCH_DIR
+if [ ! -f "$FULL_PATCH_PATH" ] && [ -f "$PATCH_DIR/$PATCH_FILE" ]; then
+  FULL_PATCH_PATH="$PATCH_DIR/$PATCH_FILE"
+fi
 
 if [ ! -f "$PATCH_FILE" ] && [ ! -f "$PATCH_DIR/$PATCH_FILE" ]; then
   echo "❌ ERROR: Patch file not found: $PATCH_FILE"
@@ -44,8 +50,8 @@ fi
 
 # Step 3: Apply the patch
 echo "🧪 Checking patch before applying..."
-git apply --check "$PATCH_FILE" || { echo "❌ Patch failed dry run."; exit 1; }
-git apply "$PATCH_FILE"
+git apply --check "$FULL_PATCH_PATH" || { echo "❌ Patch failed dry run."; exit 1; }
+git apply "$FULL_PATCH_PATH"
 echo "✅ Patch applied successfully."
 
 # Step 4: Commit changes
