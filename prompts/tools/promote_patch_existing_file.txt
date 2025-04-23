@@ -24,9 +24,12 @@ Please:
 - ⚠️ Do NOT start lines with `+ -` or `+-`, which will cause patch corruption
 - ✅ Instead, write `+ - Item`, `+ * Item`, or quote/escape special lines
 
-✅ Before promoting, test your diff:
-- Call the `validate_diff` tool with your diff content to ensure it's valid
-- Only proceed if the tool returns `"valid": true`
+✅ Before calling promote_patch:
+- Use the `validate_diff` tool to confirm syntax is correct
+- Then use the `validate_hunk_length` tool to confirm that each hunk's declared `+` line count matches the actual lines added
+
+Only proceed if both return valid ✅
+If either fails, review the error and regenerate the diff with corrected hunk headers
 
 3. Then call the `promote_patch` tool with:
    - task_id, summary, output_folders, and diff content

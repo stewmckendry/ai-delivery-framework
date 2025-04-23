@@ -22,15 +22,19 @@ Please:
    - Include each new line prefixed with `+`
    - Avoid using lines that begin with + - directly after the +. Either add a space, quote the line, or rewrite the list format.
    - Ensure that the diff is clear and easy to read, maintaining proper formatting.
-3. Ensure the patch is valid and parsable by `git apply`
-4. Call the `promote_patch` tool with:
-   - task_id
-   - summary
-   - output_folders
-   - diff: (your complete unified diff content)
-5. The tool will return:
-   - download_url (for .diff file)
-   - metadata_url (for .json metadata)
-6. Ask the human to download both files and place them in:
-   - `.patches/` (diff)
-   - `.logs/patches/` (json)
+
+❗️ Avoid malformed lines:
+- ⚠️ Do NOT start lines with `+ -` or `+-`, which will cause patch corruption
+- ✅ Instead, write `+ - Item`, `+ * Item`, or quote/escape special lines
+
+✅ Before calling promote_patch:
+- Use the `validate_diff` tool to confirm syntax is correct
+- Then use the `validate_hunk_length` tool to confirm that each hunk's declared `+` line count matches the actual lines added
+
+Only proceed if both return valid ✅
+If either fails, review the error and regenerate the diff with corrected hunk headers
+
+3. Then call the `promote_patch` tool with:
+   - task_id, summary, output_folders, and diff content
+4. Provide the human with the resulting download URLs for the diff and metadata files
+
