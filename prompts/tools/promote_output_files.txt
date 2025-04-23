@@ -1,18 +1,59 @@
 🎯 Task Complete – Prepare Patch Output
 
-The task is now complete. Please finalize and return the following outputs in the required format for patch generation:
+The task is now complete. Please follow the instructions below to finalize the output in a format ready for patch promotion.
 
-1. ✅ **Final Output Files**  
-Please upload and return **downloadable URLs** to all finalized output files.
+---
 
-2. 🧠 **Patch Metadata**  
-Return a downloadable `.json` file containing patch metadata in the following format:
+✅ Step 1: Upload Final Output Files
+
+Please zip all finalized output files into a single folder and return the **downloadable link** to the zip file.
+
+Example output:
+```
+📁 Final Output Files:
+- [project_outputs.zip](https://example.com/download/project_outputs.zip)
+```
+
+---
+
+🧠 Step 2: Upload Metadata JSON
+
+Create and return a **downloadable link** for a JSON metadata file that includes the following:
 
 ```json
 {
   "task_id": "1.1_capture_project_goals",
   "summary": "Capture and describe project goals",
-  "output_folders": ["docs"]
+  "output_folders": ["docs"]  #one folder path for each output file
 }
+```
 
-3. Print the list of files and metadata in the response (along with the download URLs).
+Example output:
+```
+📦 Metadata:
+- [patch_metadata.json](https://example.com/download/patch_metadata.json)
+```
+
+---
+
+📄 Step 3: Human Instructions (Print These)
+
+Please summarize and print the following for the human user:
+
+1. Where to download and unzip the output files:
+   - Save contents of `project_outputs.zip` to:
+     ```
+     chatgpt_repo/outputs/<folder_path_from_metadata>
+     ```
+2. Where to save the metadata file:
+   - Place `patch_metadata.json` in:
+     ```
+     .logs/patches/
+     ```
+
+3. What to run after saving files:
+   ```bash
+   bash scripts/generate_patch_from_output.sh
+   ```
+
+This will generate a `.diff` and allow the patch to be promoted via PR.

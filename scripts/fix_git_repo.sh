@@ -1,33 +1,37 @@
 #!/bin/bash
 set -e
 
-echo "🛠️ Cleaning Git repo workspace safely..."
+echo "🧹 Starting safe repo reset..."
 
-# Step 1: Show current status
-echo "🔍 Git Status:"
+# Show current git status
+echo "🔍 Checking current git status..."
 git status
 
-# Step 2: Unstage all changes (keep local modifications)
-echo "🔄 Unstaging any staged changes..."
-git reset
-
-# Step 3: Show unstaged diff preview
-echo "🔍 Preview of unstaged local changes:"
-git diff || echo "(no unstaged changes)"
-
-# Step 4: Ask user before hard reset
-echo ""
-read -p "⚠️ Do you want to fully reset your repo and remove all local changes and untracked files? [y/N] " confirm
-
-if [[ "$confirm" =~ ^[Yy]$ ]]; then
-  echo "⚠️ Resetting and cleaning repo..."
-  git reset --hard HEAD
-  git clean -fd
-  echo "✅ Repo has been reset to latest committed state."
+# Step 1: Stash any uncommitted changes
+if [ -n "$(git status --porcelain)" ]; then
+  echo "📦 Stashing uncommitted changes..."
+  git stash push --include-untracked -m "safe-repo-reset-$(date +%s)"
 else
-  echo "❌ Cancelled. Repo was not reset."
+  echo "✅ No uncommitted changes to stash."
 fi
 
-# Final status
-echo "✅ Done. Final status:"
-git status
+# Step 2: Reset to remote main
+echo "🔄 Resetting local main to match origin/main..."
+git checkout main
+git fetch origin
+git reset --hard origin/main
+
+# Step 3: Remove untracked files and directories (dry run first)
+echo "🧪 DRY RUN: Untracked files/folders that would be removed:"
+git clean -nd
+
+echo ""
+read -p "❓ Proceed to delete the above untracked files? (y/n): " CONFIRM
+if [ "$CONFIRM" = "y" ]; then
+  git clean -fd
+  echo "✅ Untracked files removed."
+else
+  echo "❌ Aborted. Untracked files NOT removed."
+fi
+
+echo "✅ Repo reset complete. You can now re-run your patch workflow."
