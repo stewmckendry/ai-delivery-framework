@@ -231,6 +231,7 @@
         "scheme": "bearer",
         "bearerFormat": "JWT"
       }
-    }
+    },
+    "schemas": {}
   }
 }

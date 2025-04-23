@@ -1,6 +1,10 @@
-# Project Goals (DRAFT)
-This project aims to explore how we can use AI agents and memory-aware tools to build and ship software in a modular, automated way. Our goals include:
-- Creating reusable tasks and memory templates
-- Enabling dynamic GPT pods to reason from GitHub memory
-- Generating useful outputs such as patches, tests, and feedback summaries
-- Demonstrating how AI-native delivery can reduce time and cognitive load
+# Project Goals (Draft)
+
+We want to use AI to speed up delivery cycles and reduce human bottlenecks. The system should support patch-based thinking and help teams work more asynchronously.
+
+Some goals we've mentioned in past meetings:
+- Make it easy for ChatGPT to suggest changes and improvements
+- Enable human reviewers to see what's changing and why
+- Help people trust AI-generated contributions
+
+> Note: These were rough notes. This doc needs structure and clarity.
