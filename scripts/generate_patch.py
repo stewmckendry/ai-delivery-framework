@@ -1,126 +1,80 @@
+#!/usr/bin/env python3
+
 import os
-import sys
 import subprocess
-import argparse
-import yaml
-from datetime import datetime
+import json
+import datetime
 from pathlib import Path
+import argparse
 
-# Constants
-PATCH_DIR = Path(".patches")
-LOG_DIR = Path(".logs")
-PATCH_DIR.mkdir(exist_ok=True)
-LOG_DIR.mkdir(exist_ok=True)
+def get_staged_diff():
+    """Return the staged diff as a string."""
+    result = subprocess.run(
+        ["git", "diff", "--cached"],
+        capture_output=True, text=True
+    )
+    return result.stdout.strip()
 
-CHANGELOG_PATH = LOG_DIR / "changelog.yaml"
-HANDOFF_LOG_PATH = LOG_DIR / "handoff_log.yaml"
-THOUGHT_TRACE_PATH = LOG_DIR / "thought_trace.yaml"
+def infer_output_folders_from_diff(diff_text):
+    """Extract top-level folders from diff output."""
+    folders = set()
+    for line in diff_text.splitlines():
+        if line.startswith("+++ b/"):
+            path = line.replace("+++ b/", "").strip()
+            if path:
+                top_folder = path.split("/")[0]
+                folders.add(top_folder)
+    return sorted(folders)
 
-# Helpers to write logs
-def append_to_log(path, new_entry):
-    if path.exists():
-        with open(path, "r") as f:
-            data = yaml.safe_load(f) or []
-    else:
-        data = []
-    data.append(new_entry)
-    with open(path, "w") as f:
-        yaml.dump(data, f)
+def write_patch_file(diff_text, patch_file):
+    with open(patch_file, "w") as f:
+        f.write(diff_text)
 
-def slugify(text):
-    return text.lower().replace(" ", "_").replace("/", "-")[:50]
+def write_metadata_file(metadata, metadata_file):
+    with open(metadata_file, "w") as f:
+        json.dump(metadata, f, indent=2)
 
-def generate_patch_name():
-    ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-    return f"patch_{ts}"
+def main(task_id, summary):
+    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    patch_name = f"patch_{timestamp}_{task_id}"
+    patch_dir = Path(".patches")
+    log_dir = Path(".logs/patches")
+    patch_dir.mkdir(parents=True, exist_ok=True)
+    log_dir.mkdir(parents=True, exist_ok=True)
 
-def create_diff(patch_name):
-    patch_path = PATCH_DIR / f"{patch_name}.diff"
-    with open(patch_path, "w") as f:
-        subprocess.run(["git", "diff", "--cached"], stdout=f)
-    return patch_path
+    patch_path = patch_dir / f"{patch_name}.diff"
+    metadata_path = log_dir / f"{patch_name}.json"
 
-def main():
-    parser = argparse.ArgumentParser(description="Generate a patch and supporting logs for a GPT contribution.")
-    parser.add_argument("--type", required=True, help="Type of patch: fix, feature, tests, docs")
-    parser.add_argument("--thought", required=True, help="Summary of the idea, fix, or feature")
-    parser.add_argument("--autopromote", action="store_true", help="Auto-run patch promotion script after generation")
-    args = parser.parse_args()
-
-    # Auto-stage unstaged files (new or modified)
-    unstaged_files = subprocess.run(
-        ["git", "ls-files", "--others", "--modified", "--exclude-standard"],
-        stdout=subprocess.PIPE,
-        text=True
-    ).stdout.strip().splitlines()
-
-    if unstaged_files:
-        print(f"[AUTO] Adding {len(unstaged_files)} unstaged file(s):")
-        for f in unstaged_files:
-            print(f"  - {f}")
-            subprocess.run(["git", "add", f])
-
-    # Check for staged files
-    result = subprocess.run(["git", "diff", "--cached", "--name-only"],
-                            stdout=subprocess.PIPE, text=True)
-    staged_files = result.stdout.strip().splitlines()
-
-    if not staged_files:
-        print("[WARN] No staged changes to commit.")
+    # Step 1: Get staged diff
+    diff_text = get_staged_diff()
+    if not diff_text:
+        print("⚠️ No staged changes found. Please stage files first.")
         return
 
-    for f in staged_files:
-        if f.startswith("tests/"):
-            print("[TAG] Test file detected")
-        if f.startswith("docs/"):
-            print("[TAG] Docs update detected")
-        print(f"[CHECK] Files staged:\n - {f}")
+    # Step 2: Infer folders from diff
+    output_folders = infer_output_folders_from_diff(diff_text)
 
-    # Generate patch
-    patch_name = generate_patch_name()
-    patch_path = create_diff(patch_name)
-    print(f"[OK] Patch saved: {patch_path}")
+    # Step 3: Write .diff file
+    write_patch_file(diff_text, patch_path)
 
-    # Tagging info
-    tags = [args.type]
-    if any("test" in f for f in staged_files):
-        tags.append("tests")
-    if any("doc" in f for f in staged_files):
-        tags.append("docs")
-    print(f"[TAG] {', '.join(tags)}")
-
-    # Save to logs
-    changelog_entry = {
-        "patch": patch_name,
-        "type": args.type,
-        "files": staged_files,
-        "thought": args.thought,
-        "tags": tags,
-        "timestamp": datetime.now().isoformat(),
+    # Step 4: Write metadata
+    metadata = {
+        "patch_file": str(patch_path),
+        "task_id": task_id,
+        "summary": summary,
+        "output_folders": output_folders
     }
-    append_to_log(CHANGELOG_PATH, changelog_entry)
+    write_metadata_file(metadata, metadata_path)
 
-    thought_entry = {
-        "thought": args.thought,
-        "timestamp": datetime.now().isoformat(),
-        "files": staged_files,
-    }
-    append_to_log(THOUGHT_TRACE_PATH, thought_entry)
-
-    handoff_entry = {
-        "patch": patch_name,
-        "promoted": args.autopromote,
-        "files": staged_files,
-        "tags": tags,
-        "timestamp": datetime.now().isoformat(),
-    }
-    append_to_log(HANDOFF_LOG_PATH, handoff_entry)
-
-    if args.autopromote:
-        print("🧠 Starting AI-native patch promotion to feature branch...")
-        subprocess.run(["bash", "scripts/create_pr_from_patch.sh"])
-    else:
-        print("🚀 Done generating patch. Run 'scripts/create_pr_from_patch.sh' to promote it.")
+    # Step 5: Confirm success
+    print(f"✅ Patch created: {patch_path}")
+    print(f"📝 Metadata saved: {metadata_path}")
+    print(json.dumps(metadata, indent=2))
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description="Generate a Git patch and metadata for an AI-native task.")
+    parser.add_argument("--task_id", required=True, help="Task ID (e.g., 2.3_build_metrics_tool)")
+    parser.add_argument("--summary", required=True, help="Short description of what this patch does")
+    args = parser.parse_args()
+
+    main(args.task_id, args.summary)
