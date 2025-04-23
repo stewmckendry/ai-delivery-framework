@@ -1,0 +1,18 @@
+📄 TOOL: getGitHubFile
+
+Use this tool to fetch the contents of a single file from a GitHub repository.
+
+Inputs:
+- owner: The GitHub username or organization
+- repo: The repository name
+- path: Full path to the file (e.g., "docs/project_goals.md")
+- ref: Optional branch or commit SHA (defaults to main)
+
+Returns:
+- name, path, content (base64), encoding, etc.
+
+Prompt:
+Please fetch the following file from GitHub using the getGitHubFile tool:
+owner: stewmckendry
+repo: ai-concussion-agent
+path: docs/project_goals.md

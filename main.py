@@ -89,24 +89,37 @@ class PromotePatchOutput(BaseModel):
     task_id: str
     summary: str
     output_folders: List[str]
-    download_url: str
+    download_url: str  # URL for downloading the patch diff file
+    metadata_url: str  # ✅ New! URL for downloading the metadata JSON file
 
 @app.post("/promote_patch", response_model=PromotePatchOutput)
 def promote_patch(data: PromotePatchInput):
     patch_file = f"patch_{data.task_id}.diff"
+    json_file = patch_file.replace(".diff", ".json")
+
     patch_dir = Path("/mnt/data/.patches")
-    patch_path = patch_dir / patch_file
     patch_dir.mkdir(parents=True, exist_ok=True)
+    patch_path = patch_dir / patch_file
+    patch_path.write_text(data.diff)
 
-    patch_path.write_text(data.diff)  # ✅ Write actual diff content from GPT
+    meta = {
+        "patch_file": patch_file,
+        "task_id": data.task_id,
+        "summary": data.summary,
+        "output_folders": data.output_folders
+    }
 
-    download_url = f"https://ai-concussion-agent-production.up.railway.app/patches/{patch_file}"
+    json_path = patch_dir / json_file
+    json_path.write_text(json.dumps(meta, indent=2))
+
+    base_url = "https://ai-concussion-agent-production.up.railway.app/patches"
     return {
         "patch_file": patch_file,
         "task_id": data.task_id,
         "summary": data.summary,
         "output_folders": data.output_folders,
-        "download_url": download_url
+        "download_url": f"{base_url}/{patch_file}",
+        "metadata_url": f"{base_url}/{json_file}"
     }
 
 @app.get("/patches/{patch_name}")
