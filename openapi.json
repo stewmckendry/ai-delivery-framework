@@ -1,9 +1,9 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "GitHub File Proxy",
-    "version": "1.0.0",
-    "description": "Fetches single or multiple files from a GitHub repo using path-based access."
+    "title": "GitHub File Proxy + Promote Patch Tool",
+    "version": "1.1.0",
+    "description": "Fetch GitHub repo files and generate patch metadata for AI-native delivery."
   },
   "servers": [
     {
@@ -110,6 +110,115 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/promote_patch": {
+      "post": {
+        "operationId": "promotePatch",
+        "summary": "Generate a patch file and metadata from AI-generated task output",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["task_id", "summary", "output_folders"],
+                "properties": {
+                  "task_id": {
+                    "type": "string",
+                    "description": "The ID of the task this patch belongs to (e.g. '2.3_build_metrics_tool')"
+                  },
+                  "summary": {
+                    "type": "string",
+                    "description": "Short summary of the patch contents"
+                  },
+                  "output_folders": {
+                    "type": "array",
+                    "items": { "type": "string" },
+                    "description": "List of folders where files were generated (based on task.yaml.outputs)"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Patch and metadata created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["patch_file", "task_id", "summary", "output_folders"],
+                  "properties": {
+                    "patch_file": {
+                      "type": "string",
+                      "description": "Path to the generated patch file"
+                    },
+                    "task_id": {
+                      "type": "string"
+                    },
+                    "summary": {
+                      "type": "string"
+                    },
+                    "output_folders": {
+                      "type": "array",
+                      "items": { "type": "string" }
+                    }
+                  }
+                },
+                "examples": {
+                  "success": {
+                    "summary": "Example response",
+                    "value": {
+                      "patch_file": ".patches/patch_20250422_103045_2.3_build_metrics_tool.diff",
+                      "task_id": "2.3_build_metrics_tool",
+                      "summary": "Fixes logic in metrics computation",
+                      "output_folders": ["src", "docs"]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/patches/{patch_name}": {
+      "get": {
+        "operationId": "getPatchFile",
+        "summary": "Fetch a patch file by name",
+        "parameters": [
+          {
+            "name": "patch_name",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "Name of the patch file (e.g. patch_20250422_103045.diff)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Raw patch file returned",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "description": "Raw unified diff content"
+                },
+                "examples": {
+                  "example": {
+                    "summary": "Example diff",
+                    "value": "--- a/file.txt\n+++ b/file.txt\n@@ -1 +1 @@\n-Hello\n+Hello world"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Patch not found"
           }
         }
       }
