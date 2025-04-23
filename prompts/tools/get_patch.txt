@@ -1,0 +1,14 @@
+📦 TOOL: get_patch (GET /patches/{patch_name})
+
+Use this tool to fetch the contents of a previously generated patch.
+
+You must already know the `patch_file` name (e.g., returned by `promote_patch`).
+
+Provide:
+- `patch_name`: The exact file name to retrieve (e.g., "patch_20250422_103045_2.3_build_metrics_tool.diff")
+
+This will return the raw diff text, which you can save to `chatgpt_repo/.patches/` for promotion.
+
+Prompt:
+Please fetch the raw diff content for the following patch file using the get_patch tool:
+patch_name: patch_20250422_103045_2.3_build_metrics_tool.diff

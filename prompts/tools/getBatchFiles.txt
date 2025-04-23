@@ -1,0 +1,18 @@
+📚 TOOL: getBatchFiles
+
+Use this tool to retrieve multiple files from a GitHub repository in one request.
+
+Inputs:
+- owner: GitHub username or org
+- repo: Repository name
+- paths: List of full paths to the files
+- ref: Optional branch or commit reference
+
+Returns:
+- files: List of { path, content (base64), error }
+
+Prompt:
+Please fetch a batch of files from the following GitHub repo using the getBatchFiles tool:
+owner: stewmckendry
+repo: ai-concussion-agent
+paths: ["docs/project_goals.md", "docs/ai_delivery_operating_system.md"]
