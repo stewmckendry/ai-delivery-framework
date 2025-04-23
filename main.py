@@ -9,7 +9,8 @@ from dotenv import load_dotenv
 from fastapi import APIRouter
 from pydantic import BaseModel
 from typing import List
-
+import tempfile
+import subprocess
 
 load_dotenv()
 
@@ -127,15 +128,43 @@ def promote_patch(data: PromotePatchInput):
 
 @app.post("/validate_diff")
 def validate_diff(data: ValidateDiffInput):
-    with tempfile.NamedTemporaryFile(mode='w+', delete=False) as tmp_file:
-        tmp_file.write(data.diff)
-        tmp_file.flush()
+    import tempfile, subprocess, os
 
-        try:
-            subprocess.run(["git", "apply", "--check", tmp_file.name], check=True, capture_output=True)
+    try:
+        with tempfile.NamedTemporaryFile(mode='w+', delete=False) as tmp_file:
+            tmp_file.write(data.diff)
+            tmp_file.flush()
+            tmp_path = tmp_file.name
+
+        result = subprocess.run(
+            ["git", "apply", "--check", tmp_path],
+            capture_output=True,
+            text=True
+        )
+
+        if result.returncode == 0:
             return {"valid": True, "message": "Patch is valid."}
-        except subprocess.CalledProcessError as e:
-            return {"valid": False, "message": e.stderr.decode()}
+        else:
+            return {
+                "valid": False,
+                "message": "Patch failed validation.",
+                "details": result.stderr.strip(),
+                "exit_code": result.returncode,
+                "line_count": len(data.diff.splitlines()),
+                "starts_with": data.diff.splitlines()[:3]
+            }
+
+    except Exception as e:
+        return {
+            "valid": False,
+            "message": "Internal Server Error",
+            "error": str(e),
+            "example_preview": data.diff[:200]
+        }
+    finally:
+        if 'tmp_path' in locals() and os.path.exists(tmp_path):
+            os.unlink(tmp_path)
+
 
 @app.get("/patches/{patch_name}")
 def get_patch_file(patch_name: str):
