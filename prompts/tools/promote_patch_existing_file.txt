@@ -17,20 +17,17 @@ Please:
    - Header lines:
      - `--- a/docs/project_goals.md`
      - `+++ b/docs/project_goals.md`
-   - **Hunk header must include line numbers**, like:
-     - `@@ -1,5 +1,7 @@` ← required syntax
+   - Include a **valid hunk header** like: `@@ -1,5 +1,7 @@`
    - Use `-` to show lines removed, `+` for lines added
-   - Avoid using lines that begin with + - directly after the +. Either add a space, quote the line, or rewrite the list format.
-   - Ensure that the diff is clear and easy to read, maintaining proper formatting.
-3. Ensure the diff starts with the correct header and contains valid hunks
-4. Call the `promote_patch` tool with:
-   - task_id
-   - summary
-   - output_folders
-   - diff: (your complete, valid unified diff content)
-5. The tool will return:
-   - download_url (for .diff file)
-   - metadata_url (for .json metadata)
-6. Ask the human to download both files and place them in:
-   - `.patches/` (diff)
-   - `.logs/patches/` (json)
+
+❗️ Avoid malformed lines:
+- ⚠️ Do NOT start lines with `+ -` or `+-`, which will cause patch corruption
+- ✅ Instead, write `+ - Item`, `+ * Item`, or quote/escape special lines
+
+✅ Before promoting, test your diff:
+- Call the `validate_diff` tool with your diff content to ensure it's valid
+- Only proceed if the tool returns `"valid": true`
+
+3. Then call the `promote_patch` tool with:
+   - task_id, summary, output_folders, and diff content
+4. Provide the human with the resulting download URLs for the diff and metadata files

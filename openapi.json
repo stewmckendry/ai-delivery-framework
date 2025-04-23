@@ -188,7 +188,12 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["task_id", "summary", "output_folders", "diff"],
+                "required": [
+                  "task_id",
+                  "summary",
+                  "output_folders",
+                  "diff"
+                ],
                 "properties": {
                   "task_id": {
                     "type": "string",
@@ -200,7 +205,9 @@
                   },
                   "output_folders": {
                     "type": "array",
-                    "items": { "type": "string" },
+                    "items": {
+                      "type": "string"
+                    },
                     "description": "List of output folders changed by the patch"
                   },
                   "diff": {
@@ -228,12 +235,20 @@
                     "metadata_url"
                   ],
                   "properties": {
-                    "patch_file": { "type": "string" },
-                    "task_id": { "type": "string" },
-                    "summary": { "type": "string" },
+                    "patch_file": {
+                      "type": "string"
+                    },
+                    "task_id": {
+                      "type": "string"
+                    },
+                    "summary": {
+                      "type": "string"
+                    },
                     "output_folders": {
                       "type": "array",
-                      "items": { "type": "string" }
+                      "items": {
+                        "type": "string"
+                      }
                     },
                     "download_url": {
                       "type": "string",
@@ -253,7 +268,10 @@
                       "patch_file": "patch_20250422.diff",
                       "task_id": "task_123",
                       "summary": "Fix API schema bug",
-                      "output_folders": ["src", "docs"],
+                      "output_folders": [
+                        "src",
+                        "docs"
+                      ],
                       "download_url": "https://your-domain.com/patches/patch_20250422.diff",
                       "metadata_url": "https://your-domain.com/patches/patch_20250422.json"
                     }
@@ -293,6 +311,62 @@
           },
           "404": {
             "description": "Patch not found"
+          }
+        }
+      }
+    },
+    "/validate_diff": {
+      "post": {
+        "operationId": "validateDiff",
+        "summary": "Validate whether a raw unified diff file is well-formed",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "diff": {
+                    "type": "string",
+                    "description": "Raw unified diff content to be validated"
+                  }
+                },
+                "required": ["diff"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Validation result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "valid": { "type": "boolean" },
+                    "message": { "type": "string" }
+                  },
+                  "required": ["valid", "message"]
+                },
+                "examples": {
+                  "valid": {
+                    "summary": "Valid diff",
+                    "value": {
+                      "valid": true,
+                      "message": "Patch is valid."
+                    }
+                  },
+                  "invalid": {
+                    "summary": "Invalid diff",
+                    "value": {
+                      "valid": false,
+                      "message": "Patch is malformed at line 42"
+                    }
+                  }
+                }
+              }
+            }
           }
         }
       }

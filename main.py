@@ -92,6 +92,9 @@ class PromotePatchOutput(BaseModel):
     download_url: str  # URL for downloading the patch diff file
     metadata_url: str  # ✅ New! URL for downloading the metadata JSON file
 
+class ValidateDiffInput(BaseModel):
+    diff: str
+
 @app.post("/promote_patch", response_model=PromotePatchOutput)
 def promote_patch(data: PromotePatchInput):
     patch_file = f"patch_{data.task_id}.diff"
@@ -121,6 +124,18 @@ def promote_patch(data: PromotePatchInput):
         "download_url": f"{base_url}/{patch_file}",
         "metadata_url": f"{base_url}/{json_file}"
     }
+
+@app.post("/validate_diff")
+def validate_diff(data: ValidateDiffInput):
+    with tempfile.NamedTemporaryFile(mode='w+', delete=False) as tmp_file:
+        tmp_file.write(data.diff)
+        tmp_file.flush()
+
+        try:
+            subprocess.run(["git", "apply", "--check", tmp_file.name], check=True, capture_output=True)
+            return {"valid": True, "message": "Patch is valid."}
+        except subprocess.CalledProcessError as e:
+            return {"valid": False, "message": e.stderr.decode()}
 
 @app.get("/patches/{patch_name}")
 def get_patch_file(patch_name: str):
