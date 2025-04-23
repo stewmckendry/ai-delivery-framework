@@ -3,76 +3,77 @@ set -e
 
 echo "🔄 Script initiated."
 
-USE_TASK_YAML=0
-
-echo "🔄 Parsing arguments."
-while [[ "$#" -gt 0 ]]; do
-    case $1 in
-        --task_id) TASK_ID="$2"; shift 2;;
-        --summary) SUMMARY="$2"; shift 2;;
-        --use_task_yaml) USE_TASK_YAML=1; shift;;
-        *) echo "❌ Unknown option: $1"; exit 1;;
-    esac
-done
-echo "✅ Arguments parsed."
-
-if [ $USE_TASK_YAML -eq 1 ]; then
-    echo "🔄 Using task.yaml to determine task details."
-    TASK_YAML=".task/task.yaml"
-    TASK_ID=$(yq '.tasks | to_entries[] | select(.value.ready == true and .value.done == false) | .key' "$TASK_YAML" | head -n 1 | tr -d '"')
-    SUMMARY=$(yq ".tasks.$TASK_ID.description" "$TASK_YAML")
-    OUTPUT_FILES=($(yq ".tasks.$TASK_ID.outputs[]" "$TASK_YAML" | tr -d '"'))
-    echo "✅ Task details loaded from task.yaml."
-else
-    if [ -z "$TASK_ID" ] || [ -z "$SUMMARY" ]; then
-        echo "❌ Usage: $0 --task_id TASK_ID --summary SUMMARY or --use_task_yaml"
-        exit 1
-    fi
-    echo "🔄 Loading task details from provided arguments."
-    OUTPUT_FILES=($(yq ".tasks.$TASK_ID.outputs[]" .task/task.yaml | tr -d '"'))
-    echo "✅ Task details loaded from arguments."
-fi
-
 PATCH_DIR=".patches"
 LOG_DIR=".logs/patches"
+OUTPUTS_DIR="chatgpt_repo/outputs"
 echo "🔄 Creating directories: $PATCH_DIR and $LOG_DIR."
 mkdir -p "$PATCH_DIR" "$LOG_DIR"
 echo "✅ Directories created."
 
-OUTPUT_FOLDERS=()
+echo "🔄 Loading metadata from latest file in $LOG_DIR"
+METADATA_FILE=$(ls -t "$LOG_DIR"/*.json | head -n 1)
 
+if [ ! -f "$METADATA_FILE" ]; then
+  echo "❌ No metadata file found in $LOG_DIR"
+  exit 1
+fi
+
+TASK_ID=$(jq -r '.task_id' "$METADATA_FILE")
+SUMMARY=$(jq -r '.summary' "$METADATA_FILE")
+OUTPUT_FOLDERS=($(jq -r '.output_folders[]' "$METADATA_FILE"))
+
+echo "✅ Metadata loaded:"
+echo "   - Task ID: $TASK_ID"
+echo "   - Summary: $SUMMARY"
+echo "   - Target Folders: ${OUTPUT_FOLDERS[*]}"
+
+echo "🔄 Finding output files..."
+OUTPUT_FILES=($(ls "$OUTPUTS_DIR"))
+
+if [ ${#OUTPUT_FILES[@]} -eq 0 ]; then
+  echo "❌ No output files found in $OUTPUTS_DIR"
+  exit 1
+fi
+
+STAGED_FILES=()
 for OUTPUT_FILE in "${OUTPUT_FILES[@]}"; do
-    echo "🔄 Preparing output file: $OUTPUT_FILE."
-    SOURCE_FILE="chatgpt_repo/outputs/$OUTPUT_FILE"
-    DEST_FILE="$OUTPUT_FILE"
-    mkdir -p "$(dirname $DEST_FILE)"
-    cp "$SOURCE_FILE" "$DEST_FILE"
-    git add --intent-to-add "$DEST_FILE"
-    OUTPUT_FOLDERS+=("$(dirname $DEST_FILE)")
-    echo "✅ Prepared: $DEST_FILE"
+  for FOLDER in "${OUTPUT_FOLDERS[@]}"; do
+    DEST_PATH="$FOLDER/$OUTPUT_FILE"
+    mkdir -p "$(dirname "$DEST_PATH")"
+    cp "$OUTPUTS_DIR/$OUTPUT_FILE" "$DEST_PATH"
+    git add --intent-to-add "$DEST_PATH"
+    STAGED_FILES+=("$DEST_PATH")
+    echo "✅ Staged file: $DEST_PATH"
+  done
 done
 
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 PATCH_NAME="patch_${TIMESTAMP}_${TASK_ID}.diff"
 PATCH_FILE="$PATCH_DIR/$PATCH_NAME"
 
-echo "🔄 Creating patch file: $PATCH_FILE."
+echo "🔄 Creating patch file: $PATCH_FILE"
 git diff --staged > "$PATCH_FILE"
-echo "✅ Patch file created: $PATCH_FILE."
 
-METADATA_FILE="$LOG_DIR/${PATCH_NAME%.diff}.json"
-echo "🔄 Creating metadata file: $METADATA_FILE."
-cat > "$METADATA_FILE" <<EOF
+if [ ! -s "$PATCH_FILE" ]; then
+  echo "❌ Patch file is empty or failed to generate"
+  exit 1
+fi
+
+echo "✅ Patch file created: $PATCH_FILE"
+
+METADATA_OUT="$LOG_DIR/${PATCH_NAME%.diff}.json"
+echo "🔄 Writing metadata file: $METADATA_OUT"
+cat > "$METADATA_OUT" <<EOF
 {
-    "task_id": "$TASK_ID",
-    "summary": "$SUMMARY",
-    "output_folders": ["${OUTPUT_FOLDERS[@]}"]
+  "task_id": "$TASK_ID",
+  "summary": "$SUMMARY",
+  "output_folders": ["${OUTPUT_FOLDERS[@]}"]
 }
 EOF
-echo "✅ Metadata file created: $METADATA_FILE."
+echo "✅ Metadata file written"
 
-echo "🔄 Triggering PR creation script."
+echo "🔄 Triggering PR creation script"
 bash scripts/create_pr_from_patch.sh --triggered "$PATCH_FILE"
-echo "✅ PR creation script executed."
+echo "✅ PR creation script executed"
 
 echo "🎉 Script completed successfully."

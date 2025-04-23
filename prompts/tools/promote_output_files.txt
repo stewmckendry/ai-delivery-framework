@@ -1,0 +1,18 @@
+🎯 Task Complete – Prepare Patch Output
+
+The task is now complete. Please finalize and return the following outputs in the required format for patch generation:
+
+1. ✅ **Final Output Files**  
+Please upload and return **downloadable URLs** to all finalized output files.
+
+2. 🧠 **Patch Metadata**  
+Return a downloadable `.json` file containing patch metadata in the following format:
+
+```json
+{
+  "task_id": "1.1_capture_project_goals",
+  "summary": "Capture and describe project goals",
+  "output_folders": ["docs"]
+}
+
+3. Print the list of files and metadata in the response (along with the download URLs).
