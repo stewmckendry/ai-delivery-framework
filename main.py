@@ -6,6 +6,10 @@ from fastapi.responses import FileResponse
 from pathlib import Path
 import httpx, os, json
 from dotenv import load_dotenv
+from fastapi import APIRouter
+from pydantic import BaseModel
+from typing import List
+
 
 load_dotenv()
 
