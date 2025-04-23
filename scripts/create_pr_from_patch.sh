@@ -32,7 +32,7 @@ fi
 # Step 0: Stash any current work to avoid overwriting
 if [ -n "$(git status --porcelain)" ]; then
   echo "📦 Stashing uncommitted changes..."
-  git stash push --include-untracked -m "pre-patch-stash-$(date +%s)"
+  git stash push --keep-index -m "pre-patch-stash-$(date +%s)"
   STASHED=1
 else
   STASHED=0
