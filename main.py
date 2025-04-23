@@ -4,13 +4,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.responses import FileResponse
 from pathlib import Path
-import httpx, os, json, re, yaml
+import httpx, os, json, re
 from dotenv import load_dotenv
 from fastapi import APIRouter
 from pydantic import BaseModel
 from typing import List
 import tempfile
 import subprocess
+import yaml
 
 load_dotenv()
 
@@ -216,7 +217,42 @@ def get_patch_file(patch_name: str):
         return FileResponse(patch_path, media_type="text/plain", filename=patch_name)
     else:
         raise HTTPException(status_code=404, detail="Patch not found")
-    
+
+# --- Monitor Pods & Tasks Status ---#
+
+@app.get("/monitor_pods")
+def monitor_pods():
+    tasks = []
+    for file in Path("active_tasks").glob("*.yaml"):
+        with open(file) as f:
+            data = yaml.safe_load(f)
+        tasks.append({
+            "task_id": file.stem,
+            "assigned_pod": data.get("assigned_pod", "Unassigned"),
+            "status": data.get("status", "unknown"),
+            "summary": data.get("description", ""),
+            "updated_at": data.get("updated_at", "")
+        })
+    return {"active_tasks": tasks}
+
+# --- Sync Memory with Task Outputs ---#
+
+@app.post("/sync_memory")
+def sync_memory():
+    from glob import glob
+    import os
+    memfile = "memory.yaml"
+    memory = {"files": []}
+    task_files = glob("active_tasks/*.yaml") + glob(".logs/completed/*.yaml")
+    for path in task_files:
+        with open(path) as f:
+            task = yaml.safe_load(f)
+        for f in task.get("outputs", []):
+            memory["files"].append({"path": f, "task_id": os.path.basename(path).replace(".yaml", "")})
+    with open(memfile, "w") as out:
+        yaml.dump(memory, out)
+    return {"synced_files": memory["files"]}
+
 # ---- OpenAPI Static File Serving ----
 
 @app.get("/openapi.json")
