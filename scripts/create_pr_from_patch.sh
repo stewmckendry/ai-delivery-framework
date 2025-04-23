@@ -8,6 +8,11 @@ PATCH_DIR=".patches"
 LOG_DIR=".logs/patches"
 PATCH_JSON="${LOG_DIR}/${PATCH_NAME%.diff}.json"
 
+if [ ! -f "$PATCH_FILE" ]; then
+  echo "❌ ERROR: Patch file not found: $PATCH_FILE"
+  exit 1
+fi
+
 echo "📎 Using triggered patch file: $PATCH_FILE"
 
 # Step 0: Stash any current work to avoid overwriting
@@ -38,24 +43,34 @@ else
 fi
 
 # Step 3: Apply the patch
+echo "🧪 Checking patch before applying..."
+git apply --check "$PATCH_FILE" || { echo "❌ Patch failed dry run."; exit 1; }
 git apply "$PATCH_FILE"
+echo "✅ Patch applied successfully."
 
 # Step 4: Commit changes
+echo "📝 Committing changes..."
 git add .
 git commit -m "$SUMMARY [task: $TASK_ID]"
+echo "✅ Changes committed successfully."
 
 # Step 5: Push branch
+echo "🚀 Pushing branch to remote..."
 git push -u origin "$BRANCH_NAME"
+echo "✅ Branch pushed successfully."
 
 # Step 6: Restore previous stash
 if [ "$STASHED" -eq 1 ]; then
   echo "📦 Restoring stashed changes..."
   git stash pop
+  echo "✅ Stashed changes restored successfully."
 fi
 
 # Step 7: Create PR
 if command -v gh &> /dev/null; then
+  echo "📬 Creating PR..."
   gh pr create --title "$SUMMARY [task: $TASK_ID]" --body "Auto-generated patch from $PATCH_FILE" --base main --head "$BRANCH_NAME"
+  echo "✅ PR created successfully."
 else
   echo "ℹ️ 'gh' CLI not found. Please create PR manually from branch: $BRANCH_NAME"
 fi
