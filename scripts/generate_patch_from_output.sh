@@ -73,7 +73,10 @@ EOF
 echo "✅ Metadata file written"
 
 echo "🔄 Triggering PR creation script"
-bash scripts/create_pr_from_patch.sh --triggered "$PATCH_FILE"
+bash scripts/create_pr_from_patch.sh --triggered "$PATCH_FILE" --meta "$TEMP_JSON"
 echo "✅ PR creation script executed"
 
 echo "🎉 Script completed successfully."
+
+
+

@@ -1,1 +1,7 @@
 .env
+
+!chatgpt_repo/
+!chatgpt_repo/outputs/
+!.patches/
+!.logs/
+!.logs/patches/
