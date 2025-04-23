@@ -188,12 +188,7 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": [
-                  "task_id",
-                  "summary",
-                  "output_folders",
-                  "diff"
-                ],
+                "required": ["task_id", "summary", "output_folders", "diff"],
                 "properties": {
                   "task_id": {
                     "type": "string",
@@ -205,9 +200,7 @@
                   },
                   "output_folders": {
                     "type": "array",
-                    "items": {
-                      "type": "string"
-                    },
+                    "items": { "type": "string" },
                     "description": "List of output folders changed by the patch"
                   },
                   "diff": {
@@ -235,20 +228,12 @@
                     "metadata_url"
                   ],
                   "properties": {
-                    "patch_file": {
-                      "type": "string"
-                    },
-                    "task_id": {
-                      "type": "string"
-                    },
-                    "summary": {
-                      "type": "string"
-                    },
+                    "patch_file": { "type": "string" },
+                    "task_id": { "type": "string" },
+                    "summary": { "type": "string" },
                     "output_folders": {
                       "type": "array",
-                      "items": {
-                        "type": "string"
-                      }
+                      "items": { "type": "string" }
                     },
                     "download_url": {
                       "type": "string",
@@ -259,21 +244,18 @@
                       "format": "uri",
                       "description": "Public download URL for the patch metadata JSON file"
                     }
-                  },
-                  "examples": {
-                    "success": {
-                      "summary": "Example patch output",
-                      "value": {
-                        "patch_file": "patch_20250422.diff",
-                        "task_id": "task_123",
-                        "summary": "Fix API schema bug",
-                        "output_folders": [
-                          "src",
-                          "docs"
-                        ],
-                        "download_url": "https://your-domain.com/patches/patch_20250422.diff",
-                        "metadata_url": "https://your-domain.com/patches/patch_20250422.json"
-                      }
+                  }
+                },
+                "examples": {
+                  "success": {
+                    "summary": "Example patch output",
+                    "value": {
+                      "patch_file": "patch_20250422.diff",
+                      "task_id": "task_123",
+                      "summary": "Fix API schema bug",
+                      "output_folders": ["src", "docs"],
+                      "download_url": "https://your-domain.com/patches/patch_20250422.diff",
+                      "metadata_url": "https://your-domain.com/patches/patch_20250422.json"
                     }
                   }
                 }
