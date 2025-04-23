@@ -77,31 +77,41 @@ async def get_batch_files(request: Request):
     return {"files": results}
 
 # ---- New Promote Patch Tool ----
+
 class PromotePatchInput(BaseModel):
     task_id: str
     summary: str
     output_folders: List[str]
+    diff: str  # ✅ real patch content from GPT
 
 class PromotePatchOutput(BaseModel):
     patch_file: str
     task_id: str
     summary: str
     output_folders: List[str]
+    download_url: str
 
 @app.post("/promote_patch", response_model=PromotePatchOutput)
 def promote_patch(data: PromotePatchInput):
-    # Simulated patch path (real version would run diff + save .patch file)
-    patch_file = f".patches/patch_simulated_{data.task_id}.diff"
+    patch_file = f"patch_{data.task_id}.diff"
+    patch_dir = Path("/mnt/data/.patches")
+    patch_path = patch_dir / patch_file
+    patch_dir.mkdir(parents=True, exist_ok=True)
+
+    patch_path.write_text(data.diff)  # ✅ Write actual diff content from GPT
+
+    download_url = f"https://ai-concussion-agent-production.up.railway.app/patches/{patch_file}"
     return {
         "patch_file": patch_file,
         "task_id": data.task_id,
         "summary": data.summary,
-        "output_folders": data.output_folders
+        "output_folders": data.output_folders,
+        "download_url": download_url
     }
 
 @app.get("/patches/{patch_name}")
 def get_patch_file(patch_name: str):
-    patch_path = Path(".patches") / patch_name
+    patch_path = Path("/mnt/data/.patches") / patch_name
     if patch_path.exists():
         return FileResponse(patch_path, media_type="text/plain", filename=patch_name)
     else:

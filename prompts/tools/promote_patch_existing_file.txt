@@ -1,0 +1,24 @@
+---
+tool: promote_patch
+task_id: 1.1_capture_project_goals
+output_folders: ["docs"]
+use_case: existing_file
+input_file: docs/project_goals.md
+summary: Refined project goals and improved formatting
+---
+
+🎯 PROMOTE PATCH – EXISTING FILE
+
+You have finalized the updated version of the file: `docs/project_goals.md`.
+
+Please:
+1. Compare your updated version to the original version (fetched using `getGitHubFile`)
+2. Generate a unified diff in standard Git format:
+   - Start with: `--- a/docs/project_goals.md`
+   - Then: `+++ b/docs/project_goals.md`
+   - Show only the differences using `@@` and `+/-` notation
+3. Call the `promote_patch` tool with:
+   - task_id: "1.1_capture_project_goals"
+   - summary: "Refined project goals and improved formatting"
+   - output_folders: ["docs"]
+   - diff: (your unified diff)

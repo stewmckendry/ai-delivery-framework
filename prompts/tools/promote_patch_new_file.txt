@@ -1,0 +1,24 @@
+---
+tool: promote_patch
+task_id: 2.5_document_return_to_play
+output_folders: ["docs"]
+use_case: new_file
+new_file: docs/return_to_play.md
+summary: Added initial return-to-play protocol document
+---
+
+🆕 PROMOTE PATCH – NEW FILE
+
+You have created a new file as part of your task output: `docs/return_to_play.md`.
+
+Please:
+1. Format a unified diff that represents adding this new file
+2. Use the correct Git-style diff structure:
+   - `--- /dev/null`
+   - `+++ b/docs/return_to_play.md`
+   - Followed by `+` for each line of content
+3. Call the `promote_patch` tool with:
+   - task_id: "2.5_document_return_to_play"
+   - summary: "Added initial return-to-play protocol document"
+   - output_folders: ["docs"]
+   - diff: (your unified diff)

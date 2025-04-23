@@ -23,34 +23,34 @@ Enable any Pod to:
 - Pod calls the `promote_patch` **custom GPT action**, which:
   - Simulates running `generate_patch.py` in the sandbox
   - Collects staged file changes and constructs a `.diff`
-  - Outputs metadata:
+  - Saves the `.diff` file to disk on the server
+  - Returns metadata and a **`download_url`**:
     ```json
     {
-      "patch_file": ".patches/patch_20250422_103045_2.3_build_metrics_tool.diff",
+      "patch_file": "patch_20250422_103045_2.3_build_metrics_tool.diff",
       "task_id": "2.3_build_metrics_tool",
       "summary": "Added metrics tracker logic",
-      "output_folders": ["docs/", "metrics/"]
+      "output_folders": ["docs", "metrics"],
+      "download_url": "https://your-api/patches/patch_20250422_103045_2.3_build_metrics_tool.diff"
     }
     ```
-  - Returns the `.diff` file and metadata to the human for download
+  - The human clicks the `download_url` to save the patch into `chatgpt_repo/.patches/`
 
 > ⚠️ **Note:** Since ChatGPT cannot access or clone the repo directly, it determines file destinations using the `outputs` field in `task.yaml`. These serve as hints about where the human should place the generated content, and help structure metadata for patch creation.
 
-### Step 3: Human Downloads Patch File
-- Human (or GPT) uses a `GET /patches/{patch_name}` endpoint to retrieve the patch content
-- Patch is saved locally into `chatgpt_repo/.patches/`
-
-### Step 4: Promote Patch via Script
-- Human runs `scripts/promote_patch.sh` which:
+### Step 3: Promote Patch via Script
+- Human saves the downloaded `.diff` file into `chatgpt_repo/.patches/`
+- Runs `scripts/promote_patch.sh` which:
   - Moves the patch from `chatgpt_repo/.patches/` into `.patches/`
   - Calls `create_pr_from_patch.sh` with the patch name
   - Applies the patch, creates a feature branch, and pushes to GitHub
   - Opens a pull request (PR) using `gh` CLI if available
 
-### Step 5: PR Review
+### Step 4: PR Review
 - Human reviews and approves the PR
 - PR is merged into `main`
-- Optional GitHub Action (`promote_patch.yaml`) auto-runs on new `.patches/*.diff` files to trigger PR creation (if `promote_patch.sh` wasn't used)
+
+> 💡 **Fallback automation:** A GitHub Action (`promote_patch.yaml`) watches `.patches/*.diff` and auto-runs `create_pr_from_patch.sh` if the patch was committed but not manually promoted. This ensures patches are never left idle. Use this as a backup or for CI-based workflows.
 
 ---
 
@@ -73,11 +73,8 @@ Enable any Pod to:
 
 ### ✅ `.github/workflows/promote_patch.yaml`
 - GitHub Action that detects `.patches/*.diff` added to repo
-- Automatically runs `create_pr_from_patch.sh` for hands-off promotion
-
-### ✅ `GET /patches/{patch_name}` (FastAPI route)
-- Returns the raw `.diff` file content for download
-- Allows human or GPT to fetch the patch after promotion step
+- Automatically runs `create_pr_from_patch.sh`
+- **Note:** This is a fallback for patches committed manually or via automation. The preferred method is running `promote_patch.sh` locally.
 
 ---
 
@@ -97,7 +94,8 @@ Enable any Pod to:
 
 A tool that can be called by a ChatGPT Pod when a task output is finalized. It:
 - Simulates running `generate_patch.py` inside the GPT sandbox
-- Returns metadata needed for patch promotion and review
+- Writes the `.diff` file to server-side storage
+- Returns metadata and a `download_url`
 
 **Input Parameters:**
 ```json
@@ -114,11 +112,12 @@ A tool that can be called by a ChatGPT Pod when a task output is finalized. It:
   "patch_file": "string",
   "task_id": "string",
   "summary": "string",
-  "output_folders": ["string"]
+  "output_folders": ["string"],
+  "download_url": "string"
 }
 ```
 
-Used as the final step in the Pod output generation to signal a human to run local promotion. The `output_folders` are derived from `task.yaml.outputs` and serve as guidance.
+Used as the final step in the Pod output generation to signal a human to download the patch and run local promotion.
 
 ---
 
@@ -126,9 +125,9 @@ Used as the final step in the Pod output generation to signal a human to run loc
 
 | Actor | Responsibilities |
 |-------|------------------|
-| **ChatGPT Pod** | Generate output files, call `promote_patch` GPT action, return `.diff` + metadata to human |
-| **Human** | Fetch patch from `/patches/{name}`, save locally, run `promote_patch.sh`, approve PR |
-| **GitHub Action** | (Optional) Auto-promote any `.diff` committed to `.patches/` by running `create_pr_from_patch.sh` |
+| **ChatGPT Pod** | Generate output files, call `promote_patch`, return patch file + metadata + download URL |
+| **Human** | Download `.diff` file, run `promote_patch.sh`, approve PR |
+| **GitHub Action** | Auto-promotes committed `.diff` files if human script isn't used — serves as fallback for unattended patch workflows |
 
 ---
 
