@@ -1,68 +1,61 @@
 #!/bin/bash
 set -e
 
-echo "🚀 Starting patch promotion to remote branch..."
-
-# Always work from repo root
-ROOT_DIR=$(git rev-parse --show-toplevel)
-cd "$ROOT_DIR"
-
+# Load patch file
+PATCH_FILE="${TRIGGERED_PATCH:-$(ls -t .patches/*.diff | head -n 1)}"
+PATCH_NAME=$(basename "$PATCH_FILE")
 PATCH_DIR=".patches"
 LOG_DIR=".logs/patches"
+PATCH_JSON="${LOG_DIR}/${PATCH_NAME%.diff}.json"
 
-# Step 1: Determine patch to promote
-if [ -n "$TRIGGERED_PATCH" ]; then
-  PATCH_FILE="$PATCH_DIR/$TRIGGERED_PATCH"
-  echo "📎 Using triggered patch file: $PATCH_FILE"
+echo "📎 Using triggered patch file: $PATCH_FILE"
+
+# Step 0: Stash any current work to avoid overwriting
+if [ -n "$(git status --porcelain)" ]; then
+  echo "📦 Stashing uncommitted changes..."
+  git stash push -m "pre-patch-stash-$(date +%s)"
+  STASHED=1
 else
-  PATCH_FILE=$(ls -t "$PATCH_DIR"/*.diff | head -n 1)
-  echo "📄 Found patch: $PATCH_FILE"
+  STASHED=0
 fi
 
-# Sanity check
-if [ ! -f "$PATCH_FILE" ]; then
-  echo "❌ ERROR: Patch file not found at $PATCH_FILE"
-  exit 1
-fi
+# Step 1: Extract metadata
+TASK_ID=$(jq -r .task_id "$PATCH_JSON")
+SUMMARY=$(jq -r .summary "$PATCH_JSON")
+BRANCH_NAME="chatgpt/auto/${PATCH_NAME%.diff}"
 
-PATCH_NAME=$(basename "$PATCH_FILE" .diff)
-PATCH_JSON="$LOG_DIR/${PATCH_NAME}.json"
-
-# Sanity check for metadata
-if [ ! -f "$PATCH_JSON" ]; then
-  echo "❌ ERROR: Metadata not found at $PATCH_JSON"
-  exit 1
-fi
-
-# Step 2: Extract metadata
-TASK_ID=$(jq -r '.task_id' "$PATCH_JSON")
-SUMMARY=$(jq -r '.summary' "$PATCH_JSON")
-BRANCH_NAME="chatgpt/auto/${PATCH_NAME}"
-
-# Step 3: Create branch (or reuse existing), apply patch
+# Step 2: Get latest main branch from remote git, then checkout branch for patch (create new one if it doesn't exist)
+echo "🔄 Updating main before creating patch branch..."
+git checkout main
+git pull origin main
 if git show-ref --quiet refs/heads/"$BRANCH_NAME"; then
   echo "🔁 Branch $BRANCH_NAME already exists. Resetting to main."
   git checkout "$BRANCH_NAME"
   git reset --hard origin/main
 else
   git checkout -b "$BRANCH_NAME"
+  echo "🌱 Created new branch: $BRANCH_NAME"
 fi
+
+# Step 3: Apply the patch
 git apply "$PATCH_FILE"
 
-# Step 4: Commit and push
+# Step 4: Commit changes
 git add .
-git commit -m "Patch: ${TASK_ID} - ${SUMMARY}"
+git commit -m "$SUMMARY [task: $TASK_ID]"
+
+# Step 5: Push branch
 git push -u origin "$BRANCH_NAME"
 
-# Step 5: Open PR if CLI available
-if command -v gh &>/dev/null; then
-  echo "🔗 Creating GitHub PR..."
-  gh pr create \
-    --title "Patch: ${TASK_ID}" \
-    --body "${SUMMARY}" \
-    --head "$BRANCH_NAME" \
-    --base main
+# Step 6: Restore previous stash
+if [ "$STASHED" -eq 1 ]; then
+  echo "📦 Restoring stashed changes..."
+  git stash pop
+fi
+
+# Step 7: Create PR
+if command -v gh &> /dev/null; then
+  gh pr create --title "$SUMMARY [task: $TASK_ID]" --body "Auto-generated patch from $PATCH_FILE" --base main --head "$BRANCH_NAME"
 else
-  echo "✅ Branch pushed: $BRANCH_NAME"
-  echo "🔍 Please open a PR manually."
+  echo "ℹ️ 'gh' CLI not found. Please create PR manually from branch: $BRANCH_NAME"
 fi
