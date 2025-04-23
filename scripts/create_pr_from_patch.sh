@@ -14,12 +14,20 @@ if [ ! -f "$FULL_PATCH_PATH" ] && [ -f "$PATCH_DIR/$PATCH_FILE" ]; then
   FULL_PATCH_PATH="$PATCH_DIR/$PATCH_FILE"
 fi
 
-if [ ! -f "$PATCH_FILE" ] && [ ! -f "$PATCH_DIR/$PATCH_FILE" ]; then
-  echo "❌ ERROR: Patch file not found: $PATCH_FILE"
+if [ ! -f "$FULL_PATCH_PATH" ]; then
+  echo "❌ ERROR: Patch file not found: $FULL_PATCH_PATH"
   exit 1
 fi
 
-echo "📎 Using triggered patch file: $PATCH_FILE"
+echo "📎 Using triggered patch file: $FULL_PATCH_PATH"
+
+# Validate metadata file
+if [ ! -f "$PATCH_JSON" ]; then
+  echo "❌ Metadata not found: $PATCH_JSON"
+  echo "🔍 Available metadata files:"
+  ls "$LOG_DIR"/*.json 2>/dev/null || echo "⚠️ None found."
+  exit 1
+fi
 
 # Step 0: Stash any current work to avoid overwriting
 if [ -n "$(git status --porcelain)" ]; then
