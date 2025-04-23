@@ -259,6 +259,22 @@
                       "format": "uri",
                       "description": "Public download URL for the patch metadata JSON file"
                     }
+                  },
+                  "examples": {
+                    "success": {
+                      "summary": "Example patch output",
+                      "value": {
+                        "patch_file": "patch_20250422.diff",
+                        "task_id": "task_123",
+                        "summary": "Fix API schema bug",
+                        "output_folders": [
+                          "src",
+                          "docs"
+                        ],
+                        "download_url": "https://your-domain.com/patches/patch_20250422.diff",
+                        "metadata_url": "https://your-domain.com/patches/patch_20250422.json"
+                      }
+                    }
                   }
                 }
               }
