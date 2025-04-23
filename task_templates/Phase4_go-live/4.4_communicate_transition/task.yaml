@@ -3,6 +3,7 @@ template: true
 tasks:
   4.4_announce_go_live:
     description: Notify stakeholders of the successful release, outline changes, next steps, and support transition
+    phase: Phase 4 - Go Live
     assigned_pod: Human
     status: pending
     prompt: prompts/human/4.4_announce_go_live.txt

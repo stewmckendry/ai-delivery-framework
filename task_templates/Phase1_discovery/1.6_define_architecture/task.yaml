@@ -3,6 +3,7 @@ template: true
 tasks:
   1.6_define_architecture_and_standards:
     description: Draft initial solution architecture and coding or design standards
+    phase: Phase 1 - Discovery
     assigned_pod: DevPod
     status: pending
     prompt: prompts/dev/define_architecture.txt

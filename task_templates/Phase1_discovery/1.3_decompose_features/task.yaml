@@ -3,6 +3,7 @@ template: true
 tasks:
   1.3_break_into_features:
     description: Analyze project scope and break it into features, experiments, or hypotheses
+    phase: Phase 1 - Discovery
     assigned_pod: DevPod
     status: pending
     prompt: prompts/dev/break_into_features.txt

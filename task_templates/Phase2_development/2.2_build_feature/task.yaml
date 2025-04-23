@@ -3,6 +3,7 @@ template: true
 tasks:
   2.2_build_and_patch:
     description: Build the feature based on the approved spec, implement or update source and test files, run unit tests, update the spec if needed, and generate a patch
+    phase: Phase 2 - Development
     assigned_pod: DevPod
     status: pending
     prompt: prompts/dev/2.2_build_and_patch.txt

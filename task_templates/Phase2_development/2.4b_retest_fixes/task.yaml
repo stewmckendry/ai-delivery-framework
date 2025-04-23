@@ -3,6 +3,7 @@ template: true
 tasks:
   2.4b_retest_after_fixes:
     description: Re-run previously failed or blocked test cases after DevPod fixes, confirm bug resolution, and update QA results and acceptance matrix
+    phase: Phase 2 - Development
     assigned_pod: QAPod
     status: pending
     prompt: prompts/qa/2.4b_retest_after_fixes.txt

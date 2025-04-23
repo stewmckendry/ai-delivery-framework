@@ -3,6 +3,7 @@ template: true
 tasks:
   2.5_research_assist:
     description: Investigate and summarize findings for unresolved technical, architectural, or domain-specific questions raised during the feature cycle
+    phase: Phase 2 - Development
     assigned_pod: ResearchPod
     status: pending
     prompt: prompts/research/2.5_research_assist.txt

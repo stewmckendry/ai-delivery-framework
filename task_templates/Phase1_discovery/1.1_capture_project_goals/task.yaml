@@ -3,6 +3,7 @@ template: true
 tasks:
   1.1_capture_project_goals:
     description: Help capture and summarize the goals, purpose, and intended impact of the project
+    phase: Phase 1 - Discovery
     assigned_pod: DevPod
     status: pending
     prompt: prompts/dev/capture_project_goals.txt

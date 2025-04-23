@@ -3,6 +3,7 @@ template: true
 tasks:
   4.5_go_live_retro:
     description: Facilitate a short retrospective and capture initial stabilization issues or learnings
+    phase: Phase 4 - Go Live
     assigned_pod: WoWPod
     status: pending
     prompt: prompts/wow/4.5_go_live_retro.txt

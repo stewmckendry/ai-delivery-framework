@@ -3,6 +3,7 @@ template: true
 tasks:
   2.4a_fix_bugs_from_qa:
     description: Address bugs identified by QAPod during QA review, apply code and test fixes, validate with local test runs, and update spec and patch
+    phase: Phase 2 - Development
     assigned_pod: DevPod
     status: pending
     prompt: prompts/dev/2.4a_fix_bugs_from_qa.txt

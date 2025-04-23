@@ -3,6 +3,7 @@ template: true
 tasks:
   3.4_coordinate_e2e_demo:
     description: Organize and document an end-to-end walkthrough, review, or demo of key app workflows
+    phase: Phase 3 - E2E Testing
     assigned_pod: WoWPod
     status: pending
     prompt: prompts/wow/3.4_coordinate_e2e_demo.txt

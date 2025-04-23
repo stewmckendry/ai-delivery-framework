@@ -3,6 +3,7 @@ template: true
 tasks:
   2.7_agile_metrics:
     description: Facilitate agile rituals (e.g., retrospective), analyze velocity and task completion data, update delivery metrics, and log team process insights and gaps
+    phase: Phase 2 - Development
     assigned_pod: WoWPod
     status: pending
     prompt: prompts/wow/2.7_agile_metrics.txt

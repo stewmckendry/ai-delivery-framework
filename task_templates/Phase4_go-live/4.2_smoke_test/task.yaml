@@ -3,6 +3,7 @@ template: true
 tasks:
   4.2_final_smoke_tests:
     description: Execute critical smoke tests in the production environment to confirm readiness
+    phase: Phase 4 - Go Live
     assigned_pod: QAPod
     status: pending
     prompt: prompts/qa/4.2_final_smoke_tests.txt

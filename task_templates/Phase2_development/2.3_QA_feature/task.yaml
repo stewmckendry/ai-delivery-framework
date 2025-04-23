@@ -3,6 +3,7 @@ template: true
 tasks:
   2.3_qa_review_feature:
     description: Perform QA review of the implemented feature, define test plan and cases, run tests, and document results aligned to acceptance criteria
+    phase: Phase 2 - Development
     assigned_pod: QAPod
     status: pending
     prompt: prompts/qa/2.3_qa_review_feature.txt
