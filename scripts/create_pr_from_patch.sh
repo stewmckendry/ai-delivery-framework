@@ -24,11 +24,12 @@ echo "📎 Using triggered patch file: $PATCH_FILE"
 # Step 0: Stash any current work to avoid overwriting
 if [ -n "$(git status --porcelain)" ]; then
   echo "📦 Stashing uncommitted changes..."
-  git stash push -m "pre-patch-stash-$(date +%s)"
+  git stash push --include-untracked -m "pre-patch-stash-$(date +%s)"
   STASHED=1
 else
   STASHED=0
 fi
+echo "✅ Stashed changes."
 
 # Step 1: Extract metadata
 TASK_ID=$(jq -r .task_id "$PATCH_JSON")
@@ -68,8 +69,11 @@ echo "✅ Branch pushed successfully."
 # Step 6: Restore previous stash
 if [ "$STASHED" -eq 1 ]; then
   echo "📦 Restoring stashed changes..."
-  git stash pop || echo "⚠️ Could not pop stash automatically"
-  echo "✅ Stashed changes restored successfully."
+  if git stash pop; then
+    echo "✅ Stashed changes restored successfully."
+  else
+    echo "⚠️ Could not pop stash automatically. You may need to resolve conflicts manually."
+  fi
 fi
 
 # Step 7: Create PR

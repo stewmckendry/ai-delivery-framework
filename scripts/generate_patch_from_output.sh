@@ -41,7 +41,7 @@ for OUTPUT_FILE in "${OUTPUT_FILES[@]}"; do
     DEST_PATH="$FOLDER/$OUTPUT_FILE"
     mkdir -p "$(dirname "$DEST_PATH")"
     cp "$OUTPUTS_DIR/$OUTPUT_FILE" "$DEST_PATH"
-    git add --intent-to-add "$DEST_PATH"
+    git add "$DEST_PATH"
     STAGED_FILES+=("$DEST_PATH")
     echo "✅ Staged file: $DEST_PATH"
   done

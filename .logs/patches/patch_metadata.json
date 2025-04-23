@@ -1,0 +1,7 @@
+{
+  "task_id": "1.1_capture_project_goals",
+  "summary": "Capture and describe project goals",
+  "output_folders": [
+    "poc/test_data/docs"
+  ]
+}

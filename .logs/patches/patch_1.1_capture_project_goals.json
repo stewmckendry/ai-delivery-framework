@@ -1,8 +1,0 @@
-{
-  "patch_file": "patch_1.1_capture_project_goals.diff",
-  "task_id": "1.1_capture_project_goals",
-  "summary": "Refined project goals with valid formatting and clean list syntax",
-  "output_folders": [
-    "docs"
-  ]
-}
