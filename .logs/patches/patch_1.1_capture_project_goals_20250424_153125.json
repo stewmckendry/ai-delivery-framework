@@ -1,0 +1,9 @@
+{
+  "task_id": "1.1_capture_project_goals",
+  "summary": "Captures and refines project goals for LlamaExpress, including zero-G delivery logic and interplanetary patch logistics.",
+  "output_files": [
+    "docs/project_goals.md"
+  ],
+  "prompt": "prompts/used/DevPod/1.1_capture_project_goals_prompt.txt",
+  "branch_name": "chatgpt/auto/discovery/1.1_capture_project_goals"
+}
