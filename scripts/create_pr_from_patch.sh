@@ -19,6 +19,8 @@ PATCH_DIR=".patches"
 LOG_DIR=".logs/patches"
 PATCH_JSON="${LOG_DIR}/${PATCH_NAME%.diff}.json"
 FULL_PATCH_PATH="$PATCH_FILE"
+CHANGELOG_FILE=".logs/changelogs/${TASK_ID}.md"
+REASONING_FILE=".logs/reasoning/${TASK_ID}_trace.md"
 
 echo "🔍 Resolving patch file..."
 if [ ! -f "$FULL_PATCH_PATH" ] && [ -f "$PATCH_DIR/$PATCH_FILE" ]; then
@@ -136,13 +138,33 @@ if [ "$STASHED" -eq 1 ]; then
   fi
 fi
 
+PR_BODY_FILE=$(mktemp)
+{
+  echo "## ✨ What was added?"
+  echo "- Covers task: \`$TASK_ID\`"
+  jq -r '.output_files[]' "$PATCH_JSON" | sed 's/^/- New file: `/' | sed 's/$/`/'
+  echo
+  echo "## 🎯 Why it matters"
+  cat "$CHANGELOG_FILE" 2>/dev/null || echo "_No changelog found._"
+  echo
+  if [ -f "$REASONING_FILE" ]; then
+    echo "## 🧠 Thought process"
+    cat "$REASONING_FILE"
+    echo
+  fi
+  echo "## 📄 Related"
+  echo "- Task ID: $TASK_ID"
+  echo "- Prompt: $(jq -r .prompt "$PATCH_JSON" 2>/dev/null || echo '_Unknown_')"
+} > "$PR_BODY_FILE"
+
 if command -v gh &> /dev/null; then
   echo "📬 Creating PR..."
-  if gh pr create --title "$SUMMARY [task: $TASK_ID]" --body "Auto-generated patch from $PATCH_FILE" --base main --head "$BRANCH_NAME"; then
-  echo "✅ PR created successfully."
+  if gh pr create --title "$SUMMARY [task: $TASK_ID]" --body "$(cat "$PR_BODY_FILE")" --base main --head "$BRANCH_NAME"; then
+    echo "✅ PR created successfully."
   else
-  echo "❌ Failed to create PR."
+    echo "❌ Failed to create PR."
   fi
+  rm "$PR_BODY_FILE"
 else
   echo "ℹ️ 'gh' CLI not found. Please create PR manually from branch: $BRANCH_NAME"
 fi
