@@ -72,19 +72,30 @@ else
 fi
 
 echo "🧹 Cleaning up conflicting files..."
-grep '^+++ b/' "$FULL_PATCH_PATH" | awk '{print $2}' | while read -r file; do
+grep '^+++ b/' "$FULL_PATCH_PATH" | awk '{sub("^b/", "", $2); print $2}' | while read -r file; do
+  echo "🔍 Checking for conflict: $file"
+
   if [ -f "$file" ]; then
-    echo "❌ Removing pre-existing file: $file"
+    echo "⚠️ File exists in working directory: $file"
+
     if git ls-files --error-unmatch "$file" > /dev/null 2>&1; then
-      # If file is tracked
+      echo "🔎 Tracked by Git. Performing git cleanup:"
+      git status --short "$file" || true
       git reset HEAD "$file" 2>/dev/null || true
       git checkout HEAD -- "$file" 2>/dev/null || true
       git rm --cached "$file" 2>/dev/null || true
+    else
+      echo "🆕 File is untracked. Will delete manually."
     fi
-    rm "$file" 2>/dev/null || true
+
+    echo "🗑 Deleting file from disk..."
+    rm "$file" 2>/dev/null || echo "⚠️ Failed to delete $file"
+  else
+    echo "✅ No conflicting file for: $file"
   fi
 done
-echo "✅ Conflicting files cleaned up."
+echo "✅ Conflicting file check complete."
+
 
 echo "🧪 Performing dry run of patch application..."
 if git apply --check "$FULL_PATCH_PATH"; then
