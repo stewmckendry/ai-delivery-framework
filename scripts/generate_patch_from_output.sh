@@ -106,7 +106,8 @@ if [ -f "$REASONING_TRACE_FILE" ]; then
   echo "✅ Reasoning trace found: $REASONING_TRACE_FILE"
 else
   echo "ℹ️ No reasoning trace file found."
-  REASONING_TRACE_FILE=""fi
+  REASONING_TRACE_FILE=""
+fi
 
 echo "🔄 Marking task as complete and generating changelog..."
 bash scripts/complete_task.sh "$TASK_ID" "$REASONING_TRACE_FILE"
