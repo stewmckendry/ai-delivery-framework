@@ -21,7 +21,7 @@ In this system, **DevPod** is a cross-functional product pod. It includes produc
 
 ### ✅ Definition of Ready (DoR)
 A task is considered "Ready" when:
-- It is defined in `task.yaml` with required fields: `description`, `inputs`, `outputs`, `assigned_pod`, `prompt`, and optionally `feedback_file`
+- It is defined in `task.yaml` with required fields: `description`, `inputs`, `outputs`, `pod_owner`, `prompt`, and optionally `feedback_file`
 - All inputs are available in Git and indexed in `memory.yaml`
 - There is a clear understanding of success criteria (e.g., embedded A/Cs or prompt)
 - Optionally includes `ready: true` to flag readiness
@@ -428,7 +428,7 @@ project-root/
 tasks:
   task_id:
     description: "Short description of the task"
-    assigned_pod: DevPod | QAPod | ResearchPod | DeliveryPod | WoWPod
+    pod_owner: DevPod | QAPod | ResearchPod | DeliveryPod | WoWPod
     status: pending | in_progress | done
     prompt: prompts/dev/implement_feature.txt
     inputs:

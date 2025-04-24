@@ -121,14 +121,14 @@ echo "🔄 Checking for prompt_used.txt..."
 PROMPT_FILE="$TMP_DIR/prompt_used.txt"
 PROMPT_LOG_DIR="prompts/used"
 
-echo "🔍 Extracting assigned_pod from task.yaml to use in prompt file path (prompt files organized by pod)..."
-ASSIGNED_POD=$(yq e ".tasks.\"$TASK_ID\".assigned_pod" "$TASKS_FILE")
-if [ -z "$ASSIGNED_POD" ] || [[ "$ASSIGNED_POD" == "null" ]]; then
-  echo "❌ No assigned_pod defined for task $TASK_ID in task.yaml"
+echo "🔍 Extracting pod_owner from task.yaml to use in prompt file path (prompt files organized by pod)..."
+pod_owner=$(yq e ".tasks.\"$TASK_ID\".pod_owner" "$TASKS_FILE")
+if [ -z "$pod_owner" ] || [[ "$pod_owner" == "null" ]]; then
+  echo "❌ No pod_owner defined for task $TASK_ID in task.yaml"
   exit 1
 fi
-echo "✅ Assigned Pod: $ASSIGNED_POD"
-PROMPT_LOG_PATH="${PROMPT_LOG_DIR}/${ASSIGNED_POD}/${TASK_ID}_prompt.txt"
+echo "✅ Assigned Pod: $pod_owner"
+PROMPT_LOG_PATH="${PROMPT_LOG_DIR}/${pod_owner}/${TASK_ID}_prompt.txt"
 
 if [ -f "$PROMPT_FILE" ]; then
   mkdir -p "$(dirname "$PROMPT_LOG_PATH")"

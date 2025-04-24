@@ -5,7 +5,7 @@ tasks:
     description: Create a clear, reproducible deployment guide covering environments, configuration, tooling, and steps for deploying the current feature set
     phase: Phase 2 - Development
     category: dev
-    assigned_pod: DevPod
+    pod_owner: DevPod
     status: pending
     prompt: prompts/dev/2.8_prepare_deployment_guide.txt
     inputs:

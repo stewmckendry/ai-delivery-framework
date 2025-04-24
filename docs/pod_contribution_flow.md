@@ -65,7 +65,7 @@ This script:
 
 To ensure transparency and repeatability, we track the actual prompt used for each task. This prompt:
 - Is saved in `prompt_used.txt`
-- Is included in the ZIP and stored under `prompts/used/<assigned_pod>/<task_id>_prompt.txt`
+- Is included in the ZIP and stored under `prompts/used/<pod_owner>/<task_id>_prompt.txt`
 - Is quoted in the pull request body
 
 Prompts are either fetched using `getGitHubFile`, or provided manually by the human if the tool fails.

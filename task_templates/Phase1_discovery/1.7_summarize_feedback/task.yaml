@@ -5,7 +5,7 @@ tasks:
     description: Summarize chat feedback, discussion notes, and key decisions
     phase: Phase 1 - Discovery
     category: discovery
-    assigned_pod: Human
+    pod_owner: Human
     status: pending
     prompt: prompts/human/summarize_feedback.txt
     inputs:

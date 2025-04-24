@@ -12,7 +12,7 @@ template: true
 tasks:
   2.4a_fix_bugs_from_qa:
     description: Address bugs identified by QAPod during QA review, apply code and test fixes, validate with local test runs, and update spec and patch
-    assigned_pod: DevPod
+    pod_owner: DevPod
     status: pending
     prompt: prompts/dev/2.4a_fix_bugs_from_qa.txt
     inputs:
@@ -95,7 +95,7 @@ template: true
 tasks:
   2.4b_retest_after_fixes:
     description: Re-run previously failed or blocked test cases after DevPod fixes, confirm bug resolution, and update QA results and acceptance matrix
-    assigned_pod: QAPod
+    pod_owner: QAPod
     status: pending
     prompt: prompts/qa/2.4b_retest_after_fixes.txt
     inputs:
@@ -192,7 +192,7 @@ template: true
 tasks:
   2.5_research_assist:
     description: Investigate and summarize findings for unresolved technical, architectural, or domain-specific questions raised during the feature cycle
-    assigned_pod: ResearchPod
+    pod_owner: ResearchPod
     status: pending
     prompt: prompts/research/2.5_research_assist.txt
     inputs:
@@ -285,7 +285,7 @@ template: true
 tasks:
   2.7_agile_metrics:
     description: Facilitate agile rituals (e.g., retrospective), analyze velocity and task completion data, update delivery metrics, and log team process insights and gaps
-    assigned_pod: WoWPod
+    pod_owner: WoWPod
     status: pending
     prompt: prompts/wow/2.7_agile_metrics.txt
     inputs:
@@ -394,7 +394,7 @@ template: true
 tasks:
   2.8_prepare_deployment_guide:
     description: Create a clear, reproducible deployment guide covering environments, configuration, tooling, and steps for deploying the current feature set
-    assigned_pod: DevPod
+    pod_owner: DevPod
     status: pending
     prompt: prompts/dev/2.8_prepare_deployment_guide.txt
     inputs:

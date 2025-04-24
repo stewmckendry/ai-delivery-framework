@@ -11,7 +11,7 @@ template: true
 tasks:
   4.1_create_cutover_plan:
     description: Define a clear and time-bound cutover checklist and go-live plan, covering key responsibilities and risks
-    assigned_pod: DeliveryPod
+    pod_owner: DeliveryPod
     status: pending
     prompt: prompts/delivery/4.1_create_cutover_plan.txt
     inputs:
@@ -76,7 +76,7 @@ template: true
 tasks:
   4.2_final_smoke_tests:
     description: Execute critical smoke tests in the production environment to confirm readiness
-    assigned_pod: QAPod
+    pod_owner: QAPod
     status: pending
     prompt: prompts/qa/4.2_final_smoke_tests.txt
     inputs:
@@ -140,7 +140,7 @@ template: true
 tasks:
   4.3_go_live_deployment:
     description: Deploy the application into production following the final approved checklist
-    assigned_pod: DevPod
+    pod_owner: DevPod
     status: pending
     prompt: prompts/dev/4.3_go_live_deployment.txt
     inputs:
@@ -199,7 +199,7 @@ template: true
 tasks:
   4.4_announce_go_live:
     description: Notify stakeholders of the successful release, outline changes, next steps, and support transition
-    assigned_pod: Human
+    pod_owner: Human
     status: pending
     prompt: prompts/human/4.4_announce_go_live.txt
     inputs:
@@ -258,7 +258,7 @@ template: true
 tasks:
   4.5_go_live_retro:
     description: Facilitate a short retrospective and capture initial stabilization issues or learnings
-    assigned_pod: WoWPod
+    pod_owner: WoWPod
     status: pending
     prompt: prompts/wow/4.5_go_live_retro.txt
     inputs:
@@ -317,7 +317,7 @@ template: true
 tasks:
   4.6_update_runbook:
     description: Update deployment steps, rollback plan, infra configs, and post-release runbook
-    assigned_pod: DevPod
+    pod_owner: DevPod
     status: pending
     prompt: prompts/dev/4.6_update_runbook.txt
     inputs:

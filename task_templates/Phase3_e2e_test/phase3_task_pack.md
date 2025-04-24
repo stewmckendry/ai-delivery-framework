@@ -11,7 +11,7 @@ template: true
 tasks:
   3.1_define_e2e_test_plan:
     description: Define a comprehensive end-to-end (E2E) test plan covering full user flows, edge cases, and systems integration
-    assigned_pod: QAPod
+    pod_owner: QAPod
     status: pending
     prompt: prompts/qa/3.1_define_e2e_test_plan.txt
     inputs:
@@ -71,7 +71,7 @@ template: true
 tasks:
   3.2_execute_e2e_scenarios:
     description: Run defined E2E test scenarios and log outcomes for each test case, noting any failures or inconsistencies
-    assigned_pod: QAPod
+    pod_owner: QAPod
     status: pending
     prompt: prompts/qa/3.2_execute_e2e_scenarios.txt
     inputs:
@@ -122,7 +122,7 @@ template: true
 tasks:
   3.3_fix_bugs_e2e:
     description: Address issues uncovered in E2E testing and update source code, tests, and documentation as needed
-    assigned_pod: DevPod
+    pod_owner: DevPod
     status: pending
     prompt: prompts/dev/3.3_fix_bugs_e2e.txt
     inputs:
@@ -173,7 +173,7 @@ template: true
 tasks:
   3.4_coordinate_e2e_demo:
     description: Organize and document an end-to-end walkthrough, review, or demo of key app workflows
-    assigned_pod: WoWPod
+    pod_owner: WoWPod
     status: pending
     prompt: prompts/wow/3.4_coordinate_e2e_demo.txt
     inputs:
@@ -221,7 +221,7 @@ template: true
 tasks:
   3.5_finalize_quality_metrics:
     description: Track unresolved issues and summarize final quality metrics, including test coverage, pass rates, and defects
-    assigned_pod: DeliveryPod
+    pod_owner: DeliveryPod
     status: pending
     prompt: prompts/delivery/3.5_finalize_quality_metrics.txt
     inputs:

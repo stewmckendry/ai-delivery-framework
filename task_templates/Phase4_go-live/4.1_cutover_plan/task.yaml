@@ -5,7 +5,7 @@ tasks:
     description: Define a clear and time-bound cutover checklist and go-live plan, covering key responsibilities and risks
     phase: Phase 4 - Go Live
     category: cutover
-    assigned_pod: DeliveryPod
+    pod_owner: DeliveryPod
     status: pending
     prompt: prompts/delivery/4.1_create_cutover_plan.txt
     inputs:

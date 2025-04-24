@@ -11,7 +11,7 @@ template: true
 tasks:
   1.2_define_user_and_delivery_flows:
     description: Define and capture user flows (personas, journeys) and delivery flows (SDLC, pods)
-    assigned_pod: DevPod
+    pod_owner: DevPod
     status: pending
     prompt: prompts/dev/define_user_and_delivery_flows.txt
     inputs:
@@ -39,7 +39,7 @@ template: true
 tasks:
   1.3_break_into_features:
     description: Analyze project scope and break it into features, experiments, or hypotheses
-    assigned_pod: DevPod
+    pod_owner: DevPod
     status: pending
     prompt: prompts/dev/break_into_features.txt
     inputs:
@@ -65,7 +65,7 @@ template: true
 tasks:
   1.4_write_acceptance_criteria:
     description: Write or refine acceptance criteria based on feature specs and QA matrix
-    assigned_pod: QAPod
+    pod_owner: QAPod
     status: pending
     prompt: prompts/qa/write_acceptance_criteria.txt
     inputs:

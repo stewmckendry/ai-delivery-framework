@@ -228,7 +228,7 @@ def monitor_pods():
             data = yaml.safe_load(f)
         tasks.append({
             "task_id": file.stem,
-            "assigned_pod": data.get("assigned_pod", "Unassigned"),
+            "pod_owner": data.get("pod_owner", "Unassigned"),
             "status": data.get("status", "unknown"),
             "summary": data.get("description", ""),
             "updated_at": data.get("updated_at", "")

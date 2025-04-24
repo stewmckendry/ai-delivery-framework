@@ -140,13 +140,13 @@ def get_active_tasks():
         task = read_yaml_from_github(item["path"])
         task_info = {
             "task_id": filename.replace(".yaml", ""),
-            "assigned_pod": task.get("assigned_pod", "Unassigned"),
+            "pod_owner": task.get("pod_owner", "Unassigned"),
             "status": task.get("status", "unknown"),
             "summary": task.get("description", ""),
             "updated_at": task.get("updated_at", "")
         }
         active.append(task_info)
-                active_by_pod[task_info["assigned_pod"]].append(task_info)
+                active_by_pod[task_info["pod_owner"]].append(task_info)
 
     sprint = {}
     try:

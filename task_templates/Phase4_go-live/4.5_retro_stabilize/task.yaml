@@ -5,7 +5,7 @@ tasks:
     description: Facilitate a short retrospective and capture initial stabilization issues or learnings
     phase: Phase 4 - Go Live
     category: cutover
-    assigned_pod: WoWPod
+    pod_owner: WoWPod
     status: pending
     prompt: prompts/wow/4.5_go_live_retro.txt
     inputs:

@@ -54,11 +54,11 @@ fi
 echo "🔍 Extracting metadata..."
 TASK_ID=$(jq -r .task_id "$PATCH_JSON")
 SUMMARY=$(jq -r .summary "$PATCH_JSON")
-ASSIGNED_POD=$(yq e ".tasks.\"$TASK_ID\".assigned_pod" task.yaml)
+pod_owner=$(yq e ".tasks.\"$TASK_ID\".pod_owner" task.yaml)
 echo "✅ Metadata loaded:"
 echo "   - Task ID: $TASK_ID"
 echo "   - Summary: $SUMMARY"
-echo "   - Assigned Pod: $ASSIGNED_POD"
+echo "   - Assigned Pod: $pod_owner"
 
 echo "Extracting branch name..."
 BRANCH_NAME=$(jq -r .branch_name "$PATCH_JSON")
@@ -71,7 +71,7 @@ echo "✅ Branch name extracted: $BRANCH_NAME"
 echo "🔍 Setting file paths..."
 CHANGELOG_FILE=".logs/changelogs/${TASK_ID}.md"
 REASONING_FILE=".logs/reasoning/${TASK_ID}_trace.md"
-PROMPT_FILE="prompts/used/${ASSIGNED_POD}/${TASK_ID}_prompt.txt"
+PROMPT_FILE="prompts/used/${pod_owner}/${TASK_ID}_prompt.txt"
 echo "✅ File paths set:"
 echo "   - Changelog: $CHANGELOG_FILE"
 echo "   - Reasoning: $REASONING_FILE"

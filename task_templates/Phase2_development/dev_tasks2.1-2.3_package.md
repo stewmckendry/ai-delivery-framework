@@ -12,7 +12,7 @@ template: true
 tasks:
   2.1_design_feature_and_tech_spec:
     description: For each assigned feature, draft a detailed technical specification
-    assigned_pod: DevPod
+    pod_owner: DevPod
     status: pending
     prompt: prompts/dev/2.1_design_feature_and_tech_spec.txt
     inputs:
@@ -36,7 +36,7 @@ template: true
 tasks:
   2.2_build_and_patch:
     description: Build the feature based on the approved spec, implement or update source and test files, run unit tests, update the spec if needed, and generate a patch
-    assigned_pod: DevPod
+    pod_owner: DevPod
     status: pending
     prompt: prompts/dev/2.2_build_and_patch.txt
     inputs:
@@ -65,7 +65,7 @@ template: true
 tasks:
   2.3_qa_review_feature:
     description: Perform QA review of the implemented feature, define test plan and cases, run tests, and document results aligned to acceptance criteria
-    assigned_pod: QAPod
+    pod_owner: QAPod
     status: pending
     prompt: prompts/qa/2.3_qa_review_feature.txt
     inputs:

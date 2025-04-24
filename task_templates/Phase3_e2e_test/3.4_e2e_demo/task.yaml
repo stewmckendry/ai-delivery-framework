@@ -5,7 +5,7 @@ tasks:
     description: Organize and document an end-to-end walkthrough, review, or demo of key app workflows
     phase: Phase 3 - E2E Testing
     category: e2e
-    assigned_pod: WoWPod
+    pod_owner: WoWPod
     status: pending
     prompt: prompts/wow/3.4_coordinate_e2e_demo.txt
     inputs:

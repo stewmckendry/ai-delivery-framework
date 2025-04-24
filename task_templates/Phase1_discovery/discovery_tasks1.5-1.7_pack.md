@@ -11,7 +11,7 @@ template: true
 tasks:
   1.5_research_spikes:
     description: Investigate and document unresolved questions, unknowns, or tool comparisons
-    assigned_pod: ResearchPod
+    pod_owner: ResearchPod
     status: pending
     prompt: prompts/research/research_spikes.txt
     inputs:
@@ -36,7 +36,7 @@ template: true
 tasks:
   1.6_define_architecture_and_standards:
     description: Draft initial solution architecture and coding or design standards
-    assigned_pod: DevPod
+    pod_owner: DevPod
     status: pending
     prompt: prompts/dev/define_architecture.txt
     inputs:
@@ -63,7 +63,7 @@ template: true
 tasks:
   1.7_feedback_summary:
     description: Summarize chat feedback, discussion notes, and key decisions
-    assigned_pod: Human
+    pod_owner: Human
     status: pending
     prompt: prompts/human/summarize_feedback.txt
     inputs:

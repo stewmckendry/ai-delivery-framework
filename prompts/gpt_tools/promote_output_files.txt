@@ -21,7 +21,7 @@
   Save this prompt text in a file called `prompt_used.txt` and include it in the ZIP.
 
   ✅ This file is important for traceability and will be stored under:
-  `prompts/used/<assigned_pod>/<task_id>_prompt.txt`
+  `prompts/used/<pod_owner>/<task_id>_prompt.txt`
 
   2. ✍️ Please create a file called reasoning_trace.md with a brief reflection on the decisions made during this task. Address the following:
   - 🧠 Why did you structure the output this way?

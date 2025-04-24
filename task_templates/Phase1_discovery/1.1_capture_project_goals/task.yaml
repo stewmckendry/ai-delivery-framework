@@ -5,7 +5,7 @@ tasks:
     description: Help capture and summarize the goals, purpose, and intended impact of the project
     phase: Phase 1 - Discovery
     category: discovery
-    assigned_pod: DevPod
+    pod_owner: DevPod
     status: pending
     prompt: prompts/dev/capture_project_goals.txt
     inputs:

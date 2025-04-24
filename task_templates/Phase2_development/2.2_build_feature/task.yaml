@@ -5,7 +5,7 @@ tasks:
     description: Build the feature based on the approved spec, implement or update source and test files, run unit tests, update the spec if needed, and generate a patch
     phase: Phase 2 - Development
     category: dev
-    assigned_pod: DevPod
+    pod_owner: DevPod
     status: pending
     prompt: prompts/dev/2.2_build_and_patch.txt
     inputs:

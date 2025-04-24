@@ -5,7 +5,7 @@ tasks:
     description: Perform QA review of the implemented feature, define test plan and cases, run tests, and document results aligned to acceptance criteria
     phase: Phase 2 - Development
     category: dev
-    assigned_pod: QAPod
+    pod_owner: QAPod
     status: pending
     prompt: prompts/qa/2.3_qa_review_feature.txt
     inputs:

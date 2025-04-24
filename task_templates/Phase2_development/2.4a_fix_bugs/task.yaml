@@ -5,7 +5,7 @@ tasks:
     description: Address bugs identified by QAPod during QA review, apply code and test fixes, validate with local test runs, and update spec and patch
     phase: Phase 2 - Development
     category: dev
-    assigned_pod: DevPod
+    pod_owner: DevPod
     status: pending
     prompt: prompts/dev/2.4a_fix_bugs_from_qa.txt
     inputs:

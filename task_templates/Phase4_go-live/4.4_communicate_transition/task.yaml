@@ -5,7 +5,7 @@ tasks:
     description: Notify stakeholders of the successful release, outline changes, next steps, and support transition
     phase: Phase 4 - Go Live
     category: cutover
-    assigned_pod: Human
+    pod_owner: Human
     status: pending
     prompt: prompts/human/4.4_announce_go_live.txt
     inputs:

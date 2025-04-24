@@ -137,7 +137,7 @@ graph TD
   - **Master Backlog (`task.yaml` at project root)**
     - Holds all actual project tasks (merged + customized from templates)
     - Accessed by:
-      - `generate_patch_from_output.sh` to retrieve `category` and `assigned_pod`
+      - `generate_patch_from_output.sh` to retrieve `category` and `pod_owner`
       - `complete_task.sh` to mark `done: true` and update `status`
     - Currently edited manually (or partially updated during patch flow)
   - **Current Patch Flow**
@@ -152,7 +152,7 @@ graph TD
   - **Core Needs**
     - Initialize `task.yaml` by compiling all `task_templates` (scripted, not manual)
     - Track task lifecycle: `status: backlog | up next | in progress | done`
-    - Track who/what is working on each task (`assigned_pod`, `assigned_to`)
+    - Track who/what is working on each task (`pod_owner`, `assigned_to`)
     - Support cloning/customizing task templates for multiple uses
     - Provide filtering/sorting tools (by phase, pod, category, status)
     - Enable human-pod conversations to plan task order, assignments, and tailoring
@@ -184,7 +184,7 @@ graph TD
      - GPT calls `update_task_metadata` action to:
        - Change `status: in progress`
        - Clone and rename task (e.g., `1.1a_capture_product_goals`)
-       - Modify `description`, `prompt`, `assigned_pod`, etc.
+       - Modify `description`, `prompt`, `pod_owner`, etc.
      - **💡 Requirements:**
        - New OpenAPI tool: `update_task_metadata`
        - Patch to `main.py` to support task file read/write
