@@ -52,44 +52,6 @@ mkdir -p \
 Save as `scripts/init_repo_structure.sh`
 
 
-## 📁 Directory Structure
-
-```
-ai-concussion-agent/
-├── README.md                      # Project overview and quickstart
-├── memory.yaml                   # Index of key files for PoDs and humans
-├── project_manifest.yaml         # Overview of key stages and configuration
-├── feature_backlog.yaml          # Active features and backlog items
-│
-├── docs/                         # All documentation files
-│   ├── ai_delivery_operating_system.md
-│   ├── ai_native_progress.md
-│   ├── ai_native_generate_patch.md
-│   └── ai-delivery-kit/
-│       └── POD_SOPs.md
-│
-├── scripts/                      # System automation scripts
-│   ├── generate_patch.py
-│   ├── create_pr_from_patch.sh
-│   ├── update_memory.py          # (to be built)
-│   ├── check_repo_structure.py   # (to be built)
-│   └── other_helpers.py
-│
-├── patches/                      # PoD-generated .diff patches
-├── logs/                         # Evaluation logs and traces
-├── src/                          # Application code
-│   ├── client/                   # Streamlit front-end
-│   ├── server/                   # FastAPI backend
-│   ├── models/                   # LLM, validation, and protocol logic
-│   └── utils/                    # Shared utilities
-├── test/                         # Unit and integration tests
-├── data/                         # Sample inputs (YAMLs, reference docs)
-├── outputs/                      # Generated reports (JSON, markdown, PDF)
-├── archive/                      # Deprecated or old content for reference
-└── .github/
-    └── workflows/                # GitHub Actions, CI/CD pipelines
-```
-
 ---
 
 ## 🧠 memory.yaml Guidelines
