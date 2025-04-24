@@ -11,43 +11,48 @@ mkdir -p "$PATCH_DIR" "$LOG_DIR"
 echo "✅ Directories created."
 
 echo "🔄 Loading metadata from outputs folder"
-METADATA_FILE="chatgpt_repo/outputs/metadata.json"
+echo "🔄 Searching for latest ZIP in outputs folder..."
+ZIP_FILE=$(ls -t chatgpt_repo/outputs/*.zip | head -n 1)
 
-if [ ! -f "$METADATA_FILE" ]; then
-  echo "❌ No metadata file found in $LOG_DIR"
+if [ ! -f "$ZIP_FILE" ]; then
+  echo "❌ No finalized output ZIP file found in chatgpt_repo/outputs/"
   exit 1
 fi
 
+echo "✅ Found ZIP file: $ZIP_FILE"
+echo "🔄 Unzipping file..."
+TMP_DIR=$(mktemp -d)
+unzip "$ZIP_FILE" -d "$TMP_DIR"
+
+
+echo "🔄 Searching for metadata.json in unzipped folder..."
+METADATA_FILE="$TMP_DIR/metadata.json"
+if [ ! -f "$METADATA_FILE" ]; then
+  echo "❌ metadata.json not found inside ZIP"
+  exit 1
+fi
+echo "✅ Metadata file found: $METADATA_FILE"
+
+echo "🔄 Loading metadata..."
 TASK_ID=$(jq -r '.task_id' "$METADATA_FILE")
 SUMMARY=$(jq -r '.summary' "$METADATA_FILE")
 echo "✅ Metadata loaded:"
 echo "   - Task ID: $TASK_ID"
 echo "   - Summary: $SUMMARY"
 
-echo "🔄 Looking for ZIP in $OUTPUTS_DIR"
-ZIP_FILE=$(ls "$OUTPUTS_DIR"/*.zip | head -n 1)
-
-if [ ! -f "$ZIP_FILE" ]; then
-  echo "❌ No ZIP file found in $OUTPUTS_DIR"
-  exit 1
-fi
-
-echo "✅ Found ZIP: $ZIP_FILE"
-TMP_DIR=$(mktemp -d)
-unzip "$ZIP_FILE" -d "$TMP_DIR"
-
 echo "🔄 Reading output file paths from metadata"
 OUTPUT_FILES=($(jq -r '.output_files[]' "$METADATA_FILE"))
-
+echo "✅ Output files found: ${#OUTPUT_FILES[@]}"
 for FILE in "${OUTPUT_FILES[@]}"; do
   cp "$TMP_DIR/$FILE" "$FILE"
   mkdir -p "$(dirname "$FILE")"
   git add "$FILE"
   echo "✅ Staged: $FILE"
 done
+echo "🔄 Total output files staged: ${#OUTPUT_FILES[@]}"
 
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-PATCH_NAME="patch_${TIMESTAMP}_${TASK_ID}.diff"
+PATCH_NAME="patch_${TASK_ID}_${TIMESTAMP}.diff"
 PATCH_FILE="$PATCH_DIR/$PATCH_NAME"
 
 echo "🔄 Creating patch file: $PATCH_FILE"
