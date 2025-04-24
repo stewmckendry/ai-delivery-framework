@@ -1,0 +1,40 @@
+tasks:
+  1.1_capture_project_goals:
+    description: Help capture and summarize the goals, purpose, and intended impact of the project
+    phase: Phase 1 - Discovery
+    category: discovery
+    assigned_pod: DevPod
+    status: pending
+    prompt: prompts/dev/capture_project_goals.txt
+    inputs:
+      - docs/project_goals.md
+    outputs:
+      - docs/project_goals.md
+    feedback_file: .logs/feedback/1.1_capture_project_goals.md
+    ready: true
+    done: false
+    created_by: human
+    created_at: 2025-04-20T10:00:00
+    updated_at: 2025-04-21T12:34:56
+
+  1.2_define_user_and_delivery_flows:
+    description: Define and capture user flows (personas, journeys) and delivery flows (SDLC, pods)
+    phase: Phase 1 - Discovery
+    category: discovery
+    assigned_pod: DevPod
+    status: pending
+    prompt: prompts/dev/define_user_and_delivery_flows.txt
+    inputs:
+      - docs/personas/user_roles.md
+      - docs/journeys/app_walkthrough.md
+      - docs/workflows/delivery_flow.md
+    outputs:
+      - docs/personas/user_roles.md
+      - docs/journeys/app_walkthrough.md
+      - docs/workflows/delivery_flow.md
+    feedback_file: .logs/feedback/1.2_define_user_and_delivery_flows.md
+    ready: true
+    done: false
+    created_by: human
+    created_at: 2025-04-22T10:00:00
+    updated_at: 2025-04-22T10:00:00

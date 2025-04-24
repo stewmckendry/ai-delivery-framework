@@ -47,7 +47,11 @@ if [ ! -f "$TASKS_FILE" ]; then
   exit 1
 fi
 
-CATEGORY=$(yq e ".tasks.$TASK_ID.category" "$TASKS_FILE")
+echo "🧪 Debug: Checking task key in task.yaml"
+yq e ".tasks | keys" "$TASKS_FILE"
+
+echo "Searching for task category for branch name in task.yaml..."
+CATEGORY=$(yq e ".tasks.\"$TASK_ID\".category" "$TASKS_FILE")
 if [ -z "$CATEGORY" ] || [[ "$CATEGORY" == "null" ]]; then
   echo "❌ No category defined for task $TASK_ID in task.yaml"
   exit 1
