@@ -40,7 +40,6 @@ def main():
             task["status"] = "backlog"
             task["done"] = False
             task["assigned_to"] = "unassigned"
-            task["pod_owner"] = task.pop("assigned_pod", "unknown")  # Rename field
             task["instance_of"] = path
             task["created_at"] = datetime.now().isoformat()
             task["updated_at"] = datetime.now().isoformat()
