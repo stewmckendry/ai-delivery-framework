@@ -77,12 +77,17 @@ PATCH_NAME="patch_${TASK_ID}_${TIMESTAMP}.diff"
 PATCH_FILE="$PATCH_DIR/$PATCH_NAME"
 
 echo "🔄 Creating patch file: $PATCH_FILE"
+git status --short
+git diff --cached
 git diff --staged > "$PATCH_FILE"
 
 if [ ! -s "$PATCH_FILE" ]; then
   echo "❌ Patch file is empty or failed to generate"
+  echo "🔍 Tip: Check that the file has actually changed."
+  git status
   exit 1
 fi
+
 
 echo "✅ Patch file created: $PATCH_FILE"
 
