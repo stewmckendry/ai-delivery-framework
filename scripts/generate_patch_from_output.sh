@@ -95,6 +95,18 @@ echo "🔄 Saving branch name to metadata file..."
 jq --arg branch "$BRANCH_NAME" '. + {branch_name: $branch}' "$METADATA_FILE" > "$METADATA_OUT"
 echo "✅ Metadata file updated with branch name: $BRANCH_NAME"
 
+echo "🔄 Checking for reasoning trace..."
+REASONING_TRACE_FILE="$TMP_DIR/reasoning_trace.md"
+if [ -f "$REASONING_TRACE_FILE" ]; then
+  echo "✅ Reasoning trace found: $REASONING_TRACE_FILE"
+else
+  echo "ℹ️ No reasoning trace file found."
+  REASONING_TRACE_FILE=""fi
+
+echo "🔄 Marking task as complete and generating changelog..."
+bash scripts/complete_task.sh "$TASK_ID" "$REASONING_TRACE_FILE"
+echo "✅ Task completion logged."
+
 
 echo "🔄 Triggering PR creation script"
 bash scripts/create_pr_from_patch.sh --triggered "$PATCH_FILE"
