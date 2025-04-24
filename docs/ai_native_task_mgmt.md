@@ -10,21 +10,18 @@ This document defines a scalable, AI-native framework for managing tasks across 
 |--------|-------------|
 | **task_templates/** | Canonical reusable tasks by SDLC phase and step |
 | **tasks.yaml** | Unified backlog with task metadata including sprint and active status |
-| **.logs/** | Stores metadata such as patch history, feedback, and metrics |
+| **.logs/** | Stores metadata such as patch history, feedback, changelogs, and reasoning traces |
 | **DeliveryPod GPT** | Custom GPT agent that serves as UI to manage tasks and orchestrate project planning with human |
 
 ---
 
 ## 🧩 Multi-Pod Task Support
 
-This framework supports **parallel task execution** across multiple pods by using `tasks.yaml` as a unified backlog:
+This framework supports **parallel task execution** across multiple pods:
 
-- Each task includes metadata for sprint and active status:
-  - `sprint: In-Sprint | Backlog`
-  - `active: true | false`
-- Pods (DevPod, QAPod, ResearchPod) work concurrently on assigned tasks
-- `generate_patch_from_output.sh` uses `--task_id` to operate on the appropriate task
-
+- Each task has metadata: `sprint: In-Sprint | Backlog`, `active: true | false`
+- All task metadata lives in a single `tasks.yaml` for simplified state
+- Patch scripts dynamically read from `chatgpt_repo/outputs/` and one `metadata.json`
 
 ---
 
@@ -32,13 +29,21 @@ This framework supports **parallel task execution** across multiple pods by usin
 
 ```bash
 project_root/
-├── task_templates/              # Reusable templates per phase/task
-├── tasks.yaml                   # Unified project backlog + sprint + active flags
-├── .patches/                    # Generated patch files
+├── task_templates/
+│   └── phase_1/1.1_capture_project_goals.yaml
+├── tasks.yaml                # Unified project backlog
+├── .patches/                 # Git patch files
 ├── .logs/
-│   ├── patches/                 # Metadata for each patch
-│   └── feedback/                # Review/feedback records
-└── chatgpt_repo/outputs/        # GPT-generated output artifacts
+│   ├── patches/              # Patch metadata (json)
+│   ├── changelogs/           # Task change history
+│   └── reasoning/            # AI thought summaries
+├── chatgpt_repo/
+│   └── outputs/              # Raw GPT outputs (files only)
+│   └── metadata.json         # Output metadata file used by patch script
+└── scripts/
+    ├── generate_patch_from_output.sh
+    ├── create_pr_from_patch.sh
+    └── complete_task.sh
 ```
 
 ---
@@ -48,11 +53,13 @@ project_root/
 ```mermaid
 graph TD
   T1[task_templates/*] --> T2[tasks.yaml]
-  T2 --> G1[generate_patch_from_output.sh]
+  T2 --> T4[chatgpt_repo/outputs + metadata.json]
+  T4 --> G1[generate_patch_from_output.sh]
   G1 --> P1[.patches/ and .logs/patches/]
   P1 --> PR1[create_pr_from_patch.sh]
   PR1 --> D1[update tasks.yaml: done = true, updated_at]
-
+  PR1 --> C1[.logs/changelogs/ + reasoning/]
+```
 
 ---
 
@@ -63,21 +70,25 @@ graph TD
 
 ### (2) Sprint Planning Ceremony
 1. Human gives GPT the prompt: _"List tasks pending or to-do for sprint planning."_
-2. GPT loads and filters `tasks.yaml`
-3. Human selects tasks for the sprint (`sprint: In-Sprint`)
-4. GPT updates and returns revised `tasks.yaml`
-5. Human promotes patch if changes to tasks.yaml are confirmed
+2. GPT retrieves `tasks.yaml`
+3. GPT lists filtered tasks (e.g., status = pending or to-do)
+4. Human selects tasks for the sprint
+5. GPT updates and returns revised `tasks.yaml`
+6. Human uses standard prompt to request final download block
 
 ### (3) Daily Standup
 1. Human asks DeliveryPod for status update
-2. GPT retrieves `tasks.yaml` and shows:
-   - tasks with `sprint: In-Sprint`, grouped by `active` and `pod`
-3. Human selects next tasks to activate (`active: true`)
-4. GPT updates tasks.yaml and returns changes for human to review and promote
-5. Human requests prompt → GPT loads template from `prompts/`, validates inputs via `memory.yaml`, and returns prompt
-- `task.yaml` should update when prompt is generated (start) and when patch is created (done)
-- Project/sprint/active tasks must be consistent
-- `memory.yaml` must update anytime outputs are finalized
+2. GPT retrieves `tasks.yaml` and prints tasks by pod and status
+3. Human selects next task
+4. GPT returns:
+   - Task prompt
+   - Input file links
+   - Output instructions with ZIP and `metadata.json`
+
+### 🔁 Supporting Automation Rules
+- `tasks.yaml` is the single source of truth for sprint, active, done
+- `generate_patch_from_output.sh` reads from a single metadata.json and uses the staged outputs to create patch
+- Changelogs and reasoning summaries are generated at PR time
 
 ---
 
@@ -86,11 +97,11 @@ graph TD
 | Script | Role |
 |--------|------|
 | `init_project_tasks.py` | Seed `tasks.yaml` from `task_templates/` |
-| `generate_patch_from_output.sh` | Promotes output to diff + metadata via task_id |
+| `generate_patch_from_output.sh` | Generates patch from GPT output (based on `.logs/patches/metadata.json`) |
 | `create_pr_from_patch.sh` | Applies patch, commits, pushes, and opens PR |
-| `complete_task.sh` | Marks `done: true`, updates timestamp, archives in .logs |
+| `complete_task.sh` | Marks task as done, creates changelog + reasoning trace |
 
-> Sprint and activation now handled via `tasks.yaml` edits directly
+---
 
 ## 🤝 DeliveryPod GPT as UI & Orchestrator
 
@@ -99,26 +110,17 @@ graph TD
 | Endpoint | Purpose |
 |----------|---------|
 | `/init_tasks` | Create `tasks.yaml` from templates |
-| `/plan_sprint` | Update tasks with `sprint: In-Sprint` |
-| `/activate_task` | Set `active: true` for selected task |
-| `/get_active_tasks` | List tasks with `active: true` |
-| `/complete_task` | Set `done: true`, update timestamps |
-| `/monitor_pods` | Return task state by pod and sprint |
-| `/sync_memory` | Update memory.yaml from finalized task outputs |
-| `/get_prompt` | Retrieve and validate prompt for task |
+| `/plan_sprint` | Return pending/backlog tasks to pick from |
+| `/activate_task` | Update a task as active=true |
+| `/get_prompt` | Return standard prompt for a given task and validate inputs |
+| `/complete_task` | Mark task as complete and generate logs |
+| `/monitor_pods` | Return status of all active tasks |
 
-
-- Scales across **multiple pods** with 1 source of truth
-- Uses **single-file task model** with sprint and activation flags
-- Fully Git-compatible, patch-promotable, and GPT-aware
-- Simplifies tooling while retaining powerful automation
+---
 
 ## ✨ Next Steps
 
-- [x] Define full GPT-human sprint and daily standup loop
-- [x] Add `/sync_memory` action to support knowledge consistency
-- [x] Add `/get_prompt` for task-specific standard prompt retrieval
-- [ ] Implement validation to detect desync between task files and memory.yaml
-- [ ] Add CLI or dashboard for task selection and flow visibility
-
-
+- [x] Hide metadata in a ZIP process with `metadata.json`
+- [ ] Auto-generate changelog and reasoning trace per task
+- [ ] Improve PR readability with GPT-generated template
+- [ ] Enable prompt replays for debugging or iteration
