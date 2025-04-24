@@ -4,6 +4,54 @@ This guide defines the **standard structure** and **upkeep practices** for all A
 
 ---
 
+
+## 📁 Directory Structure (Expanded)
+
+```
+ai-concussion-agent/
+├── task.yaml                      # Central task backlog + metadata
+├── .patches/                      # Git-formatted patch files
+├── .logs/
+│   ├── patches/                   # Patch metadata .json files
+│   ├── changelogs/               # Markdown changelogs for each task
+│   ├── reasoning/                # Reasoning trace .md files
+│   └── feedback/                 # GPT or human review notes
+├── prompts/
+│   ├── used/                     # Actual prompts used for traceability
+│   │   ├── DevPod/
+│   │   ├── QAPod/
+│   │   ├── ResearchPod/
+│   │   └── WoWPod/
+│   └── tools/                    # Custom GPT prompt files (e.g. promote_output_file.txt)
+├── chatgpt_repo/
+│   └── outputs/                  # GPT output zip folder used by patch script
+```
+
+---
+
+## 🛠️ Helper Script: Initialize Repo Structure
+
+For onboarding a new repo:
+
+```bash
+#!/bin/bash
+mkdir -p \
+  .patches \
+  .logs/patches \
+  .logs/changelogs \
+  .logs/reasoning \
+  .logs/feedback \
+  chatgpt_repo/outputs \
+  prompts/used/DevPod \
+  prompts/used/QAPod \
+  prompts/used/ResearchPod \
+  prompts/used/WoWPod \
+  prompts/tools
+```
+
+Save as `scripts/init_repo_structure.sh`
+
+
 ## 📁 Directory Structure
 
 ```
@@ -101,23 +149,22 @@ Brief description of what this PR does.
 
 ---
 
+---
+
 ## ✅ Next Steps
 
-1. **Build missing scripts:**
-   - `scripts/update_memory.py`
-   - `scripts/check_repo_structure.py`
+1. **Track Prompts and Reasoning:**
+   - Zip final outputs with `metadata.json`, `prompt_used.txt`, and `reasoning_trace.md`
+   - Patch process logs prompt + reasoning to `.logs/` and `prompts/used/`
 
-2. **Update `memory.yaml`** to reflect all critical files across `docs/` and `scripts/`
+2. **Add `scripts/init_repo_structure.sh`** to project setup guide
 
-3. **Add PR enforcement**:
-   - Create `.github/PULL_REQUEST_TEMPLATE.md`
-   - Optional: add GitHub Actions to check memory.yaml consistency
+3. **Keep docs in sync** with new conventions: changelogs, branches, logs, prompts
 
-4. **Document conventions** in `CONTRIBUTING.md` (or in docs/ai-delivery-kit)
-
-5. **Apply this standard** across future PoD projects
+4. **Use `memory.yaml`** to index these files for pod + human review
 
 ---
+
 
 This guide evolves with the system — update it as standards or tooling improve!
 
