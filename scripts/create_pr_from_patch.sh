@@ -19,9 +19,6 @@ PATCH_DIR=".patches"
 LOG_DIR=".logs/patches"
 PATCH_JSON="${LOG_DIR}/${PATCH_NAME%.diff}.json"
 FULL_PATCH_PATH="$PATCH_FILE"
-CHANGELOG_FILE=".logs/changelogs/${TASK_ID}.md"
-REASONING_FILE=".logs/reasoning/${TASK_ID}_trace.md"
-PROMPT_FILE="prompts/used/${ASSIGNED_POD}/${TASK_ID}_prompt.txt"
 
 echo "🔍 Resolving patch file..."
 if [ ! -f "$FULL_PATCH_PATH" ] && [ -f "$PATCH_DIR/$PATCH_FILE" ]; then
@@ -57,9 +54,11 @@ fi
 echo "🔍 Extracting metadata..."
 TASK_ID=$(jq -r .task_id "$PATCH_JSON")
 SUMMARY=$(jq -r .summary "$PATCH_JSON")
+ASSIGNED_POD=$(yq e ".tasks.\"$TASK_ID\".assigned_pod" task.yaml)
 echo "✅ Metadata loaded:"
 echo "   - Task ID: $TASK_ID"
 echo "   - Summary: $SUMMARY"
+echo "   - Assigned Pod: $ASSIGNED_POD"
 
 echo "Extracting branch name..."
 BRANCH_NAME=$(jq -r .branch_name "$PATCH_JSON")
@@ -68,6 +67,15 @@ if [ -z "$BRANCH_NAME" ] || [[ "$BRANCH_NAME" == "null" ]]; then
   exit 1
 fi
 echo "✅ Branch name extracted: $BRANCH_NAME"
+
+echo "🔍 Setting file paths..."
+CHANGELOG_FILE=".logs/changelogs/${TASK_ID}.md"
+REASONING_FILE=".logs/reasoning/${TASK_ID}_trace.md"
+PROMPT_FILE="prompts/used/${ASSIGNED_POD}/${TASK_ID}_prompt.txt"
+echo "✅ File paths set:"
+echo "   - Changelog: $CHANGELOG_FILE"
+echo "   - Reasoning: $REASONING_FILE"
+echo "   - Prompt: $PROMPT_FILE"
 
 echo "🔄 Updating main branch..."
 git checkout main
