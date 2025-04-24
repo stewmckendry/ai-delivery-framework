@@ -74,11 +74,14 @@ fi
 echo "🧹 Cleaning up conflicting files..."
 grep '^+++ b/' "$FULL_PATCH_PATH" | awk '{print $2}' | while read -r file; do
   if [ -f "$file" ]; then
-  echo "❌ Removing pre-existing file: $file"
-  git reset HEAD "$file" 2>/dev/null || true
-  git checkout HEAD -- "$file" 2>/dev/null || true
-  git rm --cached "$file" 2>/dev/null || true
-  rm "$file" 2>/dev/null || true
+    echo "❌ Removing pre-existing file: $file"
+    if git ls-files --error-unmatch "$file" > /dev/null 2>&1; then
+      # If file is tracked
+      git reset HEAD "$file" 2>/dev/null || true
+      git checkout HEAD -- "$file" 2>/dev/null || true
+      git rm --cached "$file" 2>/dev/null || true
+    fi
+    rm "$file" 2>/dev/null || true
   fi
 done
 echo "✅ Conflicting files cleaned up."
