@@ -47,7 +47,8 @@ bash scripts/generate_patch_from_output.sh
 This script:
 - Extracts metadata from the ZIP
 - Stages files using metadata paths
-- Derives `branch_name` using `task.yaml.category`
+- Looks up `task_id` in the central `task.yaml` backlog
+- Derives `branch_name` using `task.yaml.tasks[task_id].category`
 - Creates `.diff`, `.json`, and calls `create_pr_from_patch.sh`
 
 ### ✅ Step 4: PR is Created and Reviewed
@@ -67,7 +68,7 @@ Examples:
 - `chatgpt/auto/qa/2.3_build_feature_prompting`
 - `chatgpt/auto/cutover/4.1_launch_checklist`
 
-> `category` comes from `task.yaml.tasks.<task_id>.category`
+> `category` is pulled from a centralized `task.yaml` file, which stores metadata for all tasks in the project. The script extracts `task_id` from `metadata.json` and uses it to locate the correct entry under `tasks:`.
 
 ---
 
@@ -93,6 +94,7 @@ Examples:
 | `chatgpt_repo/outputs/` | ZIP files from GPT               |
 | `.patches/`              | Git patch diffs                  |
 | `.logs/patches/`         | JSON metadata for each patch     |
+| `task.yaml`              | Full project backlog of all tasks|
 
 ---
 
