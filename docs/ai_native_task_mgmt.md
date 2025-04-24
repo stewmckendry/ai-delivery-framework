@@ -220,3 +220,29 @@ graph TD
 |✅ 7|	Add scripts/list_tasks.sh (optional)	|CLI tool to view task summary, used in local dev/test|
 |✅ 8|	Update docs	|Document new task lifecycle, GPT capabilities, and actions available|
 
+
+
+✅ (1) Prioritized List of Task Management Tools (GPT Actions)
+
+These tools will allow GPTs (especially DeliveryPod) to interact with task.yaml safely and repeatably, without full repo access.
+
+
+🥇 Priority	GPT Action	FastAPI Route	Description
+✅ 1	update_task_metadata	POST /tasks/update-metadata	Update metadata fields (e.g., status, pod_owner, assigned_to, description) for a given task_id
+2	clone_task	POST /tasks/clone	Duplicate a task under a new ID (e.g., 1.1a_capture_project_goals) with optional edits
+3	list_tasks	GET /tasks/list	Return all tasks or filtered by phase, status, pod, etc.
+4	get_task_details	GET /tasks/{task_id}	Return full metadata for a single task
+5	create_new_task	POST /tasks/create	Allow GPTs to define new tasks from scratch (advanced use)
+6	delete_task	DELETE /tasks/{task_id}	Remove task from task.yaml (for admin or human-only use)
+✅ The first tool update_task_metadata enables 80% of the real-world flows (e.g. activate a task, reassign it, update description).
+
+🧠 (2) Our Iterative Dev Process (Repeat for Each Tool)
+
+We’ll use this workflow for each tool:
+
+Patch main.py to add the route logic
+Patch openapi.json to expose it to the Custom GPT
+Create a standard prompt (e.g. prompts/delivery/update_task_metadata.txt)
+Register the GPT action in your manifest / custom GPT setup
+Test it end-to-end inside the GPT chat
+💡 We’ll track each tool in your AI-native task backlog with test scenarios and usage examples to make it reproducible across future projects.
