@@ -107,6 +107,26 @@ echo "🔄 Marking task as complete and generating changelog..."
 bash scripts/complete_task.sh "$TASK_ID" "$REASONING_TRACE_FILE"
 echo "✅ Task completion logged."
 
+echo "🔄 Checking for prompt_used.txt..."
+PROMPT_FILE="$TMP_DIR/prompt_used.txt"
+PROMPT_LOG_DIR="prompts/used"
+
+echo "🔍 Extracting assigned_pod from task.yaml to use in prompt file path (prompt files organized by pod)..."
+ASSIGNED_POD=$(yq e ".tasks.\"$TASK_ID\".assigned_pod" "$TASKS_FILE")
+if [ -z "$ASSIGNED_POD" ] || [[ "$ASSIGNED_POD" == "null" ]]; then
+  echo "❌ No assigned_pod defined for task $TASK_ID in task.yaml"
+  exit 1
+fi
+echo "✅ Assigned Pod: $ASSIGNED_POD"
+PROMPT_LOG_PATH="${PROMPT_LOG_DIR}/${ASSIGNED_POD}/${TASK_ID}_prompt.txt"
+
+if [ -f "$PROMPT_FILE" ]; then
+  mkdir -p "$(dirname "$PROMPT_LOG_PATH")"
+  cp "$PROMPT_FILE" "$PROMPT_LOG_PATH"
+  echo "✅ Prompt used saved to: $PROMPT_LOG_PATH"
+else
+  echo "ℹ️ No prompt_used.txt file found in ZIP."
+fi
 
 echo "🔄 Triggering PR creation script"
 bash scripts/create_pr_from_patch.sh --triggered "$PATCH_FILE"
