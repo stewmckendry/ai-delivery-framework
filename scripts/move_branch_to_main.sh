@@ -2,7 +2,7 @@
 set -e
 
 # Step 1: Define the branch to get the last commit from
-SOURCE_BRANCH="your-branch-name"
+SOURCE_BRANCH="chatgpt/auto/patch_1.1_capture_project_goals_20250423_224614"
 
 # Step 2: Checkout the main branch and ensure it's up-to-date
 echo "🌿 Switching to main branch..."

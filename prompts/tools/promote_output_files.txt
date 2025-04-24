@@ -25,25 +25,28 @@ You’ve completed the task — now prepare your final deliverable for human rev
 - `output_files`: A list of output file names and relative paths to the root of the repo
 
 2. Create one ZIP file named `patch_<task_id>_<timestamp>.zip` containing:
-   - All final output files saved together in a flat structure (e.g., in a single folder)
+   - All output files saved in folders that match their paths in the project repository
+     (e.g., `docs/project_goals.md`, `prompts/feature_prompt.txt`)
    - A `metadata.json` file in the root of the ZIP
 
    ✅ Example structure inside the ZIP:
    - metadata.json
-   - feature_xyz.md
-   - feature_xyz_prompt.txt
+   - docs/project_goals.md
+   - prompts/feature_prompt.txt
 
    Name the file clearly: `patch_<task_id>_<timestamp>.zip`
 
-3. Provide a download link to the ZIP file like this:
+3. Export your ZIP file so the human user can download it.
 
+📁 Provide a download link like this:
 ```markdown
-📁 Final Output ZIP:
-- [finalized_patch_20250423_2130.zip](https://example.com/path/to/finalized_patch_20250423_2130.zip)
+- [patch_1.1_capture_project_goals_20250424_022753.zip](https://example.com/path/to/patch_1.1_capture_project_goals_20250424_022753.zip)
+```
 
-Save the file in the `chatgpt_repo/outputs` directory.
+🖥️ Once downloaded:
+- Move the ZIP file into your local repo under: `chatgpt_repo/outputs/`
+- Then run the following command to promote the patch:
 
-💡 To promote this patch:
 ```bash
 bash scripts/generate_patch_from_output.sh
 ```
