@@ -1,0 +1,35 @@
+- 🧩 Final MVP Backlog – AI-Native Delivery System
+    - ✅ Core Feature Additions
+        - [Feature] Task Management UI + API
+            - View, assign, complete tasks
+            - Auto-mark done: true, show status and logs
+            - Link to PRs and outputs
+        - [Feature] Memory Management Layer
+            - Index task.yaml, prompt_used.txt, reasoning_trace.md, outputs
+            - Enable pod memory recall via memory.yaml
+            - Build retrieval + query helpers (optional: vector store PoC)
+        - [Prompts] System Prompts for Pods
+            - DevPod: Patch generation, spec capture
+            - QAPod: Test plan, traceability, bug trace
+            - ResearchPod: Insights, spike summaries, domain briefing
+            - WoWPod: Workflow optimization, playbooks, retros
+            - 🧠 Also: Brainstorm future actions like getProjectFiles, validate_task_links, etc.
+    - 🛠️ Field-Test + Externalization
+        - [PoC] End-to-End Delivery of AI App
+            - Use this system to deliver a micro-app (e.g., to-do app, GPT plugin, simple RAG bot)
+            - Document trace → patch → merge → PR → deploy
+        - [Docs] Briefing Deck / Explainer for Stakeholders
+            - 1-pager for each audience: business leaders, IT teams, systems integrators, investors
+            - Diagrams, why-now, benefits, and call-to-action
+        - [SWOT] Independent Critique
+            - Gather research on AI-native org models
+            - Analyze your system’s strengths/risks from multiple lenses
+            - Add ideas from real-world agile/DevOps comparisons
+        - [Blog] Coaching the Machine Post: Why We Built This
+            - Origin story + problem
+            - How this system makes AI team delivery scalable
+            - Real code + demo links + future vision
+    - 🧠 Suggestions to Add (Optional)
+        - [Enhancement] Backlog CLI or Streamlit UI to let human leads create/track/assign tasks visually
+        - [Enhancement] PR Review Insights – e.g. embed reasoning trace or thought-to-patch lineage directly in GitHub PR
+        - [Tooling] Patch Validator Bot that reviews format, links to task.yaml, and comments on PR automatically

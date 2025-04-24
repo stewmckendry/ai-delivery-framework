@@ -124,3 +124,99 @@ graph TD
 - [ ] Auto-generate changelog and reasoning trace per task
 - [ ] Improve PR readability with GPT-generated template
 - [ ] Enable prompt replays for debugging or iteration
+
+
+---
+
+# Updated Task Framework 
+- **Current State Recap**
+  - **Task Templates (`task_templates/PhaseX/task.yaml`)**
+    - One file per standard task (e.g., `1.1_capture_project_goals`)
+    - Defined under a top-level key `tasks`
+    - Used as a template, not as the source of truth
+  - **Master Backlog (`task.yaml` at project root)**
+    - Holds all actual project tasks (merged + customized from templates)
+    - Accessed by:
+      - `generate_patch_from_output.sh` to retrieve `category` and `assigned_pod`
+      - `complete_task.sh` to mark `done: true` and update `status`
+    - Currently edited manually (or partially updated during patch flow)
+  - **Current Patch Flow**
+    - Reads task info from `task.yaml` (master)
+    - Automatically updates `done` and `status` fields post-patch
+    - No syncing or initialization from `task_templates` yet
+  - **Minor Missing Pieces**
+    - No mechanism to filter, assign, or group tasks by phase, pod, or status
+    - No helper to initialize `task.yaml` from `task_templates`
+
+- **MVP Task Management Requirements (Refined)**
+  - **Core Needs**
+    - Initialize `task.yaml` by compiling all `task_templates` (scripted, not manual)
+    - Track task lifecycle: `status: backlog | up next | in progress | done`
+    - Track who/what is working on each task (`assigned_pod`, `assigned_to`)
+    - Support cloning/customizing task templates for multiple uses
+    - Provide filtering/sorting tools (by phase, pod, category, status)
+    - Enable human-pod conversations to plan task order, assignments, and tailoring
+    - Allow task updates based on script events (e.g., patch promotion)
+  - **Optional (Future)**
+    - Audit log (`updated_by`, `history`)
+    - Dependencies between tasks (simple DAG or tags)
+    - Integration into a Streamlit UI or command-line planner
+
+- **🔄 Updated AI-Native Task Management Process**
+
+  1. **💾 Step 0: Initialization (One-Time Setup)**
+     - Human Lead runs: `python scripts/init_tasks_from_templates.py`
+     - Outputs a unified `task.yaml` at the root of the repo
+     - Each task includes:
+       - `status: backlog`
+       - `instance_of`: path to the original template
+       - `assigned_to`: default is `unassigned`
+
+  2. **🧑‍💻 Step 1: View & Plan with DeliveryPod**
+     - Human Lead opens a chat with DeliveryPod GPT
+     - GPT reads `task.yaml` (via `getGitHubFile` or batch-file access)
+     - Human and GPT:
+       - Filter tasks by `status`, `pod`, or `phase`
+       - Identify which task to prioritize next
+
+  3. **🛠️ Step 2: Activate or Customize Task**
+     - GPT proposes changes (e.g., renaming, reassignment, tailoring prompt)
+     - GPT calls `update_task_metadata` action to:
+       - Change `status: in progress`
+       - Clone and rename task (e.g., `1.1a_capture_product_goals`)
+       - Modify `description`, `prompt`, `assigned_pod`, etc.
+     - **💡 Requirements:**
+       - New OpenAPI tool: `update_task_metadata`
+       - Patch to `main.py` to support task file read/write
+       - Custom GPT action in manifest
+       - Prompt template for updating or cloning tasks
+
+  4. **🔁 Step 3: Work and Complete the Task**
+     - Pod completes the task and finalizes outputs
+     - Patch script auto-updates:
+       - `done: true`
+       - `status: done`
+       - `updated_at` timestamp
+
+  5. **📊 Step 4: Monitor + Report via DeliveryPod**
+     - Human Lead can ask:
+       - “What’s in progress?”
+       - “What’s next for DevPod?”
+       - “Which tasks are still unassigned?”
+     - GPT responds using task data from `task.yaml` via `getBatchFiles`
+     - **💡 Note:** No backend UI needed for MVP — this stays human-chat-native.
+
+- **✅ Revised Implementation Plan**
+
+
+|#|	Task|	Description|
+|---|---|---|
+|✅ 1|	init_tasks_from_templates.py	|Generate master task.yaml by merging task_templates/**/task.yaml|
+|✅ 2|	Normalize task lifecycle states	|Adopt `status: backlog`|
+|✅ 3|	Add instance_of, assigned_to fields	|For traceability and pod collaboration|
+|✅ 4|	New update_task_metadata tool	|FastAPI endpoint to update or clone tasks (by DeliveryPod GPT)|
+|✅ 5|	Add prompt template for DeliveryPod	|Standard system prompt for viewing, editing, cloning tasks|
+|✅ 6|	Ensure PR + patch scripts stay compatible	|Every change to task.yaml structure must be assessed for script impact|
+|✅ 7|	Add scripts/list_tasks.sh (optional)	|CLI tool to view task summary, used in local dev/test|
+|✅ 8|	Update docs	|Document new task lifecycle, GPT capabilities, and actions available|
+
