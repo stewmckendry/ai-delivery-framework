@@ -1,3 +1,84 @@
+# TO DO
+
+## ✅ Enhancement 3: Enriching Task Completion
+
+### 🎯 Goals
+When a patch is finalized, we:
+- ✅ Mark the task as `done: true` in `task.yaml`
+- 📄 Generate a changelog from the patch summary
+- 🧠 Store a reasoning trace from the GPT session
+
+### 📂 Folder Structure
+```
+.logs/
+├── patches/
+│   └── patch_*.json
+├── changelogs/
+│   └── <task_id>.md
+├── reasoning/
+│   └── <task_id>_trace.md
+```
+
+### 🧠 GPT Output Example for Trace
+```markdown
+## 🧠 Reasoning Summary
+- We focused on summarizing goals in < 5 bullets for clarity.
+- Explored including KPIs, but deferred to project discovery.
+- Feedback from kickoff doc was incorporated.
+```
+
+### 🛠 Tooling Plan
+- ✅ Add a `complete_task.sh` script
+- 🎯 Writes changelog from `summary` in patch metadata
+- 🧠 Accepts optional `reasoning_trace.md` file
+- ✅ Sets `done: true` in `task.yaml` under `tasks.<task_id>`
+
+---
+
+## 🤯 Enhancement 4: Make PRs Less Cryptic
+
+### 🎯 Rethink PR Body as a Mini Demo or Project Note
+
+### ✅ PR Template (Auto-Generated)
+```markdown
+## ✨ What was added?
+- New file: `project_goals.md`
+- Covers task: `1.1_capture_project_goals`
+
+## 🎯 Why it matters
+This lays the foundation for clear project alignment and memory bootstrapping.
+
+## 🧠 Thought process
+- We debated listing 3 goals vs 5 — settled on 4
+- Incorporated team feedback from kickoff doc
+
+## 📄 Related
+- Task ID: 1.1
+- Prompt: prompts/dev/capture_project_goals.txt
+```
+
+### 🛠 Plan
+- Update `create_pr_from_patch.sh` to:
+  - Read `summary` from `.json`
+  - Read changelog + optional reasoning trace
+  - Assemble PR body
+  - Pass it to `gh pr create --body "$(cat <temp>)"`
+
+---
+
+## ✅ Next Steps
+- [ ] Implement `complete_task.sh`
+- [ ] Add changelog/trace folder scaffolding
+- [ ] Patch PR creation script for markdown body
+- [ ] Update onboarding to explain completion logging
+- [ ] Add live test using task: `1.1_capture_project_goals`
+
+We're one push away from closing the loop 🌱
+
+
+
+# DONE
+
 🧩 1. Hide the Metadata — Human-First UX
 
 "Saving a metadata log file" = scary; “Upload your outputs” = delightful.
