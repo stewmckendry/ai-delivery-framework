@@ -32,3 +32,11 @@ Replace brittle decision logic with reusable, composable Llama expressions that 
 ### 5. Join Galactic Trade Alliance
 - **why:** Legalize exports
 - **success:** Diplomatic creds + Netflix deal
+
+## ❓ Gaps to Resolve (Now with Fun Fixes)
+
+- ✅ Fallback delivery method in orbit: Deploy the "Patch-a-chute" — a micro-parachute that delivers expressions to targeted lunar mailboxes.
+- ✅ Synchronizing Llama logic with gravity wells: Introduce the "Gravimapper-9000," a snack-powered sensor that aligns decision graphs with local spacetime curvature.
+- ✅ Galactic fuzz tolerance: Default to "Quantum Cozy" — a tolerance zone where patches auto-fuzz if planetary politics get spicy.
+
+Fluff on, forward, and into the stars. 🌌

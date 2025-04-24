@@ -77,7 +77,13 @@ echo "✅ Main branch updated successfully."
 echo "🔍 Checking if branch $BRANCH_NAME exists..."
 if git show-ref --quiet refs/heads/"$BRANCH_NAME"; then
   echo "🔁 Branch $BRANCH_NAME already exists. Resetting to main."
-  git checkout "$BRANCH_NAME"
+  echo "📦 Stashing any working changes to avoid conflict..."
+  git stash push -m "temp-stash-for-branch-reset"
+  echo "📂 Switching to existing branch: $BRANCH_NAME"
+  git checkout "$BRANCH_NAME" || {
+    echo "❌ Failed to switch to branch. Aborting."; exit 1;
+  }
+  echo "♻️ Resetting branch to match origin/main"
   git reset --hard origin/main
   echo "✅ Branch reset to main."
 else
