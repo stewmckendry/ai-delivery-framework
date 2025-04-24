@@ -1,24 +1,51 @@
----
-tool: output_file_promotion
----
+🎯 POD MISSION: Finalize and Deliver Output Files
 
-🎯 FINALIZE OUTPUT FILES
+You’ve completed the task — now prepare your final deliverable for human review and promotion to the main project repo.
 
-You have completed your work on this task.
+🧾 What to do:
 
-Please:
-1. Upload and return **downloadable links** for finalized output files (as a zipped folder)
-2. Generate and return **metadata JSON** with the following format:
+1. Create a file named `metadata.json`. This is your manifest file.
+
+📄 Your `metadata.json` must follow this structure:
 
 ```json
 {
-  "task_id": "1.1_capture_project_goals",
-  "summary": "Capture and describe project goals",
-  "output_folders": ["docs"]
+  "task_id": "2.1_define_feature",
+  "summary": "Defines the user-facing and backend logic for feature XYZ.",
+  "output_files": [
+    "docs/feature_xyz.md",
+    "prompts/feature_xyz_prompt.txt"
+  ]
 }
 ```
 
-3. Print a summary with:
-- Instructions for the human to download and unzip the output files
-- Instructions to store metadata in `.logs/patches/`
-- CLI to run: `bash scripts/generate_patch_from_output.sh`
+✅ Required fields:
+- `task_id`: The task you were working on
+- `summary`: A short explanation of what this patch delivers
+- `output_files`: A list of output file names and relative paths to the root of the repo
+
+2. Create one ZIP file named `patch_<task_id>_<timestamp>.zip` containing:
+   - All final output files saved together in a flat structure (e.g., in a single folder)
+   - A `metadata.json` file in the root of the ZIP
+
+   ✅ Example structure inside the ZIP:
+   - metadata.json
+   - feature_xyz.md
+   - feature_xyz_prompt.txt
+
+   Name the file clearly: `patch_<task_id>_<timestamp>.zip`
+
+3. Provide a download link to the ZIP file like this:
+
+```markdown
+📁 Final Output ZIP:
+- [finalized_patch_20250423_2130.zip](https://example.com/path/to/finalized_patch_20250423_2130.zip)
+
+Save the file in the `chatgpt_repo/outputs` directory.
+
+💡 To promote this patch:
+```bash
+bash scripts/generate_patch_from_output.sh
+```
+
+✅ That’s it! You’re done. No need to create a PR or log manually — the script handles everything.
