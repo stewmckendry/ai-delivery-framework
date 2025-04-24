@@ -21,6 +21,7 @@ PATCH_JSON="${LOG_DIR}/${PATCH_NAME%.diff}.json"
 FULL_PATCH_PATH="$PATCH_FILE"
 CHANGELOG_FILE=".logs/changelogs/${TASK_ID}.md"
 REASONING_FILE=".logs/reasoning/${TASK_ID}_trace.md"
+PROMPT_FILE="prompts/used/${ASSIGNED_POD}/${TASK_ID}_prompt.txt"
 
 echo "🔍 Resolving patch file..."
 if [ ! -f "$FULL_PATCH_PATH" ] && [ -f "$PATCH_DIR/$PATCH_FILE" ]; then
@@ -154,7 +155,16 @@ PR_BODY_FILE=$(mktemp)
   fi
   echo "## 📄 Related"
   echo "- Task ID: $TASK_ID"
-  echo "- Prompt: $(jq -r .prompt "$PATCH_JSON" 2>/dev/null || echo '_Unknown_')"
+  if [ -f "$PROMPT_FILE" ]; then
+    echo "## 📜 Prompt used"
+    head -n 30 "$PROMPT_FILE"
+    echo
+  else
+    echo "## 📜 Prompt used"
+    echo "_Prompt text not found for task $TASK_ID._"
+    echo
+  fi
+
 } > "$PR_BODY_FILE"
 
 if command -v gh &> /dev/null; then

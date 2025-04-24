@@ -20,8 +20,12 @@ Enable any Pod (DevPod, QAPod, etc.) to:
 
 ### ✅ Step 2: GPT Shares Output ZIP + Metadata
 - Pod zips all output files (preserving repo-relative paths)
-- Includes a `metadata.json` inside the ZIP:
+- Includes the following in the ZIP:
+  - `metadata.json`
+  - `reasoning_trace.md`
+  - `prompt_used.txt`
 
+#### 📄 Example `metadata.json`:
 ```json
 {
   "task_id": "2.3_build_feature_prompting",
@@ -29,7 +33,8 @@ Enable any Pod (DevPod, QAPod, etc.) to:
   "output_files": [
     "docs/features/prompting_logic.md",
     "prompts/dev/feature_prompt.txt"
-  ]
+  ],
+  "prompt": "prompts/used/DevPod/2.3_build_feature_prompting_prompt.txt"
 }
 ```
 
@@ -45,11 +50,10 @@ bash scripts/generate_patch_from_output.sh
 ```
 
 This script:
-- Extracts metadata from the ZIP
+- Extracts metadata, prompt, and reasoning
 - Stages files using metadata paths
-- Looks up `task_id` in the central `task.yaml` backlog
-- Derives `branch_name` using `task.yaml.tasks[task_id].category`
-- Creates `.diff`, `.json`, and calls `create_pr_from_patch.sh`
+- Updates `task.yaml`, changelog, reasoning logs
+- Opens a PR with a detailed markdown body
 
 ### ✅ Step 4: PR is Created and Reviewed
 - Script pushes the branch and opens a GitHub PR
@@ -57,30 +61,28 @@ This script:
 
 ---
 
-## 🧠 How Branch Naming Works
+## 🧠 Prompt Tracking Mission & Flow
 
-```bash
-chatgpt/auto/<category>/<task_id>
-```
+To ensure transparency and repeatability, we track the actual prompt used for each task. This prompt:
+- Is saved in `prompt_used.txt`
+- Is included in the ZIP and stored under `prompts/used/<assigned_pod>/<task_id>_prompt.txt`
+- Is quoted in the pull request body
 
-Examples:
-- `chatgpt/auto/dev/2.3_build_feature_prompting`
-- `chatgpt/auto/qa/2.3_build_feature_prompting`
-- `chatgpt/auto/cutover/4.1_launch_checklist`
-
-> `category` is pulled from a centralized `task.yaml` file, which stores metadata for all tasks in the project. The script extracts `task_id` from `metadata.json` and uses it to locate the correct entry under `tasks:`.
+Prompts are either fetched using `getGitHubFile`, or provided manually by the human if the tool fails.
 
 ---
 
 ## 🧰 Supporting Scripts
 
 ### `generate_patch_from_output.sh`
-- Reads `task.yaml` and metadata
+- Reads `task.yaml`, `metadata.json`, `prompt_used.txt`, and `reasoning_trace.md`
 - Stages files, sets branch name, creates diff
+- Updates `.logs/` and `prompts/used/` directories
 
 ### `create_pr_from_patch.sh`
 - Reads `.json` metadata
 - Applies patch, commits, pushes, opens PR
+- Injects human-friendly PR body from changelog, reasoning, and prompt
 
 ### `prune_old_branches.sh`
 - Prunes merged `chatgpt/auto/*` branches
@@ -89,12 +91,15 @@ Examples:
 
 ## 📂 Directory Layout
 
-| Folder                  | Purpose                         |
-|-------------------------|----------------------------------|
-| `chatgpt_repo/outputs/` | ZIP files from GPT               |
-| `.patches/`              | Git patch diffs                  |
-| `.logs/patches/`         | JSON metadata for each patch     |
-| `task.yaml`              | Full project backlog of all tasks|
+| Folder                    | Purpose                                  |
+|---------------------------|-------------------------------------------|
+| `chatgpt_repo/outputs/`   | ZIP files from GPT                        |
+| `.patches/`               | Git patch diffs                           |
+| `.logs/patches/`          | JSON metadata for each patch              |
+| `.logs/changelogs/`       | Markdown changelogs per task              |
+| `.logs/reasoning/`        | Reasoning summaries per task              |
+| `prompts/used/<pod>/`     | Actual prompt used for each Pod+task      |
+| `task.yaml`               | Full project backlog of all tasks         |
 
 ---
 
@@ -114,6 +119,7 @@ Examples:
 - **Output:** `prompting_logic.md`, `feature_prompt.txt`
 - **Branch:** `chatgpt/auto/dev/2.3_build_feature_prompting`
 - **Patch Metadata:** `.logs/patches/patch_20250424_XXXX_2.3_build_feature_prompting.json`
+- **Prompt:** `prompts/used/DevPod/2.3_build_feature_prompting_prompt.txt`
 - **PR:** Opened and reviewed
 
 ---
