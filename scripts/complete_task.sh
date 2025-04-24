@@ -10,7 +10,11 @@ if [ -z "$TASK_ID" ]; then
 fi
 
 TASK_FILE="task.yaml"
-PATCH_METADATA=".logs/patches/patch_*_${TASK_ID}.json"
+PATCH_METADATA=$(ls .logs/patches/patch_${TASK_ID}_*.json | head -n 1)
+if [ ! -f "$PATCH_METADATA" ]; then
+  echo "❌ No patch metadata found for task $TASK_ID."
+  exit 1
+fi
 CHANGELOG_FILE=".logs/changelogs/${TASK_ID}.md"
 TRACE_FILE=".logs/reasoning/${TASK_ID}_trace.md"
 

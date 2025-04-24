@@ -77,8 +77,12 @@ PATCH_NAME="patch_${TASK_ID}_${TIMESTAMP}.diff"
 PATCH_FILE="$PATCH_DIR/$PATCH_NAME"
 
 echo "🔄 Creating patch file: $PATCH_FILE"
+echo "🔍 Git status:"
 git status --short
-git diff --cached
+
+echo "🔍 Staged diff:"
+GIT_PAGER=cat git diff --cached
+
 git diff --staged > "$PATCH_FILE"
 
 if [ ! -s "$PATCH_FILE" ]; then
