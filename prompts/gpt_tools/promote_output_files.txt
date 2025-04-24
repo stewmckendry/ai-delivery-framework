@@ -23,10 +23,13 @@ Save this prompt text in a file called `prompt_used.txt` and include it in the Z
 ✅ This file is important for traceability and will be stored under:
 `prompts/used/<assigned_pod>/<task_id>_prompt.txt`
 
-2. Create a file named `reasoning_trace.md` that explains:
-- Why you chose this approach
-- What alternatives were considered or rejected
-- What should be revisited in the future
+2. ✍️ Please create a file called reasoning_trace.md with a brief reflection on the decisions made during this task. Address the following:
+- 🧠 Why did you structure the output this way?
+Explain the reasoning behind the approach taken to fulfill the task (e.g. how you summarized goals, structured logic, organized outputs).
+- 🔄 What alternative approaches were explored or considered?
+Mention any formats, ideas, or solutions you started with but changed or rejected — and why.
+- 📌 What open questions or improvements might be worth revisiting later?
+Flag anything that could benefit from future clarification, testing, or human feedback.
 
 3. Create a file named `metadata.json`. This is your manifest file.
 
