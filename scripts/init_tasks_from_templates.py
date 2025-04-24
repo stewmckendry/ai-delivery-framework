@@ -40,13 +40,16 @@ def main():
             task["status"] = "backlog"
             task["done"] = False
             task["assigned_to"] = "unassigned"
+            task["pod_owner"] = task.pop("assigned_pod", "unknown")  # Rename field
             task["instance_of"] = path
             task["created_at"] = datetime.now().isoformat()
             task["updated_at"] = datetime.now().isoformat()
             all_tasks[task_id] = task
             print(f"✅ Added: {task_id} from {path}")
 
-    write_yaml(OUTPUT_PATH, {"tasks": all_tasks})
+    # Sort by task_id
+    sorted_tasks = dict(sorted(all_tasks.items()))
+    write_yaml(OUTPUT_PATH, {"tasks": sorted_tasks})
     print(f"🎉 Done! Master task list written to {OUTPUT_PATH}")
 
 if __name__ == "__main__":
