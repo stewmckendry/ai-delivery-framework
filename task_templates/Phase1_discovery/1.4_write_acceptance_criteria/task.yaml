@@ -4,6 +4,7 @@ tasks:
   1.4_write_acceptance_criteria:
     description: Write or refine acceptance criteria based on feature specs and QA matrix
     phase: Phase 1 - Discovery
+    category: discovery
     assigned_pod: QAPod
     status: pending
     prompt: prompts/qa/write_acceptance_criteria.txt

@@ -4,6 +4,7 @@ tasks:
   1.2_define_user_and_delivery_flows:
     description: Define and capture user flows (personas, journeys) and delivery flows (SDLC, pods)
     phase: Phase 1 - Discovery
+    category: discovery
     assigned_pod: DevPod
     status: pending
     prompt: prompts/dev/define_user_and_delivery_flows.txt

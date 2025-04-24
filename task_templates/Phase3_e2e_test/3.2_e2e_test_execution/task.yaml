@@ -4,6 +4,7 @@ tasks:
   3.2_execute_e2e_scenarios:
     description: Run defined E2E test scenarios and log outcomes for each test case, noting any failures or inconsistencies
     phase: Phase 3 - E2E Testing
+    category: e2e
     assigned_pod: QAPod
     status: pending
     prompt: prompts/qa/3.2_execute_e2e_scenarios.txt

@@ -4,6 +4,7 @@ tasks:
   3.5_finalize_quality_metrics:
     description: Track unresolved issues and summarize final quality metrics, including test coverage, pass rates, and defects
     phase: Phase 3 - E2E Testing
+    category: e2e
     assigned_pod: DeliveryPod
     status: pending
     prompt: prompts/delivery/3.5_finalize_quality_metrics.txt

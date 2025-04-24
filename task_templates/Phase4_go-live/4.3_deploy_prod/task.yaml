@@ -4,6 +4,7 @@ tasks:
   4.3_go_live_deployment:
     description: Deploy the application into production following the final approved checklist
     phase: Phase 4 - Go Live
+    category: cutover
     assigned_pod: DevPod
     status: pending
     prompt: prompts/dev/4.3_go_live_deployment.txt

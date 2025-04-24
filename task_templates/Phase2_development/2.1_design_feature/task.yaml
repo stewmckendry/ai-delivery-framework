@@ -4,6 +4,7 @@ tasks:
   2.1_design_feature_and_tech_spec:
     description: For each assigned feature, draft a detailed technical specification
     phase: Phase 2 - Development
+    category: dev
     assigned_pod: DevPod
     status: pending
     prompt: prompts/dev/2.1_design_feature_and_tech_spec.txt

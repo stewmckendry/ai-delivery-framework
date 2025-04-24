@@ -4,6 +4,7 @@ tasks:
   3.3_fix_bugs_e2e:
     description: Address issues uncovered in E2E testing and update source code, tests, and documentation as needed
     phase: Phase 3 - E2E Testing
+    category: e2e
     assigned_pod: DevPod
     status: pending
     prompt: prompts/dev/3.3_fix_bugs_e2e.txt

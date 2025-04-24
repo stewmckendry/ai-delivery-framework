@@ -4,6 +4,7 @@ tasks:
   3.1_define_e2e_test_plan:
     description: Define a comprehensive end-to-end (E2E) test plan covering full user flows, edge cases, and systems integration
     phase: Phase 3 - E2E Testing
+    category: e2e
     assigned_pod: QAPod
     status: pending
     prompt: prompts/qa/3.1_define_e2e_test_plan.txt

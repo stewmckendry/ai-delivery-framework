@@ -4,6 +4,7 @@ tasks:
   1.5_research_spikes:
     description: Investigate and document unresolved questions, unknowns, or tool comparisons
     phase: Phase 1 - Discovery
+    category: discovery
     assigned_pod: ResearchPod
     status: pending
     prompt: prompts/research/research_spikes.txt
