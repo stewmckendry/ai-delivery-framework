@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-echo "🚀 Initiating script: create_pr_from_patch.sh"
+echo "🚀 Initiating script..."
 
 # Parse args
 echo "🔍 Parsing arguments..."
@@ -13,8 +13,6 @@ while [[ "$#" -gt 0 ]]; do
 done
 echo "✅ Arguments parsed successfully."
 
-# Load patch file
-echo "🔍 Loading patch file..."
 PATCH_FILE="${TRIGGERED_PATCH:-$(ls -t .patches/*.diff | head -n 1)}"
 PATCH_NAME=$(basename "$PATCH_FILE")
 PATCH_DIR=".patches"
@@ -22,7 +20,7 @@ LOG_DIR=".logs/patches"
 PATCH_JSON="${LOG_DIR}/${PATCH_NAME%.diff}.json"
 FULL_PATCH_PATH="$PATCH_FILE"
 
-# If it's not a full path, prefix it
+echo "🔍 Resolving patch file..."
 if [ ! -f "$FULL_PATCH_PATH" ] && [ -f "$PATCH_DIR/$PATCH_FILE" ]; then
   FULL_PATCH_PATH="$PATCH_DIR/$PATCH_FILE"
 fi
@@ -31,82 +29,79 @@ if [ ! -f "$FULL_PATCH_PATH" ]; then
   echo "❌ ERROR: Patch file not found: $FULL_PATCH_PATH"
   exit 1
 fi
-echo "📎 Using triggered patch file: $FULL_PATCH_PATH"
+echo "✅ Patch file resolved: $FULL_PATCH_PATH"
 
-# Validate metadata file
-echo "🔍 Validating metadata file..."
+echo "🔍 Checking metadata file..."
 if [ ! -f "$PATCH_JSON" ]; then
   echo "❌ Metadata not found: $PATCH_JSON"
   echo "🔍 Available metadata files:"
   ls "$LOG_DIR"/*.json 2>/dev/null || echo "⚠️ None found."
   exit 1
 fi
-echo "✅ Metadata file validated successfully."
+echo "✅ Metadata file found: $PATCH_JSON"
 
-# Step 0: Stash current work
-echo "📦 Checking for uncommitted changes to stash..."
+echo "🔍 Checking for uncommitted changes..."
 if [ -n "$(git status --porcelain)" ]; then
   echo "📦 Stashing uncommitted changes..."
   git stash push --keep-index -m "pre-patch-stash-$(date +%s)"
   STASHED=1
+  echo "✅ Changes stashed successfully."
 else
   STASHED=0
+  echo "✅ No uncommitted changes found."
 fi
-echo "✅ Stashed changes."
 
-# Step 1: Extract metadata
-echo "🔍 Extracting metadata from JSON..."
 TASK_ID=$(jq -r .task_id "$PATCH_JSON")
 SUMMARY=$(jq -r .summary "$PATCH_JSON")
 BRANCH_NAME="chatgpt/auto/${PATCH_NAME%.diff}"
-echo "✅ Metadata extracted successfully."
 
-# Step 2: Update main and switch to patch branch
-echo "🔄 Updating main branch and switching to patch branch..."
+echo "🔄 Updating main branch..."
 git checkout main
 git pull origin main
+echo "✅ Main branch updated successfully."
+
+echo "🔍 Checking if branch $BRANCH_NAME exists..."
 if git show-ref --quiet refs/heads/"$BRANCH_NAME"; then
   echo "🔁 Branch $BRANCH_NAME already exists. Resetting to main."
   git checkout "$BRANCH_NAME"
   git reset --hard origin/main
+  echo "✅ Branch reset to main."
 else
   git checkout -b "$BRANCH_NAME"
   echo "🌱 Created new branch: $BRANCH_NAME"
 fi
-echo "✅ Branch setup completed."
 
-# Step 3: Pre-clean files declared in patch
 echo "🧹 Cleaning up conflicting files..."
 grep '^+++ b/' "$FULL_PATCH_PATH" | awk '{print $2}' | while read -r file; do
   if [ -f "$file" ]; then
   echo "❌ Removing pre-existing file: $file"
-  rm "$file"
+  git reset HEAD "$file" 2>/dev/null || true
+  git checkout HEAD -- "$file" 2>/dev/null || true
+  git rm --cached "$file" 2>/dev/null || true
+  rm "$file" 2>/dev/null || true
   fi
 done
 echo "✅ Conflicting files cleaned up."
 
-# Step 4: Apply the patch
-echo "🧪 Performing dry run for patch application..."
-if ! git apply --check "$FULL_PATCH_PATH"; then
+echo "🧪 Performing dry run of patch application..."
+if git apply --check "$FULL_PATCH_PATH"; then
+  echo "✅ Dry run successful. Applying patch..."
+  git apply "$FULL_PATCH_PATH"
+  echo "✅ Patch applied successfully."
+else
   echo "❌ Patch failed dry run."
   exit 1
 fi
-echo "✅ Dry run successful. Applying patch..."
-git apply "$FULL_PATCH_PATH"
-echo "✅ Patch applied successfully."
 
-# Step 5: Commit changes
 echo "📝 Committing changes..."
 git add .
 git commit -m "$SUMMARY [task: $TASK_ID]"
 echo "✅ Changes committed successfully."
 
-# Step 6: Push branch
 echo "🚀 Pushing branch to remote..."
 git push -u origin "$BRANCH_NAME"
 echo "✅ Branch pushed successfully."
 
-# Step 7: Restore stash
 if [ "$STASHED" -eq 1 ]; then
   echo "📦 Restoring stashed changes..."
   if git stash pop; then
@@ -116,14 +111,15 @@ if [ "$STASHED" -eq 1 ]; then
   fi
 fi
 
-# Step 8: Create PR
-echo "📬 Creating pull request..."
 if command -v gh &> /dev/null; then
-  gh pr create --title "$SUMMARY [task: $TASK_ID]" --body "Auto-generated patch from $PATCH_FILE" --base main --head "$BRANCH_NAME"
-  echo "✅ Pull request created successfully."
+  echo "📬 Creating PR..."
+  if gh pr create --title "$SUMMARY [task: $TASK_ID]" --body "Auto-generated patch from $PATCH_FILE" --base main --head "$BRANCH_NAME"; then
+  echo "✅ PR created successfully."
+  else
+  echo "❌ Failed to create PR."
+  fi
 else
   echo "ℹ️ 'gh' CLI not found. Please create PR manually from branch: $BRANCH_NAME"
 fi
 
-echo "🎉 Script completed successfully!"
-
+echo "🎉 Script completed successfully."
