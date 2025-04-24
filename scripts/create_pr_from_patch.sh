@@ -51,9 +51,20 @@ else
   echo "✅ No uncommitted changes found."
 fi
 
+echo "🔍 Extracting metadata..."
 TASK_ID=$(jq -r .task_id "$PATCH_JSON")
 SUMMARY=$(jq -r .summary "$PATCH_JSON")
-BRANCH_NAME="chatgpt/auto/${PATCH_NAME%.diff}"
+echo "✅ Metadata loaded:"
+echo "   - Task ID: $TASK_ID"
+echo "   - Summary: $SUMMARY"
+
+echo "Extracting branch name..."
+BRANCH_NAME=$(jq -r .branch_name "$PATCH_JSON")
+if [ -z "$BRANCH_NAME" ] || [[ "$BRANCH_NAME" == "null" ]]; then
+  echo "❌ branch_name not found in metadata. Please regenerate patch with updated script."
+  exit 1
+fi
+echo "✅ Branch name extracted: $BRANCH_NAME"
 
 echo "🔄 Updating main branch..."
 git checkout main
