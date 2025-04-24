@@ -110,6 +110,8 @@ grep '^+++ b/' "$FULL_PATCH_PATH" | awk '{sub("^b/", "", $2); print $2}' | while
 
     echo "🗑 Deleting file from disk..."
     rm "$file" 2>/dev/null || echo "⚠️ Failed to delete $file"
+    echo "♻️ Restoring $file from main branch"
+    git checkout origin/main -- "$file"
   else
     echo "✅ No conflicting file for: $file"
   fi
