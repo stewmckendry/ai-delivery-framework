@@ -133,5 +133,3 @@ bash scripts/create_pr_from_patch.sh --triggered "$PATCH_FILE"
 echo "✅ PR creation script executed"
 
 echo "🎉 Script completed successfully."
-
-

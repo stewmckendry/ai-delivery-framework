@@ -1,80 +1,80 @@
 
-🎯 POD MISSION: Finalize and Deliver Output Files
+  🎯 POD MISSION: Finalize and Deliver Output Files
 
-You’ve completed the task — now prepare your final deliverable for human review and promotion to the main project repo.
+  You’ve completed the task — now prepare your final deliverable for human review and promotion to the main project repo.
 
-🧾 What to do:
+  🧾 What to do:
 
-1. Retrieve and include the actual prompt used:
+  1. Retrieve and include the actual prompt used:
 
-📄 Please fetch the prompt text used for this task using the getGitHubFile tool:
+  📄 Please fetch the prompt text used for this task using the getGitHubFile tool:
 
-Prompt: Please fetch the following file from GitHub using the getGitHubFile tool: 
-owner: stewmckendry 
-repo: ai-concussion-agent 
-path: prompts/used/dev/1.1_capture_project_goals_prompt.txt
+  Prompt: Please fetch the following file from GitHub using the getGitHubFile tool: 
+  owner: stewmckendry 
+  repo: ai-concussion-agent 
+  path: prompts/used/dev/1.1_capture_project_goals_prompt.txt
 
-The tool should return the contents of the file. If the tool fails, ask the Human Lead to:
-- Attach the file directly to the chat, or
-- Paste the full prompt text below manually.
+  The tool should return the contents of the file. If the tool fails, ask the Human Lead to:
+  - Attach the file directly to the chat, or
+  - Paste the full prompt text below manually.
 
-Save this prompt text in a file called `prompt_used.txt` and include it in the ZIP.
+  Save this prompt text in a file called `prompt_used.txt` and include it in the ZIP.
 
-✅ This file is important for traceability and will be stored under:
-`prompts/used/<assigned_pod>/<task_id>_prompt.txt`
+  ✅ This file is important for traceability and will be stored under:
+  `prompts/used/<assigned_pod>/<task_id>_prompt.txt`
 
-2. ✍️ Please create a file called reasoning_trace.md with a brief reflection on the decisions made during this task. Address the following:
-- 🧠 Why did you structure the output this way?
-Explain the reasoning behind the approach taken to fulfill the task (e.g. how you summarized goals, structured logic, organized outputs).
-- 🔄 What alternative approaches were explored or considered?
-Mention any formats, ideas, or solutions you started with but changed or rejected — and why.
-- 📌 What open questions or improvements might be worth revisiting later?
-Flag anything that could benefit from future clarification, testing, or human feedback.
+  2. ✍️ Please create a file called reasoning_trace.md with a brief reflection on the decisions made during this task. Address the following:
+  - 🧠 Why did you structure the output this way?
+  Explain the reasoning behind the approach taken to fulfill the task (e.g. how you summarized goals, structured logic, organized outputs).
+  - 🔄 What alternative approaches were explored or considered?
+  Mention any formats, ideas, or solutions you started with but changed or rejected — and why.
+  - 📌 What open questions or improvements might be worth revisiting later?
+  Flag anything that could benefit from future clarification, testing, or human feedback.
 
-3. Create a file named `metadata.json`. This is your manifest file.
+  3. Create a file named `metadata.json`. This is your manifest file.
 
-📄 Your `metadata.json` must follow this structure:
+  📄 Your `metadata.json` must follow this structure:
 
-```json
-{
-  "task_id": "2.1_define_feature",
-  "summary": "Defines the user-facing and backend logic for feature XYZ.",
-  "output_files": [
-    "docs/feature_xyz.md",
-    "prompts/feature_xyz_prompt.txt"
-  ],
-  "prompt": "prompts/used/DevPod/2.1_define_feature_prompt.txt"
-}
+  ```json
+  {
+    "task_id": "2.1_define_feature",
+    "summary": "Defines the user-facing and backend logic for feature XYZ.",
+    "output_files": [
+      "docs/feature_xyz.md",
+      "prompts/feature_xyz_prompt.txt"
+    ],
+    "prompt": "prompts/used/DevPod/2.1_define_feature_prompt.txt"
+  }
 
-✅ Required fields:
-- `task_id`: The task you were working on
-- `summary`: A short explanation of what this patch delivers
-- `output_files`: A list of output file names and relative paths to the root of the repo
-- `prompt`: The path to the prompt used for this task
+  ✅ Required fields:
+  - `task_id`: The task you were working on
+  - `summary`: A short explanation of what this patch delivers
+  - `output_files`: A list of output file names and relative paths to the root of the repo
+  - `prompt`: The path to the prompt used for this task
 
-4. Create one ZIP file named patch_<task_id>_<timestamp>.zip containing:
+  4. Create one ZIP file named patch_<task_id>_<timestamp>.zip containing:
 
-- All output files saved in folders that match their paths in the project repository
-- A metadata.json file in the root of the ZIP
-- A reasoning_trace.md file in the root of the ZIP
-- A prompt_used.txt file in the root of the ZIP
+  - All output files saved in folders that match their paths in the project repository
+  - A metadata.json file in the root of the ZIP
+  - A reasoning_trace.md file in the root of the ZIP
+  - A prompt_used.txt file in the root of the ZIP
 
-✅ Example structure inside the ZIP:
-metadata.json
-reasoning_trace.md
-prompt_used.txt
-docs/project_goals.md
-prompts/feature_prompt.txt
+  ✅ Example structure inside the ZIP:
+  metadata.json
+  reasoning_trace.md
+  prompt_used.txt
+  docs/project_goals.md
+  prompts/feature_prompt.txt
 
-Instructions to provide in your response:
+  Instructions to provide in your response:
 
-Export your ZIP file so the human user can download it.
-📁 Provide a download link like this:
-- [patch_1.1_capture_project_goals_20250424_022753.zip](https://example.com/path/to/patch_1.1_capture_project_goals_20250424_022753.zip)
+  Export your ZIP file so the human user can download it.
+  📁 Provide a download link like this:
+  - [patch_1.1_capture_project_goals_20250424_022753.zip](https://example.com/path/to/patch_1.1_capture_project_goals_20250424_022753.zip)
 
-🖥️ Once downloaded:
+  🖥️ Once downloaded:
 
-Move the ZIP file into your local repo under: chatgpt_repo/outputs/
+  Move the ZIP file into your local repo under: chatgpt_repo/outputs/
 
-Then run the following command to promote the patch:
-bash scripts/generate_patch_from_output.sh
+  Then run the following command to promote the patch:
+  bash scripts/generate_patch_from_output.sh
