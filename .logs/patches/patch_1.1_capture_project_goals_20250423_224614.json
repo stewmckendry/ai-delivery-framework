@@ -1,0 +1,7 @@
+{
+  "task_id": "1.1_capture_project_goals",
+  "summary": "Finalize project goals for Easter Bunny Inc. including eco-practices, route logic, and fallback planning.",
+  "output_files": [
+    "docs/project_goals.md"
+  ]
+}
