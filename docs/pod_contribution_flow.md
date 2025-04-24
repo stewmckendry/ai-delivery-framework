@@ -1,132 +1,120 @@
-# 🧩 AI-Native Delivery: Pod Patch Contribution Flow
+# 🚀 Onboarding Snippet: AI-Native Pod Patch Contribution Flow
 
-This document outlines the standardized process for ChatGPT Pods to contribute work into the shared GitHub repository using output files and metadata, ensuring human-in-the-loop review, traceability, and automation-friendly tooling.
+Welcome to the AI-Native Delivery System! This guide outlines how Pod contributors (powered by GPT) can submit output files into GitHub using metadata-driven patches — ensuring traceability, automation, and a smooth human-in-the-loop workflow.
 
 ---
 
-## 🌟 Purpose
-Enable any Pod to:
-- Finalize one or more output files collaboratively with a human
-- Generate a patch from the new files
-- Attach metadata for automation and traceability
-- Let the human apply, push, and open a PR for review
+## 🎯 Purpose
+Enable any Pod (DevPod, QAPod, etc.) to:
+- Finalize structured output files with a human collaborator
+- Zip and submit files + metadata as one deliverable
+- Trigger patch generation, branch creation, and PR
 
 ---
 
 ## ♻️ Contribution Flow
 
-### Step 1: Finalize Output in Chat
-- Human + Pod iterate on a task until all output files are finalized
-- Human prompts GPT to share final outputs and metadata
+### ✅ Step 1: Finalize Output in Chat
+- Human and Pod complete the assigned task together
+- Pod confirms all output files are finalized and ready to promote
 
-### Step 2: GPT Shares Output Files & Metadata
-- GPT zips and returns download link for finalized files
-- GPT generates and returns a metadata JSON:
-  ```json
-  {
-    "task_id": "1.1_capture_project_goals",
-    "summary": "Capture and describe project goals",
-    "output_folders": ["docs"]
-  }
-  ```
-- Human downloads:
-  - Finalized output files → saved to `chatgpt_repo/outputs`
-  - Metadata JSON → saved to `.logs/patches/`
-
-### Step 3: Promote Patch via Script
-- Human runs `scripts/generate_patch_from_output.sh`
-- This script:
-  - Loads latest metadata from `.logs/patches/`
-  - Moves files from `chatgpt_repo/outputs/` into correct folders
-  - Generates `.diff` file from `git diff --staged`
-  - Writes updated `.json` metadata in `.logs/patches/`
-  - Calls `create_pr_from_patch.sh`
-
-### Step 4: PR Review
-- Script creates a branch, pushes, and opens a pull request
-- Human reviews and merges the PR into `main`
-
----
-
-## 🛠️ Supporting Scripts and Tools
-
-### ✅ `generate_patch_from_output.sh`
-- Uses `.logs/patches/*.json` metadata to locate files
-- Applies staged changes, creates `.diff`, and calls PR script
-
-### ✅ `create_pr_from_patch.sh`
-- Applies patch to new branch, commits, pushes, opens PR
-
----
-
-## 🧠 Prompt Template: `promote_output_files.txt`
-```txt
----
-tool: output_file_promotion
----
-
-🎯 FINALIZE OUTPUT FILES
-
-You have completed your work on this task.
-
-Please:
-1. Upload and return **downloadable links** for finalized output files (as a zipped folder)
-2. Generate and return **metadata JSON** with the following format:
+### ✅ Step 2: GPT Shares Output ZIP + Metadata
+- Pod zips all output files (preserving repo-relative paths)
+- Includes a `metadata.json` inside the ZIP:
 
 ```json
 {
-  "task_id": "1.1_capture_project_goals",
-  "summary": "Capture and describe project goals",
-  "output_folders": ["docs"]
+  "task_id": "2.3_build_feature_prompting",
+  "summary": "Implements logic to select and trigger custom prompts.",
+  "output_files": [
+    "docs/features/prompting_logic.md",
+    "prompts/dev/feature_prompt.txt"
+  ]
 }
 ```
 
-3. Print a summary with:
-- Instructions for the human to download and unzip the output files
-- Instructions to store metadata in `.logs/patches/`
-- CLI to run: `bash scripts/generate_patch_from_output.sh`
+- GPT returns a **download link** to the ZIP
+
+### ✅ Step 3: Human Promotes the Patch
+- Download the ZIP
+- Save it to `chatgpt_repo/outputs/`
+- Run:
+
+```bash
+bash scripts/generate_patch_from_output.sh
 ```
 
----
+This script:
+- Extracts metadata from the ZIP
+- Stages files using metadata paths
+- Derives `branch_name` using `task.yaml.category`
+- Creates `.diff`, `.json`, and calls `create_pr_from_patch.sh`
 
-## 📁 Directory Conventions
-
-| Folder | Purpose |
-|--------|---------|
-| `chatgpt_repo/outputs/` | Temporary folder for GPT-generated outputs |
-| `.patches/` | Final promoted patch files |
-| `.logs/patches/` | Metadata for each patch task |
-| `.logs/trace_log.md` | Trace of patches and contributors |
-
----
-
-## 📌 Custom GPT Action: `output_file_promotion`
-
-| Purpose | Returns download links for finalized files and metadata |
-|---------|----------------------------------------------------------------|
-
-**Returns:**
-- `output_files.zip` download URL
-- `metadata.json` download URL
+### ✅ Step 4: PR is Created and Reviewed
+- Script pushes the branch and opens a GitHub PR
+- Human reviews, optionally edits, and merges it
 
 ---
 
-## ✅ Live Test Result: MemoryPod End-to-End
-- **Pod:** MemoryPod GPT
-- **Task:** 1.1_capture_project_goals
-- **Success:** Output finalized, metadata returned, patch created, PR opened
-- **Download Metadata:** `.logs/patches/patch_20250423_205405_1.1_capture_project_goals.json`
-- **Pull Request:** [PR #16](https://github.com/stewmckendry/ai-concussion-agent/pull/16)
+## 🧠 How Branch Naming Works
+
+```bash
+chatgpt/auto/<category>/<task_id>
+```
+
+Examples:
+- `chatgpt/auto/dev/2.3_build_feature_prompting`
+- `chatgpt/auto/qa/2.3_build_feature_prompting`
+- `chatgpt/auto/cutover/4.1_launch_checklist`
+
+> `category` comes from `task.yaml.tasks.<task_id>.category`
 
 ---
 
-## 🤖 Responsibilities Summary
+## 🧰 Supporting Scripts
 
-| Actor | Responsibilities |
-|-------|------------------|
-| **ChatGPT Pod** | Finalize output files, return zipped output + metadata JSON |
-| **Human** | Download files, place in repo folders, run patch script, review PR |
-| **Script** | Automates patch creation, metadata logging, PR creation |
+### `generate_patch_from_output.sh`
+- Reads `task.yaml` and metadata
+- Stages files, sets branch name, creates diff
 
-Let’s use this modernized output-based process to streamline Pod contributions and eliminate diff errors for good 🚀
+### `create_pr_from_patch.sh`
+- Reads `.json` metadata
+- Applies patch, commits, pushes, opens PR
+
+### `prune_old_branches.sh`
+- Prunes merged `chatgpt/auto/*` branches
+
+---
+
+## 📂 Directory Layout
+
+| Folder                  | Purpose                         |
+|-------------------------|----------------------------------|
+| `chatgpt_repo/outputs/` | ZIP files from GPT               |
+| `.patches/`              | Git patch diffs                  |
+| `.logs/patches/`         | JSON metadata for each patch     |
+
+---
+
+## 🤝 Responsibilities
+
+| Actor         | Responsibilities                                                  |
+|---------------|-------------------------------------------------------------------|
+| **GPT Pod**   | Finalize outputs + metadata, return ZIP for download              |
+| **Human**     | Download files, run promotion script, review PR                   |
+| **Script**    | Generate patch, update metadata, set branch, automate PR process  |
+
+---
+
+## 🧪 Example Live Task
+- **Task:** 2.3_build_feature_prompting
+- **Pod:** DevPod GPT
+- **Output:** `prompting_logic.md`, `feature_prompt.txt`
+- **Branch:** `chatgpt/auto/dev/2.3_build_feature_prompting`
+- **Patch Metadata:** `.logs/patches/patch_20250424_XXXX_2.3_build_feature_prompting.json`
+- **PR:** Opened and reviewed
+
+---
+
+Let’s keep shipping clean, structured patches from AI-native Pods 🚀
 
