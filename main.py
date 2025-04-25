@@ -8,10 +8,12 @@ import httpx, os, json, re
 from dotenv import load_dotenv
 from fastapi import APIRouter
 from pydantic import BaseModel
-from typing import List
+from typing import List, Dict
 import tempfile
-import subprocess
 import yaml
+import requests
+import zipfile
+from datetime import datetime
 
 load_dotenv()
 
@@ -77,6 +79,50 @@ async def get_batch_files(request: Request):
                 results.append({"path": path, "error": resp.text})
 
     return {"files": results}
+
+# --- Task Update Tools ---
+
+# GitHub access settings
+GITHUB_REPO = "ai-concussion-agent"
+GITHUB_OWNER = "stewmckendry"
+TASK_FILE_PATH = "task.yaml"
+GITHUB_BRANCH = "main"
+
+class TaskUpdateRequest(BaseModel):
+    task_id: str
+    fields: Dict[str, str]
+
+def fetch_task_yaml_from_github():
+    url = f"https://raw.githubusercontent.com/{GITHUB_OWNER}/{GITHUB_REPO}/{GITHUB_BRANCH}/{TASK_FILE_PATH}"
+    response = requests.get(url)
+    if response.status_code != 200:
+        raise HTTPException(status_code=404, detail="Failed to fetch task.yaml from GitHub")
+    return yaml.safe_load(response.text)
+
+@app.post("/tasks/update-metadata")
+def update_task_metadata(req: TaskUpdateRequest):
+    """
+    Updates fields in task.yaml for the given task_id.
+    Returns the updated task.yaml contents (as text) — GPT will handle patch packaging.
+    """
+    # 🔄 Load task.yaml from GitHub
+    data = fetch_task_yaml_from_github()
+
+    task_id = req.task_id
+    tasks = data.get("tasks", {})
+
+    if task_id not in tasks:
+        raise HTTPException(status_code=404, detail=f"Task '{task_id}' not found")
+
+    # 🔧 Apply updates
+    for key, value in req.fields.items():
+        tasks[task_id][key] = value
+    tasks[task_id]["updated_at"] = datetime.now().isoformat()
+
+    # 🔁 Return updated YAML string (not file download)
+    updated_yaml_str = yaml.dump(data, sort_keys=False)
+    return JSONResponse(content={"task_id": task_id, "task_yaml": updated_yaml_str})
+
 
 # ---- OpenAPI Static File Serving ----
 

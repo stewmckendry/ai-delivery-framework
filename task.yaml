@@ -1,4 +1,20 @@
 tasks:
+  0.1_update_task_metadata:
+    description: Edit metadata fields of an existing task
+    phase: Cross-Phase
+    category: pm
+    pod_owner: DeliveryPod
+    status: backlog
+    prompt: prompts/delivery/update_task_metadata.txt
+    outputs:
+    - task.yaml
+    ready: true
+    done: false
+    created_by: human
+    created_at: '2025-04-24T22:23:21.554766'
+    assigned_to: unassigned
+    instance_of: task_templates/Cross-Phase/task.yaml
+    updated_at: '2025-04-24T22:23:21.554768'
   1.1_capture_project_goals:
     description: Help capture and summarize the goals, purpose, and intended impact
       of the project
@@ -15,8 +31,8 @@ tasks:
     ready: true
     done: false
     created_by: human
-    created_at: '2025-04-24T16:50:23.854787'
-    updated_at: '2025-04-24T16:50:23.854832'
+    created_at: '2025-04-24T22:23:21.546839'
+    updated_at: '2025-04-24T22:23:21.546858'
     assigned_to: unassigned
     instance_of: task_templates/Phase1_discovery/1.1_capture_project_goals/task.yaml
   1.2_define_user_and_delivery_flows:
@@ -39,8 +55,8 @@ tasks:
     ready: true
     done: false
     created_by: human
-    created_at: '2025-04-24T16:50:23.851268'
-    updated_at: '2025-04-24T16:50:23.851279'
+    created_at: '2025-04-24T22:23:21.542792'
+    updated_at: '2025-04-24T22:23:21.542803'
     assigned_to: unassigned
     instance_of: task_templates/Phase1_discovery/1.2_define_user_flows/task.yaml
   1.3_break_into_features:
@@ -61,8 +77,8 @@ tasks:
     ready: true
     done: false
     created_by: human
-    created_at: '2025-04-24T16:50:23.849432'
-    updated_at: '2025-04-24T16:50:23.849437'
+    created_at: '2025-04-24T22:23:21.540359'
+    updated_at: '2025-04-24T22:23:21.540367'
     assigned_to: unassigned
     instance_of: task_templates/Phase1_discovery/1.3_decompose_features/task.yaml
   1.4_write_acceptance_criteria:
@@ -82,8 +98,8 @@ tasks:
     ready: true
     done: false
     created_by: human
-    created_at: '2025-04-24T16:50:23.846708'
-    updated_at: '2025-04-24T16:50:23.846720'
+    created_at: '2025-04-24T22:23:21.536146'
+    updated_at: '2025-04-24T22:23:21.536156'
     assigned_to: unassigned
     instance_of: task_templates/Phase1_discovery/1.4_write_acceptance_criteria/task.yaml
   1.5_research_spikes:
@@ -103,8 +119,8 @@ tasks:
     ready: true
     done: false
     created_by: human
-    created_at: '2025-04-24T16:50:23.847835'
-    updated_at: '2025-04-24T16:50:23.847842'
+    created_at: '2025-04-24T22:23:21.538404'
+    updated_at: '2025-04-24T22:23:21.538413'
     assigned_to: unassigned
     instance_of: task_templates/Phase1_discovery/1.5_research_spikes/task.yaml
   1.6_define_architecture_and_standards:
@@ -125,8 +141,8 @@ tasks:
     ready: true
     done: false
     created_by: human
-    created_at: '2025-04-24T16:50:23.845209'
-    updated_at: '2025-04-24T16:50:23.845220'
+    created_at: '2025-04-24T22:23:21.533882'
+    updated_at: '2025-04-24T22:23:21.533917'
     assigned_to: unassigned
     instance_of: task_templates/Phase1_discovery/1.6_define_architecture/task.yaml
   1.7_feedback_summary:
@@ -144,8 +160,8 @@ tasks:
     ready: true
     done: false
     created_by: human
-    created_at: '2025-04-24T16:50:23.853179'
-    updated_at: '2025-04-24T16:50:23.853191'
+    created_at: '2025-04-24T22:23:21.544488'
+    updated_at: '2025-04-24T22:23:21.544511'
     assigned_to: unassigned
     instance_of: task_templates/Phase1_discovery/1.7_summarize_feedback/task.yaml
   2.1_design_feature_and_tech_spec:
@@ -163,8 +179,8 @@ tasks:
     ready: true
     done: false
     created_by: human
-    created_at: '2025-04-24T16:50:23.864406'
-    updated_at: '2025-04-24T16:50:23.864407'
+    created_at: '2025-04-24T22:23:21.564000'
+    updated_at: '2025-04-24T22:23:21.564009'
     assigned_to: unassigned
     instance_of: task_templates/Phase2_development/2.1_design_feature/task.yaml
   2.2_build_and_patch:
@@ -189,8 +205,8 @@ tasks:
     ready: true
     done: false
     created_by: human
-    created_at: '2025-04-24T16:50:23.863239'
-    updated_at: '2025-04-24T16:50:23.863241'
+    created_at: '2025-04-24T22:23:21.559579'
+    updated_at: '2025-04-24T22:23:21.559598'
     assigned_to: unassigned
     instance_of: task_templates/Phase2_development/2.2_build_feature/task.yaml
   2.3_qa_review_feature:
@@ -215,8 +231,8 @@ tasks:
     ready: true
     done: false
     created_by: human
-    created_at: '2025-04-24T16:50:23.865734'
-    updated_at: '2025-04-24T16:50:23.865736'
+    created_at: '2025-04-24T22:23:21.568949'
+    updated_at: '2025-04-24T22:23:21.568958'
     assigned_to: unassigned
     instance_of: task_templates/Phase2_development/2.3_QA_feature/task.yaml
   2.4a_fix_bugs_from_qa:
@@ -239,8 +255,8 @@ tasks:
     ready: true
     done: false
     created_by: human
-    created_at: '2025-04-24T16:50:23.866462'
-    updated_at: '2025-04-24T16:50:23.866463'
+    created_at: '2025-04-24T22:23:21.571324'
+    updated_at: '2025-04-24T22:23:21.571332'
     assigned_to: unassigned
     instance_of: task_templates/Phase2_development/2.4a_fix_bugs/task.yaml
   2.4b_retest_after_fixes:
@@ -263,8 +279,8 @@ tasks:
     ready: true
     done: false
     created_by: human
-    created_at: '2025-04-24T16:50:23.862491'
-    updated_at: '2025-04-24T16:50:23.862492'
+    created_at: '2025-04-24T22:23:21.557184'
+    updated_at: '2025-04-24T22:23:21.557193'
     assigned_to: unassigned
     instance_of: task_templates/Phase2_development/2.4b_retest_fixes/task.yaml
   2.5_research_assist:
@@ -285,8 +301,8 @@ tasks:
     ready: true
     done: false
     created_by: human
-    created_at: '2025-04-24T16:50:23.863845'
-    updated_at: '2025-04-24T16:50:23.863848'
+    created_at: '2025-04-24T22:23:21.561836'
+    updated_at: '2025-04-24T22:23:21.561868'
     assigned_to: unassigned
     instance_of: task_templates/Phase2_development/2.5_research_support/task.yaml
   2.7_agile_metrics:
@@ -310,8 +326,8 @@ tasks:
     ready: true
     done: false
     created_by: human
-    created_at: '2025-04-24T16:50:23.867080'
-    updated_at: '2025-04-24T16:50:23.867081'
+    created_at: '2025-04-24T22:23:21.573303'
+    updated_at: '2025-04-24T22:23:21.573312'
     assigned_to: unassigned
     instance_of: task_templates/Phase2_development/2.6_run_agile/task.yaml
   2.8_prepare_deployment_guide:
@@ -331,8 +347,8 @@ tasks:
     ready: true
     done: false
     created_by: human
-    created_at: '2025-04-24T16:50:23.864986'
-    updated_at: '2025-04-24T16:50:23.864989'
+    created_at: '2025-04-24T22:23:21.566319'
+    updated_at: '2025-04-24T22:23:21.566327'
     assigned_to: unassigned
     instance_of: task_templates/Phase2_development/2.7_prep_deploy_guide/task.yaml
   3.1_define_e2e_test_plan:
@@ -353,8 +369,8 @@ tasks:
     ready: true
     done: false
     created_by: human
-    created_at: '2025-04-24T16:50:23.867643'
-    updated_at: '2025-04-24T16:50:23.867644'
+    created_at: '2025-04-24T22:23:21.575741'
+    updated_at: '2025-04-24T22:23:21.575750'
     assigned_to: unassigned
     instance_of: task_templates/Phase3_e2e_test/3.1_e2e_test_plan/task.yaml
   3.2_execute_e2e_scenarios:
@@ -373,8 +389,8 @@ tasks:
     ready: true
     done: false
     created_by: human
-    created_at: '2025-04-24T16:50:23.869827'
-    updated_at: '2025-04-24T16:50:23.869828'
+    created_at: '2025-04-24T22:23:21.582723'
+    updated_at: '2025-04-24T22:23:21.582731'
     assigned_to: unassigned
     instance_of: task_templates/Phase3_e2e_test/3.2_e2e_test_execution/task.yaml
   3.3_fix_bugs_e2e:
@@ -396,8 +412,8 @@ tasks:
     ready: true
     done: false
     created_by: human
-    created_at: '2025-04-24T16:50:23.868761'
-    updated_at: '2025-04-24T16:50:23.868762'
+    created_at: '2025-04-24T22:23:21.579125'
+    updated_at: '2025-04-24T22:23:21.579133'
     assigned_to: unassigned
     instance_of: task_templates/Phase3_e2e_test/3.3_e2e_fix_bugs/task.yaml
   3.4_coordinate_e2e_demo:
@@ -416,8 +432,8 @@ tasks:
     ready: true
     done: false
     created_by: human
-    created_at: '2025-04-24T16:50:23.868177'
-    updated_at: '2025-04-24T16:50:23.868178'
+    created_at: '2025-04-24T22:23:21.577409'
+    updated_at: '2025-04-24T22:23:21.577416'
     assigned_to: unassigned
     instance_of: task_templates/Phase3_e2e_test/3.4_e2e_demo/task.yaml
   3.5_finalize_quality_metrics:
@@ -437,8 +453,8 @@ tasks:
     ready: true
     done: false
     created_by: human
-    created_at: '2025-04-24T16:50:23.869307'
-    updated_at: '2025-04-24T16:50:23.869308'
+    created_at: '2025-04-24T22:23:21.580774'
+    updated_at: '2025-04-24T22:23:21.580781'
     assigned_to: unassigned
     instance_of: task_templates/Phase3_e2e_test/3.5_e2e_report/task.yaml
   4.1_create_cutover_plan:
@@ -457,8 +473,8 @@ tasks:
     ready: true
     done: false
     created_by: human
-    created_at: '2025-04-24T16:50:23.861180'
-    updated_at: '2025-04-24T16:50:23.861184'
+    created_at: '2025-04-24T22:23:21.553519'
+    updated_at: '2025-04-24T22:23:21.553523'
     assigned_to: unassigned
     instance_of: task_templates/Phase4_go-live/4.1_cutover_plan/task.yaml
   4.2_final_smoke_tests:
@@ -477,8 +493,8 @@ tasks:
     ready: true
     done: false
     created_by: human
-    created_at: '2025-04-24T16:50:23.861737'
-    updated_at: '2025-04-24T16:50:23.861739'
+    created_at: '2025-04-24T22:23:21.554317'
+    updated_at: '2025-04-24T22:23:21.554320'
     assigned_to: unassigned
     instance_of: task_templates/Phase4_go-live/4.2_smoke_test/task.yaml
   4.3_go_live_deployment:
@@ -497,8 +513,8 @@ tasks:
     ready: true
     done: false
     created_by: human
-    created_at: '2025-04-24T16:50:23.856291'
-    updated_at: '2025-04-24T16:50:23.856297'
+    created_at: '2025-04-24T22:23:21.548991'
+    updated_at: '2025-04-24T22:23:21.549000'
     assigned_to: unassigned
     instance_of: task_templates/Phase4_go-live/4.3_deploy_prod/task.yaml
   4.4_announce_go_live:
@@ -517,8 +533,8 @@ tasks:
     ready: true
     done: false
     created_by: human
-    created_at: '2025-04-24T16:50:23.860181'
-    updated_at: '2025-04-24T16:50:23.860189'
+    created_at: '2025-04-24T22:23:21.552756'
+    updated_at: '2025-04-24T22:23:21.552759'
     assigned_to: unassigned
     instance_of: task_templates/Phase4_go-live/4.4_communicate_transition/task.yaml
   4.5_go_live_retro:
@@ -537,7 +553,7 @@ tasks:
     ready: true
     done: false
     created_by: human
-    created_at: '2025-04-24T16:50:23.858267'
-    updated_at: '2025-04-24T16:50:23.858276'
+    created_at: '2025-04-24T22:23:21.551083'
+    updated_at: '2025-04-24T22:23:21.551090'
     assigned_to: unassigned
     instance_of: task_templates/Phase4_go-live/4.5_retro_stabilize/task.yaml

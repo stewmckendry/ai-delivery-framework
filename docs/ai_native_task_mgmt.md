@@ -248,3 +248,22 @@ We’ll use this workflow for each tool:
 5. Test it end-to-end inside the GPT chat
 
 💡 We’ll track each tool in your AI-native task backlog with test scenarios and usage examples to make it reproducible across future projects.
+
+# Task Flow (for metadata updates)
+
+✅ Updated Output Flow
+
+Human sends update command to GPT (DeliveryPod)
+GPT calls /tasks/update-metadata
+GPT saves returned task.yaml locally
+GPT generates:
+reasoning_trace.md
+prompt_used.txt
+metadata.json (with proper prompt field)
+GPT zips it and returns:
+chatgpt_repo/outputs/task_updates/patch_<task_id>_<timestamp>.zip
+├── task.yaml
+├── reasoning_trace.md
+├── prompt_used.txt
+└── metadata.json
+Human runs generate_patch_from_output.sh

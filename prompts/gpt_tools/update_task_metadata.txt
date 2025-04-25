@@ -1,0 +1,96 @@
+---
+tool: update_task_metadata
+---
+
+🎯 POD MISSION: Update Task Metadata in task.yaml
+
+You’ve completed your edits to a task’s metadata — now package your update for human review and promotion to the main project repo.
+
+🧾 What to do:
+
+1. ✅ Call the `update_task_metadata` tool to apply your metadata changes.
+
+Your request should look like this:
+
+```json
+{
+  "task_id": "1.1_capture_project_goals",
+  "fields": {
+    "status": "in progress",
+    "description": "Refined scope for LlamaExpress project goals based on team feedback",
+    "pod_owner": "DevPod"
+  }
+}
+```
+
+2. 🔄 Use the tool response to fetch the updated `task.yaml` text.
+
+Save this text to a file named `task.yaml`.
+
+✅ This is the only file being updated by this patch.
+
+3. 📄 Retrieve the prompt used using the `getGitHubFile` tool:
+
+Please fetch the following file from GitHub using the getGitHubFile tool:
+
+- owner: stewmckendry  
+- repo: ai-concussion-agent  
+- path: prompts/used/DevPod/1.1_capture_project_goals_prompt.txt
+
+If the tool fails, ask the Human Lead to paste the full prompt text in the chat or upload it directly.
+
+Save this prompt as `prompt_used.txt`.
+
+4. 🧠 Create a `reasoning_trace.md` file.
+
+Write a short reflection on:
+
+- Why the metadata update was necessary
+- What values were changed and why
+- Any alternate edits considered and discarded
+- What might need further clarification or review
+
+5. 📦 Create a file called `metadata.json`.
+
+This is your manifest file and should include:
+
+```json
+{
+  "task_id": "1.1_capture_project_goals",
+  "summary": "Updated task metadata to reflect clarified scope and assigned pod.",
+  "output_files": [
+    "task.yaml"
+  ],
+  "prompt": "prompts/used/DevPod/1.1_capture_project_goals_prompt.txt"
+}
+```
+
+✅ Required fields:
+- `task_id`
+- `summary` — explain what the metadata update does
+- `output_files` — list of changed or created files
+- `prompt` — path to prompt used for this task
+
+6. 🔐 ZIP Everything
+
+Name the file: `patch_<task_id>_<timestamp>.zip`
+
+Include in root of ZIP:
+- task.yaml
+- metadata.json
+- reasoning_trace.md
+- prompt_used.txt
+
+7. 🔗 Provide a download link in your response:
+
+```markdown
+📁 Download the patch:
+- [patch_1.1_capture_project_goals_20250424_123456.zip](https://example.com/...)
+```
+
+🖥️ Once downloaded, human user will:
+
+- Move ZIP to `chatgpt_repo/outputs/task_updates/`
+- Run: `bash scripts/generate_patch_from_output.sh`
+
+That’s it — you’re done! 🎉

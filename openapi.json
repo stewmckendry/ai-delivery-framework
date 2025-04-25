@@ -107,6 +107,52 @@
         }
       }
     }
+    },
+    "/tasks/update-metadata": {
+      "post": {
+        "operationId": "updateTaskMetadata",
+        "summary": "Update metadata fields for a task",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "task_id": {
+                    "type": "string",
+                    "description": "ID of the task to update"
+                  },
+                  "fields": {
+                    "type": "object",
+                    "description": "Key-value pairs of metadata fields to update"
+                  }
+                },
+                "required": ["task_id", "fields"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated task.yaml content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "task_id": { "type": "string" },
+                    "task_yaml": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Task not found"
+          }
+        }
+      }
     }
   },
   "components": {
