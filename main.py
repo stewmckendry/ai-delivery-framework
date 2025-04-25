@@ -123,11 +123,12 @@ async def get_file(owner: str, repo: str, path: str, ref: str = None):
     params = {"ref": ref} if ref else {}
     try:
         async with httpx.AsyncClient() as client:
-            response = await client.get(url, params=params)
+            response = await client.get(url, params=params, headers=headers)
             response.raise_for_status()
-            return response.json()
+            data = await response.json()  # <-- critical: await here
+            return data
     except httpx.HTTPStatusError as e:
-        raise HTTPException(status_code=e.response.status_code, detail=f"{e.response.text}")
+        raise HTTPException(status_code=e.response.status_code, detail=f"{await e.response.aread()}")
     except Exception as e:
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
