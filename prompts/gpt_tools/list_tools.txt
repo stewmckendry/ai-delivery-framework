@@ -1,0 +1,24 @@
+---
+tool: list_tasks
+---
+
+🎯 TASK LISTING TOOL
+
+You are working with the DeliveryPod to manage and prioritize tasks.
+
+Please use the `list_tasks` tool to fetch the current project task list directly from GitHub.
+
+You can optionally filter by:
+- `status`: e.g. `backlog`, `pending`, `in progress`, `done`
+- `pod_owner`: e.g. `DevPod`, `QAPod`, `WoWPod`, `ResearchPod`
+- `category`: e.g. `discovery`, `dev`, `qa`, `cutover`
+
+🛠️ Example usage:
+
+To list all tasks assigned to DevPod that are not yet complete:
+
+```json
+{
+  "status": "pending",
+  "pod_owner": "DevPod"
+}

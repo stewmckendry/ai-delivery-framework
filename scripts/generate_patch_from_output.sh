@@ -12,7 +12,7 @@ echo "✅ Directories created."
 
 echo "🔄 Loading metadata from outputs folder"
 echo "🔄 Searching for latest ZIP in outputs folder..."
-ZIP_FILE=$(ls -t chatgpt_repo/outputs/*.zip | head -n 1)
+ZIP_FILE=$(find chatgpt_repo/outputs -name "*.zip" -type f | sort -r | head -n 1)
 
 if [ ! -f "$ZIP_FILE" ]; then
   echo "❌ No finalized output ZIP file found in chatgpt_repo/outputs/"

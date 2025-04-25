@@ -3,6 +3,7 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.responses import FileResponse
+from fastapi import Query
 from pathlib import Path
 import httpx, os, json, re
 from dotenv import load_dotenv
@@ -99,29 +100,63 @@ def fetch_task_yaml_from_github():
         raise HTTPException(status_code=404, detail="Failed to fetch task.yaml from GitHub")
     return yaml.safe_load(response.text)
 
-@app.post("/tasks/update-metadata")
-def update_task_metadata(req: TaskUpdateRequest):
+@app.get("/tasks/list")
+def list_tasks(
+    status: Optional[str] = Query(None),
+    pod_owner: Optional[str] = Query(None),
+    category: Optional[str] = Query(None)
+):
     """
-    Updates fields in task.yaml for the given task_id.
-    Returns the updated task.yaml contents (as text) — GPT will handle patch packaging.
+    Return a list of tasks from GitHub task.yaml with optional filters by status, pod_owner, or category.
     """
-    # 🔄 Load task.yaml from GitHub
-    data = fetch_task_yaml_from_github()
+    try:
+        task_data = fetch_task_yaml_from_github()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error fetching task.yaml: {e}")
 
-    task_id = req.task_id
-    tasks = data.get("tasks", {})
+    tasks = task_data.get("tasks", {})
+    filtered_tasks = {}
 
-    if task_id not in tasks:
-        raise HTTPException(status_code=404, detail=f"Task '{task_id}' not found")
+    for task_id, task in tasks.items():
+        if status and task.get("status") != status:
+            continue
+        if pod_owner and task.get("pod_owner") != pod_owner:
+            continue
+        if category and task.get("category") != category:
+            continue
+        filtered_tasks[task_id] = task
 
-    # 🔧 Apply updates
-    for key, value in req.fields.items():
-        tasks[task_id][key] = value
-    tasks[task_id]["updated_at"] = datetime.now().isoformat()
+    return {"tasks": filtered_tasks}
 
-    # 🔁 Return updated YAML string (not file download)
-    updated_yaml_str = yaml.dump(data, sort_keys=False)
-    return JSONResponse(content={"task_id": task_id, "task_yaml": updated_yaml_str})
+
+@app.get("/tasks/list")
+def list_tasks(
+    status: Optional[str] = Query(None),
+    pod_owner: Optional[str] = Query(None),
+    category: Optional[str] = Query(None)
+):
+    """
+    Return a list of tasks from task.yaml with optional filters by status, pod_owner, or category.
+    """
+    task_file = "task.yaml"
+    if not os.path.exists(task_file):
+        raise HTTPException(status_code=404, detail="task.yaml not found")
+
+    task_data = load_yaml(task_file)
+    tasks = task_data.get("tasks", {})
+
+    filtered_tasks = {}
+    for task_id, task in tasks.items():
+        if status and task.get("status") != status:
+            continue
+        if pod_owner and task.get("pod_owner") != pod_owner:
+            continue
+        if category and task.get("category") != category:
+            continue
+        filtered_tasks[task_id] = task
+
+    return {"tasks": filtered_tasks}
+
 
 
 # ---- OpenAPI Static File Serving ----

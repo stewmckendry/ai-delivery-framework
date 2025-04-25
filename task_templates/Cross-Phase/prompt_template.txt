@@ -1,0 +1,30 @@
+---
+tool: update_task_metadata
+---
+
+🎯 POD MISSION: Update Task Metadata in task.yaml
+
+You would like to make edits to a task’s metadata for human review before promotion to the main project repo.
+
+🧾 What to do:
+
+1. ✅ Call the `update_task_metadata` tool to apply your metadata changes.
+
+Your request should look like this:
+
+```json
+{
+  "task_id": "1.1_capture_project_goals",
+  "fields": {
+    "status": "in progress",
+    "description": "Refined scope for LlamaExpress project goals based on team feedback",
+    "pod_owner": "DevPod"
+  }
+}
+```
+
+2. 🔄 Use the tool response to fetch the updated `task.yaml` text.
+
+Save this text to a file named `task.yaml`.
+
+✅ This is the only file being updated by this patch.

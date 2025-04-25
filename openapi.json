@@ -45,7 +45,7 @@
                 }
             }
           },
-          "404": { "description": "File not found" },
+          "404": { "description": "File not found" }
         }
       }
     },
@@ -151,6 +151,64 @@
           "404": {
             "description": "Task not found"
           }
+        }
+      }
+    }
+  },
+  "/tasks/list": {
+    "get": {
+      "summary": "List tasks from GitHub task.yaml",
+      "operationId": "listTasks",
+      "parameters": [
+        {
+          "name": "status",
+          "in": "query",
+          "description": "Filter tasks by status (e.g. 'pending', 'done')",
+          "required": false,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "pod_owner",
+          "in": "query",
+          "description": "Filter tasks by pod_owner (e.g. 'DevPod', 'QAPod')",
+          "required": false,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "category",
+          "in": "query",
+          "description": "Filter tasks by category (e.g. 'dev', 'qa', 'discovery')",
+          "required": false,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "List of tasks",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "tasks": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "500": {
+          "description": "Error fetching task.yaml"
         }
       }
     }
