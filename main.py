@@ -9,7 +9,7 @@ import httpx, os, json, re
 from dotenv import load_dotenv
 from fastapi import APIRouter
 from pydantic import BaseModel
-from typing import List, Dict
+from typing import List, Dict, Optional
 import tempfile
 import yaml
 import requests
