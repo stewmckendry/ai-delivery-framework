@@ -18,6 +18,7 @@ import yaml
 import requests
 import zipfile
 import shutil
+import traceback
 from dotenv import load_dotenv
 
 # ---- (2) Global Variables ----
@@ -128,6 +129,7 @@ async def get_file(owner: str, repo: str, path: str, ref: str = None):
     except httpx.HTTPStatusError as e:
         raise HTTPException(status_code=e.response.status_code, detail=f"{e.response.text}")
     except Exception as e:
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
 
 @app.post("/batch-files")
