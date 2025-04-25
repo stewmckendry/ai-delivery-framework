@@ -11,6 +11,11 @@
       "description": "Production server"
     }
   ],
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
   "components": {
     "securitySchemes": {
       "bearerAuth": {
@@ -18,7 +23,8 @@
         "scheme": "bearer",
         "bearerFormat": "JWT"
       }
-    }
+    },
+    "schemas": {}
   },
   "paths": {
     "/repos/{owner}/{repo}/contents/{path}": {
@@ -361,6 +367,135 @@
                     "new_task_id": { "type": "string" },
                     "new_task_metadata": { "type": "object" },
                     "updated_tasks": { "type": "object" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }, 
+    "/memory/index": {
+      "post": {
+        "operationId": "indexMemory",
+        "summary": "Index project files from GitHub repo into memory.yaml",
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "base_paths": {
+                    "type": "array",
+                    "items": { "type": "string" },
+                    "example": ["prompts/", "scripts/", "task_templates/", "main.py", "openapi.json"]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Indexed files and returns memory structure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": { "type": "string" },
+                    "memory_index": { "type": "object" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/memory/diff": {
+      "post": {
+        "operationId": "memoryDiff",
+        "summary": "Detect missing files in memory.yaml compared to GitHub repo",
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "base_paths": {
+                    "type": "array",
+                    "items": { "type": "string" },
+                    "example": ["prompts/", "scripts/", "task_templates/", "main.py", "openapi.json"]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Returns list of missing files",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": { "type": "string" },
+                    "missing_files": { "type": "array", "items": { "type": "string" } }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/memory/add": {
+      "post": {
+        "operationId": "addToMemory",
+        "summary": "Add new files to memory.yaml",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "files": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "file_path": { "type": "string", "example": "docs/project_goals.md" },
+                        "description": { "type": "string", "example": "Project goals document" },
+                        "tags": {
+                          "type": "array",
+                          "items": { "type": "string" },
+                          "example": ["project", "spec"]
+                        }
+                      },
+                      "required": ["file_path", "description", "tags"]
+                    }
+                  }
+                },
+                "required": ["files"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated memory.yaml structure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": { "type": "string" },
+                    "memory_index": { "type": "object" }
                   }
                 }
               }

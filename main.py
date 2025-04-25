@@ -63,6 +63,14 @@ class PromotePatchRequest(BaseModel):
     reasoning_trace: Optional[str] = None  # Optional free-form reflection text
     output_folder: Optional[str] = "misc"  # Suggest pick-list in prompt: task_updates, dev_outputs, test_outputs, go_live_docs
 
+class MemoryFileEntry(BaseModel):
+    file_path: str
+    description: str
+    tags: List[str]
+
+class AddToMemoryRequest(BaseModel):
+    files: List[MemoryFileEntry]
+
 # ---- (4) Helper Functions ----
 def fetch_task_yaml_from_github():
     url = f"https://raw.githubusercontent.com/{GITHUB_OWNER}/{GITHUB_REPO}/{GITHUB_BRANCH}/{TASK_FILE_PATH}"
@@ -95,10 +103,13 @@ def get_next_base_id(tasks, phase):
     return f"{next_num:.1f}"
 
 def list_files_from_github(path):
-    url = GITHUB_API_URL.format(owner=GITHUB_OWNER, repo=GITHUB_REPO, path=path)
-    response = requests.get(url)
-    if response.status_code != 200:
-        raise Exception(f"Failed to fetch files for path: {path}")
+    url = f"{GITHUB_API}/repos/{GITHUB_OWNER}/{GITHUB_REPO}/contents/{path}"
+    headers = {
+        "Authorization": f"Bearer {GITHUB_TOKEN}",
+        "Accept": "application/vnd.github+json"
+    }
+    response = requests.get(url, headers=headers)
+    response.raise_for_status()
     data = response.json()
     # Handle if it's a single file vs directory
     if isinstance(data, dict):
@@ -392,6 +403,68 @@ def index_memory(
         "message": f"Indexed {len(memory)} files into memory.yaml",
         "memory_index": existing_memory
     }
+
+
+@app.post("/memory/diff")
+def memory_diff(
+    base_paths: List[str] = Body(default=[
+        "prompts/",
+        "scripts/",
+        "task_templates/",
+        "main.py",
+        "openapi.json"
+    ])
+):
+    """
+    Compare GitHub repo file list with memory.yaml and return missing files
+    """
+    missing_files = []
+    
+    # Fetch current memory.yaml
+    try:
+        memory = fetch_yaml_from_github(file_path=MEMORY_FILE_PATH)
+    except Exception:
+        memory = {}
+
+    memory_paths = {v["file_path"] for v in memory.values()}
+
+    # Scan GitHub using updated direct GitHub call
+    for path in base_paths:
+        file_list = list_files_from_github(path)
+        for file_info in file_list:
+            file_path = file_info["path"]
+            if file_path not in memory_paths:
+                missing_files.append(file_path)
+
+    return {
+        "message": f"Found {len(missing_files)} missing files",
+        "missing_files": missing_files
+    }
+
+@app.post("/memory/add")
+def add_to_memory(request: AddToMemoryRequest):
+    """
+    Add new files with metadata to memory.yaml
+    """
+    try:
+        memory = fetch_yaml_from_github(file_path=MEMORY_FILE_PATH)
+    except Exception:
+        memory = {}
+
+    for file_entry in request.files:
+        key = file_entry.file_path.replace("/", "_").replace(".", "_")
+        memory[key] = {
+            "file_path": file_entry.file_path,
+            "description": file_entry.description,
+            "tags": file_entry.tags
+        }
+
+    return {
+        "message": f"Added {len(request.files)} files to memory index",
+        "memory_index": memory
+    }
+
+# ---- OpenAPI JSON Schema ----
 
 @app.get("/openapi.json")
 def serve_openapi():

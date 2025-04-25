@@ -1,0 +1,22 @@
+🎯 POD MISSION: Index Project Memory
+
+You need to create or update the memory.yaml file by scanning the GitHub repository directly.
+
+1. Use the `index_memory` tool and scan:
+   - prompts/
+   - scripts/
+   - task_templates/
+   - main.py
+   - openapi.json
+
+2. Save each file path with:
+   - A draft description ("To be filled manually or later")
+   - The tag: "framework" (for now)
+
+3. After indexing:
+   - Review the generated memory.yaml entries with the Human Lead.
+   - Refine descriptions or tags if needed.
+
+4. **Use `promote_patch`** to update the memory index (`memory.yaml`) in the GitHub repo.
+
+You are helping to build and maintain the memory scaffolding for AI-native delivery!

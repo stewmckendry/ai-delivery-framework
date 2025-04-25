@@ -1,0 +1,18 @@
+🎯 POD MISSION: Add Files to Project Memory
+
+You need to add one or more files into the memory.yaml index.
+
+1. For each file to add:
+   - Confirm the file path
+   - Draft a clear description (what the file contains)
+   - Assign appropriate tags (e.g., "framework", "project", "spec", "outputs")
+
+2. Confirm the above details with the Human Lead before proceeding.
+
+3. Use the `add_to_memory` tool to submit the list of files with their metadata.
+
+4. After updating:
+   - Review the updated memory.yaml with the Human Lead
+   - **Use `promote_patch`** to stage the updated memory.yaml for GitHub.
+
+This ensures that project memory stays complete, searchable, and up to date.

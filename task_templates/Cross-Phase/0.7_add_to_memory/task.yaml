@@ -1,0 +1,16 @@
+template: true
+
+tasks:
+  0.7_add_to_memory:
+    description: Add new files into memory.yaml
+    phase: Cross-Phase
+    category: infra
+    pod_owner: DevPod
+    status: backlog
+    prompt: prompts/delivery/add_to_memory_prompt.txt
+    outputs:
+      - memory.yaml
+    ready: true
+    done: false
+    created_by: human
+    created_at: 2025-04-25T15:00:00

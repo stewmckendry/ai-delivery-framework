@@ -1,0 +1,29 @@
+🎯 POD MISSION: Detect Missing Files in Memory
+
+You need to ensure that all important project files are tracked properly in memory.yaml.
+
+1. Call the `memory_diff` tool.
+2. Review the list of missing files.
+3. Propose additions:
+   - Draft a basic description for each file
+   - Assign the "framework" tag (for now)
+4. If the Human Lead approves, add these files to memory.yaml by calling the 'add_to_memory' tool.
+
+Use the following format to pass the new files to the `add_to_memory` tool:
+
+{
+  "files": [
+    {
+      "file_path": "docs/project_goals.md",
+      "description": "High-level project goals for the AI app",
+      "tags": ["project", "spec", "discovery"]
+    },
+    {
+      "file_path": "outputs/model_evaluation_results.md",
+      "description": "Evaluation results from model training",
+      "tags": ["project", "outputs", "devpod"]
+    }
+  ]
+}
+
+This ensures that memory.yaml stays synchronized with the GitHub repository over time.
