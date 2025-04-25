@@ -1,0 +1,19 @@
+template: true
+
+tasks:
+  0.3_clone_task:
+    description: Clone an existing task in the backlog with optional metadata updates
+    phase: Phase 0 - Cross-Phase
+    category: delivery_ops
+    pod_owner: DeliveryPod
+    status: backlog
+    prompt: prompts/tools/clone_task.txt
+    inputs: []
+    outputs:
+      - task.yaml
+    feedback_file: .logs/feedback/0.3_clone_task.md
+    ready: true
+    done: false
+    created_by: human
+    created_at: 2025-04-24T00:00:00
+    updated_at: 2025-04-24T00:00:00

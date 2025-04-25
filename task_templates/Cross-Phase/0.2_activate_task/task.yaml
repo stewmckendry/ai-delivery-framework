@@ -1,0 +1,22 @@
+template: true
+
+tasks:
+  0.3_activate_task:
+    description: Change the status of a task to `in_progress` and retrieve its prompt file for patch generation
+    phase: Cross Phase
+    category: ops
+    pod_owner: DeliveryPod
+    assigned_to: HumanLead
+    status: pending
+    prompt: prompts/cross/activate_task.txt
+    inputs:
+      - task.yaml
+    outputs:
+      - task.yaml  # updated version
+      - prompts/used/DeliveryPod/0.3_activate_task_prompt.txt
+    feedback_file: .logs/feedback/0.3_activate_task.md
+    ready: true
+    done: false
+    created_by: human
+    created_at: 2025-04-25T09:00:00
+    updated_at: 2025-04-25T09:00:00

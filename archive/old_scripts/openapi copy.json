@@ -11,15 +11,6 @@
       "description": "Production server"
     }
   ],
-  "components": {
-    "securitySchemes": {
-      "bearerAuth": {
-        "type": "http",
-        "scheme": "bearer",
-        "bearerFormat": "JWT"
-      }
-    }
-  },
   "paths": {
     "/repos/{owner}/{repo}/contents/{path}": {
       "get": {
@@ -39,19 +30,23 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": ["name", "path", "content"],
                   "properties": {
                     "name": { "type": "string" },
                     "path": { "type": "string" },
                     "sha": { "type": "string" },
-                    "content": { "type": "string", "format": "byte", "description": "Base64-encoded content" },
+                    "content": {
+                      "type": "string",
+                      "format": "byte",
+                      "description": "Base64-encoded content"
+                    },
                     "encoding": { "type": "string" }
-                  }
+                  },
+                  "required": ["name", "path", "content"]
                 }
-              }
             }
-          },
-          "404": { "description": "File not found" }
+            },
+            "404": { "description": "File not found" }
+          }
         }
       }
     },
@@ -66,13 +61,16 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["owner", "repo", "paths"],
                 "properties": {
                   "owner": { "type": "string" },
                   "repo": { "type": "string" },
-                  "paths": { "type": "array", "items": { "type": "string" } },
+                  "paths": {
+                    "type": "array",
+                    "items": { "type": "string" }
+                  },
                   "ref": { "type": "string" }
-                }
+                },
+                "required": ["owner", "repo", "paths"]
               }
             }
           }
@@ -84,21 +82,25 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": ["files"],
                   "properties": {
                     "files": {
                       "type": "array",
                       "items": {
                         "type": "object",
-                        "required": ["path"],
                         "properties": {
                           "path": { "type": "string" },
-                          "content": { "type": "string", "format": "byte", "description": "Base64-encoded content" },
+                          "content": {
+                            "type": "string",
+                            "format": "byte",
+                            "description": "Base64-encoded content"
+                          },
                           "error": { "type": "string" }
-                        }
+                        },
+                        "required": ["path"]
                       }
                     }
-                  }
+                  },
+                  "required": ["files"]
                 }
               }
             }
@@ -116,11 +118,17 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["task_id", "fields"],
                 "properties": {
-                  "task_id": { "type": "string" },
-                  "fields": { "type": "object" }
-                }
+                  "task_id": {
+                    "type": "string",
+                    "description": "ID of the task to update"
+                  },
+                  "fields": {
+                    "type": "object",
+                    "description": "Key-value pairs of metadata fields to update"
+                  }
+                },
+                "required": ["task_id", "fields"]
               }
             }
           }
@@ -140,18 +148,44 @@
               }
             }
           },
-          "404": { "description": "Task not found" }
+          "404": {
+            "description": "Task not found"
+          }
         }
       }
     },
     "/tasks/list": {
       "get": {
-        "operationId": "listTasks",
         "summary": "List tasks from GitHub task.yaml",
+        "operationId": "listTasks",
         "parameters": [
-          { "name": "status", "in": "query", "required": false, "schema": { "type": "string" } },
-          { "name": "pod_owner", "in": "query", "required": false, "schema": { "type": "string" } },
-          { "name": "category", "in": "query", "required": false, "schema": { "type": "string" } }
+          {
+            "name": "status",
+            "in": "query",
+            "description": "Filter tasks by status (e.g. 'pending', 'done')",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "pod_owner",
+            "in": "query",
+            "description": "Filter tasks by pod_owner (e.g. 'DevPod', 'QAPod')",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "category",
+            "in": "query",
+            "description": "Filter tasks by category (e.g. 'dev', 'qa', 'discovery')",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
         ],
         "responses": {
           "200": {
@@ -163,48 +197,69 @@
                   "properties": {
                     "tasks": {
                       "type": "object",
-                      "additionalProperties": { "type": "object" }
+                      "additionalProperties": {
+                        "type": "object"
+                      }
                     }
                   }
                 }
               }
             }
           },
-          "500": { "description": "Error fetching task.yaml" }
+          "500": {
+            "description": "Error fetching task.yaml"
+          }
         }
-      }
     },
-    "/tasks/activate": {
-      "post": {
-        "operationId": "activateTask",
-        "summary": "Activate a task and retrieve updated metadata and prompt",
-        "requestBody": {
-          "required": true,
+  },
+  "/tasks/activate": {
+    "post": {
+      "summary": "Activate a task and retrieve updated metadata and prompt",
+      "operationId": "activateTask",
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "task_id": {
+                  "type": "string",
+                  "description": "The task ID to activate"
+                }
+              },
+              "required": ["task_id"]
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "Successful activation and prompt retrieval",
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["task_id"],
                 "properties": {
-                  "task_id": { "type": "string" }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful activation and prompt retrieval",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "task": { "type": "object" },
-                    "all_tasks": { "type": "object" },
-                    "status": { "type": "string" },
-                    "prompt_path": { "type": "string" },
-                    "prompt_content": { "type": "string" }
+                  "task": {
+                    "type": "object",
+                    "description": "Updated task metadata"
+                  },
+                  "all_tasks": {
+                    "type": "object",
+                    "description": "The full updated task.yaml content"
+                  },
+                  "status": {
+                    "type": "string",
+                    "example": "in_progress"
+                  },
+                  "prompt_path": {
+                    "type": "string",
+                    "example": "prompts/used/DevPod/1.1_capture_project_goals_prompt.txt"
+                  },
+                  "prompt_content": {
+                    "type": "string",
+                    "description": "Contents of the prompt file"
                   }
                 }
               }
@@ -212,69 +267,85 @@
           }
         }
       }
-    },
-    "/tasks/clone": {
-      "post": {
-        "operationId": "cloneTask",
-        "summary": "Clone an existing task and generate a new task ID and metadata",
-        "requestBody": {
-          "required": true,
+    }
+  },
+  "/tasks/clone": {
+    "post": {
+      "operationId": "cloneTask",
+      "summary": "Clone an existing task and generate a new task ID and metadata",
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "original_task_id": {
+                  "type": "string",
+                  "example": "2.2_build_feature"
+                },
+                "descriptor": {
+                  "type": "string",
+                  "example": "refactor_logic"
+                },
+                "overrides": {
+                  "type": "object",
+                  "example": {
+                    "description": "Refactor logic to use shared components",
+                    "prompt": "prompts/dev/refactor_prompt.txt",
+                    "pod_owner": "DevPod"
+                  }
+                }
+              },
+              "required": ["original_task_id", "descriptor"]
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "Task cloned and new task ID generated",
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["original_task_id", "descriptor"],
                 "properties": {
-                  "original_task_id": { "type": "string" },
-                  "descriptor": { "type": "string" },
-                  "overrides": { "type": "object" }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Task cloned and new task ID generated",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": { "type": "string" },
-                    "new_task_id": { "type": "string" },
-                    "new_task_metadata": { "type": "object" },
-                    "updated_tasks": { "type": "object" },
-                    "original_prompt_path": { "type": "string" },
-                    "original_prompt_content": { "type": "string" }
-                  }
+                  "message": { "type": "string" },
+                  "new_task_id": { "type": "string" },
+                  "new_task_metadata": { "type": "object" },
+                  "updated_tasks": { "type": "object" },
+                  "original_prompt_path": { "type": "string" },
+                  "original_prompt_content": { "type": "string" }
                 }
               }
             }
           }
         }
       }
-    },
-    "/patches/promote": {
+    }
+  },
+  "/patches/promote": {
       "post": {
-        "operationId": "promotePatch",
         "summary": "Promote a patch by generating a zip of outputs and metadata",
+        "operationId": "promotePatch",
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["task_id", "summary", "output_files", "prompt_path", "reasoning_trace", "category"],
                 "properties": {
                   "task_id": { "type": "string" },
                   "summary": { "type": "string" },
-                  "output_files": { "type": "array", "items": { "type": "string" } },
+                  "output_files": {
+                    "type": "array",
+                    "items": { "type": "string" }
+                  },
                   "prompt_path": { "type": "string" },
                   "reasoning_trace": { "type": "string" },
-                  "category": { "type": "string" },
                   "output_folder": { "type": "string", "default": "misc" }
-                }
+                },
+                "required": ["task_id", "summary", "output_files", "prompt_path", "reasoning_trace", "category"]  
               }
             }
           }
@@ -304,7 +375,12 @@
         "operationId": "getTaskDetails",
         "summary": "Return full metadata for a task",
         "parameters": [
-          { "name": "task_id", "in": "path", "required": true, "schema": { "type": "string" } }
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
         ],
         "responses": {
           "200": {
@@ -321,7 +397,9 @@
               }
             }
           },
-          "404": { "description": "Task not found" }
+          "404": {
+            "description": "Task not found"
+          }
         }
       }
     },
@@ -335,16 +413,24 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["phase", "category", "description", "pod_owner", "descriptor"],
                 "properties": {
-                  "phase": { "type": "string" },
-                  "category": { "type": "string" },
-                  "description": { "type": "string" },
-                  "pod_owner": { "type": "string" },
-                  "inputs": { "type": "array", "items": { "type": "string" } },
-                  "outputs": { "type": "array", "items": { "type": "string" } },
-                  "descriptor": { "type": "string" }
-                }
+                  "phase": { "type": "string", "example": "Phase2_dev" },
+                  "category": { "type": "string", "example": "dev" },
+                  "description": { "type": "string", "example": "Summarize findings from user research interviews" },
+                  "pod_owner": { "type": "string", "example": "DevPod" },
+                  "inputs": { 
+                    "type": "array",
+                    "items": { "type": "string" },
+                    "example": ["docs/user_research_notes.md"]
+                  },
+                  "outputs": { 
+                    "type": "array",
+                    "items": { "type": "string" },
+                    "example": ["docs/user_research_summary.md"]
+                  },
+                  "descriptor": { "type": "string", "example": "summarize_user_research" }
+                },
+                "required": ["phase", "category", "description", "pod_owner", "descriptor"]
               }
             }
           }
@@ -368,6 +454,15 @@
           }
         }
       }
-    }
+    },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {}
   }
 }

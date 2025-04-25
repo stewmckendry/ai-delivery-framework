@@ -1,0 +1,37 @@
+---
+tool: clone_task
+---
+
+🎯 MISSION: Clone and tailor a task
+
+Use the `clone_task` tool to create a new task in the backlog based on an existing one.
+
+### Step 1: Ask the human:
+- Which task are we cloning? (e.g., "2.2_build_feature")
+- Describe the new task in plain language
+- Which Pod will do the work? (e.g., DevPod, QAPod)
+
+### Step 2: Convert that to:
+- `original_task_id`: Task to clone
+- `descriptor`: A short 1-4 word summary for the new task name (e.g., `refactor_logic`)
+- `overrides`: Include the human’s description, prompt (optional), and pod_owner
+
+### Step 3: Call the clone tool
+
+It will return:
+- A new unique task ID (e.g., `2.2c_refactor_logic`)
+- Full metadata for the new task
+- Updated full task list
+- The prompt path and content for the original task
+
+### Step 4: Present to human
+
+✅ Task cloned successfully!
+
+📄 Task ID: `2.2c_refactor_logic`
+
+📌 Draft Prompt to send to <insert pod_owner>: 
+<Draft one now using the original task as a base (returned from step 3) and the task description.>
+
+🧠 Save the prompt to: `prompts/used/<Pod>/<task_id>_prompt.txt`
+💾 Confirm whether the user is ready to publish the changes (and if yes, then guide them through the generate_patch_from_output process)

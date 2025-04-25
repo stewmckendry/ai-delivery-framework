@@ -269,3 +269,142 @@ chatgpt_repo/outputs/task_updates/patch_<task_id>_<timestamp>.zip
 ├── prompt_used.txt
 └── metadata.json
 Human runs generate_patch_from_output.sh
+
+
+# Tracking meta-tasks (tasks for tasks)
+
+Here’s a proposed protocol for when to include “tasks for tasks” (aka meta-tasks) in the main task.yaml backlog, so we strike the right balance between auditability, practicality, and traceability.
+
+✅ When to Add Meta-Tasks to task.yaml
+
+
+Criteria	Include in task.yaml?	Rationale
+📦 Changes affect shared state	✅ Yes	If the task modifies shared data (e.g. task.yaml, memory.yaml, prompt templates, specs, etc.), it should be tracked like any other work
+🧠 Involves substantive reasoning	✅ Yes	If the pod reflects, explains tradeoffs, or generates meaningful logic (e.g. update_task_metadata, define_prompt_guidelines)
+🛠️ Triggers patch promotion process	✅ Yes	If the result is delivered as a .zip with metadata.json, prompt_used.txt, and reasoning_trace.md, we treat it as patch-worthy
+🔁 Routine system call or non-material read op	❌ No	Tasks like list_tasks, get_task_details, or activate_task are instrumental actions. They're part of the flow, but don't change source files directly
+🤖 Fully automated or ephemeral	❌ No	For example, a gh CLI call to view PRs, or viewing logs, or temporary data cleanup doesn’t merit a backlog entry
+✅ Examples That Should Be Backlog Tasks
+
+
+Task ID	Description
+0.1_update_task_metadata	Material edit to a tracked task's fields
+0.2_define_new_task_template	Adds a new kind of task to the repo
+0.3_activate_task	Yes, if it includes updated task.yaml and prompt_used.txt in a patch
+0.4_add_task_to_backlog	Adds a new task entry to the backlog
+0.5_edit_prompt_template	Edits a canonical prompt, which other pods use
+❌ Examples That Do Not Require a Task Entry
+
+
+Route / GPT Action	Reason
+list_tasks	Pure read
+get_task_details	Pure read
+activate_task	Only tracked if it generates patch and reasoning
+delete_task	Should be authorized manually via Git / PR instead
+🎯 Summary Protocol
+
+Only include meta-tasks in task.yaml if they affect durable system state, require human review, or are part of the patch promotion process.
+We treat these like first-class deliverables, complete with:
+
+Prompt provenance
+Reasoning trace
+Manifest file
+Git-integrated patch
+
+
+---
+
+update as of 2025-04-25
+
+# 🧠 AI-Native Delivery: Task Framework
+
+## 🧭 Purpose
+This framework enables modular, repeatable, traceable management of work tasks within an AI-native delivery system. It supports both human and AI (ChatGPT Pod) collaboration across the full SDLC.
+
+---
+
+## 🧱 Core Concepts
+
+### ✅ `task.yaml`
+- Central backlog file stored in GitHub
+- Source of truth for all project tasks
+- Tracks task metadata: `task_id`, `phase`, `category`, `pod_owner`, `status`, `prompt`, `inputs`, `outputs`, `ready`, `done`, `created_by`, timestamps, etc.
+
+### 📁 Folder Structure
+```bash
+.
+├── task_templates/         # Source templates per SDLC phase
+│   ├── Phase1_discovery/
+│   ├── Phase2_dev/
+│   ├── Cross-Phase/
+│   └── ...
+├── prompts/used/           # Human-provided prompt texts
+│   ├── DevPod/
+│   ├── QAPod/
+│   └── ...
+├── .logs/
+│   ├── patches/            # Patch metadata
+│   ├── changelogs/         # Task changelogs
+│   └── reasoning/          # Reasoning traces
+├── chatgpt_repo/outputs/   # ZIPs of output + metadata from Pods
+└── task.yaml               # Master backlog
+```
+
+---
+
+## ⚙️ Tools (FastAPI + GPT)
+
+| Tool Name            | Route                          | Status   | Description |
+|----------------------|----------------------------------|----------|-------------|
+| `update_task_metadata` | `POST /tasks/update-metadata`   | ✅ Done  | Modify metadata fields in `task.yaml` |
+| `clone_task`         | `POST /tasks/clone`             | ✅ Done  | Clone an existing task under a new ID |
+| `list_tasks`         | `GET /tasks/list`               | ✅ Done  | Return all tasks or filtered subset |
+| `activate_task`      | `POST /tasks/activate`          | ✅ Done  | Mark task as in progress + return prompt |
+| `promote_patch`      | `POST /patches/promote`         | ✅ Done  | Package outputs, manifest, prompt trace |
+| `get_task_details`   | `GET /tasks/{task_id}`          | 🔜 Next  | Return full metadata for a task |
+| `create_new_task`    | `POST /tasks/create`            | 📝 Planned | Create a new custom task |
+| `delete_task`        | `DELETE /tasks/{task_id}`       | 📝 Planned | Remove a task from the backlog |
+
+---
+
+## 🤖 GPT Development Flow (Human + Pod)
+
+### 🧠 How You Work
+1. Human Lead + GPT plan and review tasks
+2. GPT Pod performs a task, generates output, reasoning, and metadata
+3. GPT Pod uses `promote_patch` to zip + return manifest + instructions
+4. Human Lead saves ZIP to `chatgpt_repo/outputs` and runs:
+```bash
+bash scripts/generate_patch_from_output.sh
+```
+5. Script updates `task.yaml`, commits changes, opens PR
+
+---
+
+## 🔐 Protocol: When Task Management Work Becomes a Task
+
+Use `task.yaml` for tracking changes that are:
+- **Material** to delivery planning or backlog
+- **Collaborative** between Human Lead + GPT Pod
+- **Repeatable** across similar projects or workflows
+
+Examples:
+- ✅ `0.1_update_task_metadata`
+- ✅ `0.3_clone_task`
+- ❌ `get_task_details` (non-material, quick lookup)
+- ❌ `list_tasks` (used for filtering, not workflow)
+
+---
+
+## 🚀 Future Enhancements
+- 🧱 Vector search over task descriptions
+- 📋 Task scoring + prioritization tools
+- 🧩 Dependency graph visualization
+- 📣 Notifications or updates on active task state
+
+---
+
+## 📢 Summary
+This task framework empowers structured, agile-like AI-native delivery. It blends human intent with AI execution, encourages modularity, supports traceability, and is already powering end-to-end task management — with fast iteration and clear handoffs.
+
+Let’s keep shipping! 🚀

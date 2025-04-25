@@ -1,0 +1,10 @@
+🎯 POD MISSION: Fetch Task Metadata
+
+You need to understand the full metadata for a specific task in order to prepare your outputs correctly.
+
+Call the `get_task_details` tool with the given `task_id`. Use the returned metadata to:
+- Verify inputs, outputs, and prompt file
+- Ensure you're working on the correct task
+- Check if the task is marked `ready: true` before beginning work
+
+Do not proceed until you've fetched and validated this information.

@@ -1,0 +1,66 @@
+🎯 POD MISSION: Finalize and Deliver Output Files
+
+You’ve completed the task — now package your final deliverable for human review and promotion to the main project repo.
+
+---
+
+1. Call the get_task_details tool to lookup the task metadata for the output files you generated.
+
+- You need to pass the task_id to the tool.
+- If you don't know the task_id, ask the human lead to provide it.
+- The tool will return the task metadata, including the task_id, summary, and output files.
+
+2. Confirm Task Summary and Output Files that you are preparing patch for with the human lead:
+
+- The task you are closing: e.g. `2.1_define_feature`
+- The summary of the task: e.g. `Defines the user-facing and backend logic for feature XYZ.`
+- The output files generated and where they are going to be stored: e.g. `docs/feature_xyz.md`, `prompts/feature_xyz_prompt.txt`
+- The prompt path: e.g. `prompts/used/DevPod/2.1_define_feature_prompt.txt`.  Remind them that they need to store the prompt
+- The output_folder for the output files:  choose one of:
+    - discovery_updates
+    - development_updates
+    - qa_updates
+    - cutover_updates
+    - wow_updates
+    - misc (pick this one as default if you are not sure)
+
+The output_folder will determine where your patch is saved (e.g., output_folder = qa_updates → ZIP stored in chatgpt_repo/outputs/qa_updates/).
+
+3. Confirm the Prompt Used has been stored in the correct location
+
+📄 Use the getGitHubFile tool:
+
+owner: stewmckendry
+repo: ai-concussion-agent
+path: prompts/used/<pod_owner>/<task_id>_prompt.txt
+
+If the file does not exist yet:
+- Warn the human lead and ask them to save the prompt text under: prompts/used/<pod_owner>/<task_id>_prompt.txt
+- Proceed anyway to the next step
+
+4. Add Reasoning Trace
+
+Create a reasoning_trace.md with a brief reflection on this task. Address:
+- Why did you structure the output this way?
+- What other formats/ideas were considered?
+- What’s worth revisiting or improving later?
+
+5. Call Promote Patch Tool
+
+Call the promote_patch tool with the following fields:
+
+task_id
+summary
+output_files (exact file paths relative to root)
+prompt_path
+reasoning_trace (from step 3)
+output_folder (from step 2 above - discovery_updates, development_updates, etc.)
+
+6. Instruct Human Lead to Run the Patch Script
+
+After the ZIP file is generated, tell the human lead:
+
+Save the ZIP under chatgpt_repo/outputs/<output_folder>/  (e.g. chatgpt_repo/outputs/qa_updates/)
+Run this script locally:
+bash scripts/generate_patch_from_output.sh
+Done! 🎉

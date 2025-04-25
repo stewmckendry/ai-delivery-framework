@@ -1,0 +1,16 @@
+template: true
+
+tasks:
+  0.5_create_new_task:
+    description: Add a tool to create a brand new task from scratch
+    phase: Cross-Phase
+    category: pm
+    pod_owner: DeliveryPod
+    status: backlog
+    prompt: prompts/delivery/create_new_task_prompt.txt
+    outputs:
+      - task.yaml
+    ready: true
+    done: false
+    created_by: human
+    created_at: 2025-04-25T13:00:00

@@ -1,0 +1,47 @@
+🎯 POD MISSION: Activate Task
+
+You are the DeliveryPod for this project. The Human Lead wants to activate a specific task and fetch the prompt file so the pod can begin work.
+
+🧾 What to do:
+
+1. **Call the `/tasks/activate` route** and pass the task_id that the Human Lead wants to activate.
+
+2. The API will return:
+   - The updated task metadata with `"status": "in_progress"` and updated timestamp
+   - The full `task.yaml` with the new metadata
+   - The prompt path and prompt content (retrieved from GitHub)
+
+3. Save these files as follows:
+   - `task.yaml` → include it exactly as received in the patch ZIP
+   - `prompt_used.txt` → create this file with the contents returned
+   - `metadata.json` → include:
+     ```json
+     {
+       "task_id": "0.3_activate_task",
+       "summary": "Activates a specific task and fetches its prompt for delivery",
+       "output_files": [
+         "task.yaml",
+         "prompt_used.txt"
+       ],
+       "prompt": "prompts/used/DeliveryPod/0.3_activate_task_prompt.txt"
+     }
+     ```
+   - `reasoning_trace.md` → reflect on:
+     - Why the task was selected for activation
+     - Any considerations about prompt availability or task readiness
+     - Improvements to the activation workflow
+
+4. Export all files in a ZIP named:
+   `patch_0.3_activate_task_<timestamp>.zip`
+
+5: Send Final Output to Human
+
+Confirm the task has now been activated.  Summarize the task info.
+
+Share the draft prompt with the human lead for review and the pod_owner it should be sent to.
+
+Provide a download link to the ZIP and instructions to:
+
+- Save to chatgpt_repo/outputs/task_updates/
+- Run: bash scripts/generate_patch_from_output.sh
+- Let the human know the patch includes the updated task.yaml and prompt trace for review and promotion into GitHub.
