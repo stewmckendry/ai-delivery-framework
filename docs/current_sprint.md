@@ -13,6 +13,7 @@
             - QAPod: Test plan, traceability, bug trace
             - ResearchPod: Insights, spike summaries, domain briefing
             - WoWPod: Workflow optimization, playbooks, retros
+            - DeliveryPod: Delivery plan, retros, and release notes
             - 🧠 Also: Brainstorm future actions like getProjectFiles, validate_task_links, etc.
     - 🛠️ Field-Test + Externalization
         - [PoC] End-to-End Delivery of AI App

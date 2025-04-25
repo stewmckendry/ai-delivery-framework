@@ -234,6 +234,8 @@ These tools will allow GPTs (especially DeliveryPod) to interact with task.yaml 
 4.	**get_task_details**	GET /tasks/{task_id}	Return full metadata for a single task
 5.	**create_new_task**	POST /tasks/create	Allow GPTs to define new tasks from scratch (advanced use)
 6.	**delete_task**	DELETE /tasks/{task_id}	Remove task from task.yaml (for admin or human-only use)
+7.  **activate_task**	POST /tasks/activate	Mark a task as active (e.g., in progress) and update status
+
 
 ✅ The first tool update_task_metadata enables 80% of the real-world flows (e.g. activate a task, reassign it, update description).
 
