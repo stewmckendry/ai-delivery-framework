@@ -148,6 +148,21 @@ else
   echo "ℹ️ No memory.yaml found in ZIP."
 fi
 
+# Handle handoff notes if they exist
+HANDOFF_DIR="$TMP_DIR/handoff_notes"
+if [ -d "$HANDOFF_DIR" ]; then
+  echo "✅ Found handoff_notes folder. Staging handoff notes."
+  mkdir -p ".logs/handoff"
+  cp "$HANDOFF_DIR"/*.md ".logs/handoff/"
+  for file in "$HANDOFF_DIR"/*.md; do
+    [ -e "$file" ] && git add ".logs/handoff/$(basename "$file")"
+    echo "✅ Staged handoff note: $(basename "$file")"
+  done
+else
+  echo "ℹ️ No handoff notes found in ZIP."
+fi
+
+
 echo "🔄 Triggering PR creation script"
 bash scripts/create_pr_from_patch.sh --triggered "$PATCH_FILE"
 echo "✅ PR creation script executed"
