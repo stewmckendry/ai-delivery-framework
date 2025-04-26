@@ -1,3 +1,5 @@
+# General Flow of the System
+
 [Human Lead] 
     ↓
 [List Tasks] → [Pick Task] → [Activate Task] → [Validate Inputs (memory + GitHub)]

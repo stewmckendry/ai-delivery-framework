@@ -62,6 +62,7 @@ class PromotePatchRequest(BaseModel):
     reasoning_trace: str
     prompt_path: Optional[str] = None
     output_folder: Optional[str] = None
+    handoff_notes: Optional[str] = None  # <<< NEW
 
 class MemoryFileEntry(BaseModel):
     file_path: str
@@ -275,6 +276,7 @@ async def promote_patch(request: PromotePatchRequest):
     reasoning_trace = request.reasoning_trace
     prompt_path = request.prompt_path
     output_folder = request.output_folder or "misc"
+    handoff_notes = request.handoff_notes  # <<< NEW
 
     timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
     patch_name = f"patch_{task_id}_{timestamp}.zip"
@@ -302,6 +304,13 @@ async def promote_patch(request: PromotePatchRequest):
             with open(dest_path, "w") as f:
                 f.write(file_content)
         
+        # Optionally write handoff notes
+        if handoff_notes:
+            handoff_dir = os.path.join(tmp_dir, "handoff_notes")
+            os.makedirs(handoff_dir, exist_ok=True)
+            with open(os.path.join(handoff_dir, f"{task_id}_handoff.md"), "w") as f:
+                f.write(handoff_notes)
+                
         # Fetch latest memory.yaml from GitHub
         try:
             memory = fetch_yaml_from_github(file_path=MEMORY_FILE_PATH)
@@ -592,3 +601,37 @@ def custom_openapi():
         return json.load(f)
 
 app.openapi = custom_openapi
+
+@app.get("/actions/list")
+def list_available_actions():
+    with open("openapi.json", "r") as f:
+        schema = json.load(f)
+
+    grouped_actions = {}
+
+    for path, methods in schema.get("paths", {}).items():
+        for method, details in methods.items():
+            # Skip non-standard methods just in case
+            if method.lower() not in ["get", "post", "put", "patch", "delete"]:
+                continue
+
+            # Use tags if available, otherwise "General"
+            tags = details.get("tags", ["General"])
+
+            for tag in tags:
+                if tag not in grouped_actions:
+                    grouped_actions[tag] = []
+
+                # Prefer x-gpt-action name, otherwise fall back to summary
+                action_name = details.get("x-gpt-action", {}).get("name", details.get("summary", f"{method.upper()} {path}"))
+                grouped_actions[tag].append(action_name)
+
+    # Now format for response
+    actions_response = []
+    for tag, actions in grouped_actions.items():
+        actions_response.append({
+            "category": tag,
+            "actions": actions
+        })
+
+    return {"actions": actions_response}

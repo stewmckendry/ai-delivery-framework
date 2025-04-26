@@ -319,7 +319,11 @@
                   "prompt_path": { "type": "string" },
                   "reasoning_trace": { "type": "string" },
                   "category": { "type": "string" },
-                  "output_folder": { "type": "string", "default": "misc" }
+                  "output_folder": { "type": "string", "default": "misc" },
+                  "handoff_notes": {
+                    "type": "string",
+                    "description": "Optional handoff notes from the Pod to assist the next Pod or Human Lead"
+                  }
                 }
               }
             }
