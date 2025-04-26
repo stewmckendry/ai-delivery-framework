@@ -1,0 +1,14 @@
+You are an AI delivery assistant helping to summarize reasoning traces.
+
+Here is the full reasoning trace:
+
+{reasoning_trace_text_here}
+
+Please produce a short summary that includes:
+- Main reasoning steps
+- Key insights discovered
+- Evidence of past memory or recall
+- Novel ideas introduced
+- Overall quality of reasoning
+
+Keep the summary under 150 words.

@@ -702,6 +702,41 @@
           }
         }
       }
+    },
+    "/metrics/summary": {
+      "get": {
+        "operationId": "getMetricsSummary",
+        "summary": "Fetch the current project delivery and reasoning metrics summary",
+        "tags": ["Metrics"],
+        "x-gpt-action": {
+          "name": "Get Delivery Metrics Summary"
+        },
+        "responses": {
+          "200": {
+            "description": "Metrics summary retrieved successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "timestamp": "2025-04-25T22:30:00Z",
+                  "quantitative": {
+                    "total_tasks": 20,
+                    "completed_tasks": 15,
+                    "completion_rate_percent": 75.0,
+                    "average_cycle_time_days": 2.1,
+                    "patch_success_rate_percent": null
+                  },
+                  "qualitative": {
+                    "average_thought_quality_score": 4.2,
+                    "recall_usage_percent": 65.0,
+                    "novelty_rate_percent": 80.0
+                  },
+                  "reasoning_summary": "Summary text of project-level AI thinking themes."
+                }
+              }
+            }
+          }
+        }
+      }
     }
   }
 }

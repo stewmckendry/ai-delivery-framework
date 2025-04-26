@@ -19,6 +19,7 @@ import requests
 import zipfile
 import shutil
 import traceback
+from openai import OpenAI
 from dotenv import load_dotenv
 
 # ---- (2) Global Variables ----
@@ -32,6 +33,10 @@ TASK_FILE_PATH = "task.yaml"
 GITHUB_BRANCH = "main"
 PROMPT_DIR = "prompts/used"
 MEMORY_FILE_PATH = "memory.yaml"
+REASONING_FOLDER_PATH = ".logs/reasoning/"
+
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+openai = OpenAI(api_key=OPENAI_API_KEY)
 
 app = FastAPI()
 
@@ -87,6 +92,13 @@ def fetch_yaml_from_github(file_path: str):
         raise HTTPException(status_code=404, detail=f"Failed to fetch {file_path} from GitHub")
     return yaml.safe_load(response.text)
 
+def fetch_file_content_from_github(file_path: str):
+    url = f"https://raw.githubusercontent.com/{GITHUB_OWNER}/{GITHUB_REPO}/{GITHUB_BRANCH}/{file_path}"
+    response = requests.get(url)
+    if response.status_code != 200:
+        raise HTTPException(status_code=404, detail=f"Failed to fetch {file_path} from GitHub")
+    return response.text
+
 def get_next_base_id(tasks, phase):
     phase_index = {
         "Phase1_discovery": "1.",
@@ -116,6 +128,99 @@ def list_files_from_github(path):
     if isinstance(data, dict):
         return [data]
     return [item for item in data if item["type"] == "file"]
+
+def generate_metrics_summary():
+    task_data = fetch_yaml_from_github(TASK_FILE_PATH)
+    tasks = task_data.get("tasks", {})
+    total_tasks = len(tasks)
+    completed_tasks = sum(1 for t in tasks.values() if t.get("done", False))
+
+    # Cycle time
+    cycle_times = []
+    for t in tasks.values():
+        if t.get("done") and t.get("created_at") and t.get("updated_at"):
+            created = datetime.fromisoformat(t["created_at"])
+            updated = datetime.fromisoformat(t["updated_at"])
+            cycle_times.append((updated - created).total_seconds() / (3600 * 24))  # days
+
+    avg_cycle_time = sum(cycle_times) / len(cycle_times) if cycle_times else None
+
+    # Reasoning logs
+    scores = []
+    recalls = 0
+    novelties = 0
+    total_logs = 0
+
+    reasoning_files = list_files_from_github(REASONING_FOLDER_PATH)
+    for file in reasoning_files:
+        filename = file["name"]
+        if filename.endswith(".md") and not filename.endswith("_summary.md"):
+            contents = fetch_file_content_from_github(REASONING_FOLDER_PATH + filename)
+            if "Thought Quality Score:" in contents:
+                score_line = contents.split("Thought Quality Score:")[1].splitlines()[0]
+                score = int(score_line.strip())
+                scores.append(score)
+            if "[recall_used]" in contents or "Recall Used: yes" in contents:
+                recalls += 1
+            if "[novel_insight]" in contents or "Novel Insight: yes" in contents:
+                novelties += 1
+            total_logs += 1
+
+    return {
+        "timestamp": datetime.utcnow().isoformat(),
+        "quantitative": {
+            "total_tasks": total_tasks,
+            "completed_tasks": completed_tasks,
+            "completion_rate_percent": (completed_tasks / total_tasks * 100) if total_tasks else 0,
+            "average_cycle_time_days": avg_cycle_time,
+            "patch_success_rate_percent": None  # Future
+        },
+        "qualitative": {
+            "average_thought_quality_score": (sum(scores) / len(scores)) if scores else None,
+            "recall_usage_percent": (recalls / total_logs * 100) if total_logs else 0,
+            "novelty_rate_percent": (novelties / total_logs * 100) if total_logs else 0
+        }
+    }
+
+def generate_project_reasoning_summary():
+    reasoning_files = list_files_from_github(REASONING_FOLDER_PATH)
+    all_thoughts = []
+
+    for file in reasoning_files:
+        filename = file["name"]
+        if filename.endswith(".md") and not filename.endswith("_summary.md"):
+            contents = fetch_file_content_from_github(REASONING_FOLDER_PATH + filename)
+            if "## Thoughts" in contents:
+                thoughts_section = contents.split("## Thoughts")[1]
+                all_thoughts.append(thoughts_section)
+
+    merged_thoughts = "\n".join(all_thoughts)
+
+    prompt = f"""
+You are summarizing the collective reasoning across multiple AI tasks.
+
+Here are the collected reasoning thoughts:
+
+{merged_thoughts}
+
+Please summarize:
+- Main reasoning themes across tasks
+- Key insights discovered
+- Common patterns of memory reuse (recall)
+- Novel ideas that emerged
+- General quality of the AI reasoning
+
+Keep your summary under 250 words.
+"""
+
+    response = openai.chat.completions.create(
+        model="gpt-4o",
+        messages=[{"role": "user", "content": prompt}],
+        temperature=0.5
+    )
+
+    project_summary = response.choices[0].message.content.strip()
+    return project_summary
 
 # ---- (5) API Routes ----
 
@@ -586,6 +691,17 @@ def search_memory(keyword: str):
         "matches": matches
     }
 
+# ---- Metrics ----
+
+@app.get("/metrics/summary")
+def get_metrics_summary():
+    """
+    Return project-level delivery and reasoning metrics summary.
+    """
+    summary = generate_metrics_summary()
+    reasoning_summary = generate_project_reasoning_summary()
+    summary["reasoning_summary"] = reasoning_summary
+    return summary
 
 # ---- OpenAPI JSON Schema ----
 

@@ -27,10 +27,56 @@ Task: 2.1_define_feature Summary: Define the user-facing and backend logic for f
   - Proceed to next steps
 
 4. **Create a Reasoning Trace:**
-- Create a `reasoning_trace.md` reflecting:
-  - Why you structured the output the way you did
-  - Other ideas considered
-  - Opportunities for future improvement
+- Create a file called `reasoning_trace.md` following the structured template below.
+- Your Reasoning Trace should include the following sections:
+
+  - **Thoughts**:  
+    - List the major reasoning steps you took to complete the task.  
+    - Use 1–3 short bullet points.  
+    - You may tag thoughts with `[recall_used]` if you reused past knowledge or `[novel_insight]` if you introduced a new idea.
+
+  - **Other Ideas Considered**:  
+    - List any alternative approaches or ideas you thought about but chose not to pursue.
+
+  - **Opportunities for Future Improvement**:  
+    - Suggest ways the task output, approach, or reasoning could be improved if repeated in the future.
+
+  - **Scoring Summary**:
+    - Thought Quality Score (1–5): How clear, deep, and structured was your reasoning?
+    - Recall Used (yes/no): Did you reuse project memory or past task knowledge?
+    - Novel Insight (yes/no): Did you generate any truly new or creative ideas?
+
+  - (Optional) **Summarized Insight**:
+    - Summarize the overall reasoning and key learnings from this task in 1–2 sentences.
+
+---
+
+## Reasoning Trace Template Example:
+
+```markdown
+# Reasoning Trace for 2.1a_refine_project_goals
+
+## Thoughts
+- Reviewed project goals and matched them to original client requests. [recall_used]
+- Proposed phased rollout approach to manage stakeholder uncertainty. [novel_insight]
+- Emphasized early executive sponsor engagement to de-risk approval cycles.
+
+## Other Ideas Considered
+- Delivering a full-scope rollout immediately.
+- Conducting a stakeholder mapping exercise first (deferred due to timeline).
+
+## Opportunities for Future Improvement
+- Explore stakeholder mapping as a precursor to rollout planning to enhance alignment.
+
+## Scoring Summary
+- Thought Quality Score: 4
+- Recall Used: Yes
+- Novel Insight: Yes
+
+(Optional)
+## Summarized Insight
+- The phased rollout approach balanced client risk concerns with faster delivery, reusing memory from past projects and introducing a novel risk mitigation step.
+
 
 5. **Create a Handoff Note:**
 - Create a `handoff_notes.md` capturing:

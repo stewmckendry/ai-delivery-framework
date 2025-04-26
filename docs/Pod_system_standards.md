@@ -142,6 +142,71 @@
 
 # 4. 🔹 Pod Setup Instructions (Custom GPT Setup)
 
+## 📦 Install Instructions for New Pods
+
+### 1. Create a New Custom GPT
+
+- Go to **Explore GPTs** ➔ **Create a GPT**.
+
+### 2. Configure Name and Description
+
+- **Name:** (e.g., `ProductPod`, `DeliveryPod`)
+- **Instructions:** Paste the Pod's System Prompt (see Section 3: Pod Code of Conduct).
+
+### 3. Configure Custom Actions
+
+#### Base URL
+```
+https://ai-concussion-agent-production.up.railway.app
+```
+
+#### Authentication
+- **Type:** Bearer Token
+- **Token:** `{{GITHUB_PERSONAL_ACCESS_TOKEN}}`  
+*(Replace this placeholder with an actual token if required.)*
+
+#### Import Action Schema
+- **URL:** 
+```
+https://ai-concussion-agent-production.up.railway.app/openapi.json
+```
+- This will **automatically load** the available endpoints.
+
+---
+
+### 4. Verify and Map Actions
+
+| **Endpoint** | **Purpose** |
+|--------------|-------------|
+| `GET /tasks/list` | List all tasks |
+| `GET /tasks/{task_id}` | Retrieve a specific task |
+| `POST /tasks/update-metadata` | Update metadata fields of a task |
+| `POST /memory/search` | Search memory by keyword |
+| `POST /memory/validate-files` | Validate input files |
+| `GET /repos/{owner}/{repo}/contents/{path}` | Fetch single GitHub file content |
+| `POST /patches/promote` | Promote patch and update memory |
+
+---
+
+### 5. Append Pod Values into System Prompt
+
+- Values for behavior and conduct are listed in **Section 3: Pod Code of Conduct**.
+- Paste or reference them in the Custom GPT instructions.
+
+---
+
+### 6. Save and Test!
+
+- Save your Custom GPT.
+- Test an action (e.g., **list tasks**) to confirm the connection is working.
+
+✅ Your Pod is now ready to operate inside the AI-native delivery system!
+
+---
+
+
+# 4. 🔹 Pod Setup Instructions (Custom GPT Setup)
+
 ## Install Instructions for New Pods
 
 1. **Create a New Custom GPT:**
