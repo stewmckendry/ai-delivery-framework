@@ -58,10 +58,10 @@ class CloneTaskRequest(BaseModel):
 class PromotePatchRequest(BaseModel):
     task_id: str
     summary: str
-    output_files: List[str]
-    prompt_path: Optional[str] = None  # prompts/used/<pod>/<task_id>_prompt.txt
-    reasoning_trace: Optional[str] = None  # Optional free-form reflection text
-    output_folder: Optional[str] = "misc"  # Suggest pick-list in prompt: task_updates, dev_outputs, test_outputs, go_live_docs
+    output_files: Dict[str, str]  # filename -> content mapping
+    reasoning_trace: str
+    prompt_path: Optional[str] = None
+    output_folder: Optional[str] = None
 
 class MemoryFileEntry(BaseModel):
     file_path: str
@@ -296,11 +296,57 @@ async def promote_patch(request: PromotePatchRequest):
         with open(os.path.join(tmp_dir, "reasoning_trace.md"), "w") as f:
             f.write(reasoning_trace)
 
-        for file_path in output_files:
+        for file_path, file_content in output_files.items():
             dest_path = os.path.join(tmp_dir, file_path)
             os.makedirs(os.path.dirname(dest_path), exist_ok=True)
             with open(dest_path, "w") as f:
-                f.write("PLACEHOLDER: This should be populated by the human lead.")
+                f.write(file_content)
+        
+        # Fetch latest memory.yaml from GitHub
+        try:
+            memory = fetch_yaml_from_github(file_path=MEMORY_FILE_PATH)
+        except Exception:
+            memory = {}
+
+        def smart_merge_memory(memory, key, file_path, description, tags):
+            existing_entry = memory.get(key)
+            if existing_entry:
+                # Merge description if not already meaningful
+                if existing_entry.get("description", "").startswith("Output file generated from task") or not existing_entry.get("description"):
+                    existing_entry["description"] = description
+                # Merge tags (union)
+                existing_tags = set(existing_entry.get("tags", []))
+                new_tags = set(tags)
+                existing_entry["tags"] = list(existing_tags.union(new_tags))
+                existing_entry["last_updated"] = timestamp
+            else:
+                memory[key] = {
+                    "file_path": file_path,
+                    "description": description,
+                    "tags": tags,
+                    "last_updated": timestamp
+                }
+
+        # --- Add files to memory ---
+
+        # 1. Output files
+        for file_path in output_files.keys():
+            key = file_path.replace("/", "_").replace(".", "_")
+            smart_merge_memory(memory, key, file_path, f"Output file generated from task {task_id}", ["project", "outputs"])
+
+        # 2. Reasoning trace
+        trace_key = f"logs_reasoning_{task_id}_reasoning_trace_md"
+        smart_merge_memory(memory, trace_key, f".logs/reasoning/{task_id}_reasoning_trace.md", f"Reasoning trace for task {task_id}", ["project", "reasoning"])
+
+        # 3. Prompt used
+        if prompt_path:
+            prompt_key = prompt_path.replace("/", "_").replace(".", "_")
+            smart_merge_memory(memory, prompt_key, prompt_path, f"Prompt used for task {task_id}", ["project", "prompt"])
+
+        # Save updated memory.yaml into tmp_dir
+        memory_path = os.path.join(tmp_dir, "memory.yaml")
+        with open(memory_path, "w") as f:
+            yaml.safe_dump(memory, f, sort_keys=False)
 
         shutil.make_archive(zip_path.replace(".zip", ""), 'zip', tmp_dir)
 
@@ -463,6 +509,74 @@ def add_to_memory(request: AddToMemoryRequest):
         "message": f"Added {len(request.files)} files to memory index",
         "memory_index": memory
     }
+
+@app.post("/memory/validate-files")
+def validate_memory_file_exists(files: List[str] = Body(...)):
+    """
+    Validate if the given files exist in memory.yaml and/or GitHub repo.
+    """
+    try:
+        memory = fetch_yaml_from_github(file_path=MEMORY_FILE_PATH)
+    except Exception:
+        memory = {}
+
+    results = []
+
+    for file_path in files:
+        memory_match = any(entry.get("file_path") == file_path for entry in memory.values())
+        github_match = False
+
+        # Try GitHub lookup (optional lightweight HEAD check)
+        github_url = f"https://api.github.com/repos/{GITHUB_OWNER}/{GITHUB_REPO}/contents/{file_path}"
+        headers = {
+            "Authorization": f"Bearer {GITHUB_TOKEN}",
+            "Accept": "application/vnd.github+json"
+        }
+        try:
+            response = requests.head(github_url, headers=headers)
+            github_match = response.status_code == 200
+        except Exception:
+            github_match = False
+
+        results.append({
+            "file_path": file_path,
+            "exists_in_memory": memory_match,
+            "exists_in_github": github_match
+        })
+
+    return {
+        "validated_files": results
+    }
+
+
+@app.get("/memory/search")
+def search_memory(keyword: str):
+    """
+    Search memory.yaml for files matching keyword in file_path, description, or tags
+    """
+    try:
+        memory = fetch_yaml_from_github(file_path=MEMORY_FILE_PATH)
+    except Exception:
+        memory = {}
+
+    matches = []
+
+    keyword_lower = keyword.lower()
+
+    for entry in memory.values():
+        combined_text = " ".join([
+            entry.get("file_path", ""),
+            entry.get("description", ""),
+            " ".join(entry.get("tags", []))
+        ]).lower()
+
+        if keyword_lower in combined_text:
+            matches.append(entry)
+
+    return {
+        "matches": matches
+    }
+
 
 # ---- OpenAPI JSON Schema ----
 

@@ -31,6 +31,10 @@
       "get": {
         "operationId": "getGitHubFile",
         "summary": "Fetch a single file from a GitHub repo",
+        "tags": ["GitHub Files"],
+        "x-gpt-action": {
+          "name": "Fetch Single GitHub File"
+        },
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           { "name": "owner", "in": "path", "required": true, "schema": { "type": "string" } },
@@ -57,7 +61,9 @@
               }
             }
           },
-          "404": { "description": "File not found" }
+          "404": {
+            "description": "File not found"
+          }
         }
       }
     },
@@ -65,6 +71,10 @@
       "post": {
         "operationId": "getBatchFiles",
         "summary": "Fetch multiple files from a GitHub repo",
+        "tags": ["GitHub Files"],
+        "x-gpt-action": {
+          "name": "Fetch Multiple GitHub Files"
+        },
         "security": [{ "bearerAuth": [] }],
         "requestBody": {
           "required": true,
@@ -76,7 +86,10 @@
                 "properties": {
                   "owner": { "type": "string" },
                   "repo": { "type": "string" },
-                  "paths": { "type": "array", "items": { "type": "string" } },
+                  "paths": {
+                    "type": "array",
+                    "items": { "type": "string" }
+                  },
                   "ref": { "type": "string" }
                 }
               }
@@ -116,6 +129,10 @@
       "post": {
         "operationId": "updateTaskMetadata",
         "summary": "Update metadata fields for a task",
+        "tags": ["Tasks"],
+        "x-gpt-action": {
+          "name": "Update Task Metadata"
+        },
         "requestBody": {
           "required": true,
           "content": {
@@ -146,7 +163,9 @@
               }
             }
           },
-          "404": { "description": "Task not found" }
+          "404": {
+            "description": "Task not found"
+          }
         }
       }
     },
@@ -154,6 +173,10 @@
       "get": {
         "operationId": "listTasks",
         "summary": "List tasks from GitHub task.yaml",
+        "tags": ["Tasks"],
+        "x-gpt-action": {
+          "name": "List All Tasks"
+        },
         "parameters": [
           { "name": "status", "in": "query", "required": false, "schema": { "type": "string" } },
           { "name": "pod_owner", "in": "query", "required": false, "schema": { "type": "string" } },
@@ -176,7 +199,9 @@
               }
             }
           },
-          "500": { "description": "Error fetching task.yaml" }
+          "500": {
+            "description": "Error fetching task.yaml"
+          }
         }
       }
     },
@@ -184,6 +209,10 @@
       "post": {
         "operationId": "activateTask",
         "summary": "Activate a task and retrieve updated metadata and prompt",
+        "tags": ["Tasks"],
+        "x-gpt-action": {
+          "name": "Activate Task"
+        },
         "requestBody": {
           "required": true,
           "content": {
@@ -223,6 +252,10 @@
       "post": {
         "operationId": "cloneTask",
         "summary": "Clone an existing task and generate a new task ID and metadata",
+        "tags": ["Tasks"],
+        "x-gpt-action": {
+          "name": "Clone Existing Task"
+        },
         "requestBody": {
           "required": true,
           "content": {
@@ -265,6 +298,10 @@
       "post": {
         "operationId": "promotePatch",
         "summary": "Promote a patch by generating a zip of outputs and metadata",
+        "tags": ["Patches"],
+        "x-gpt-action": {
+          "name": "Promote Patch"
+        },
         "requestBody": {
           "required": true,
           "content": {
@@ -275,7 +312,10 @@
                 "properties": {
                   "task_id": { "type": "string" },
                   "summary": { "type": "string" },
-                  "output_files": { "type": "array", "items": { "type": "string" } },
+                  "output_files": {
+                    "type": "array",
+                    "items": { "type": "string" }
+                  },
                   "prompt_path": { "type": "string" },
                   "reasoning_trace": { "type": "string" },
                   "category": { "type": "string" },
@@ -309,8 +349,17 @@
       "get": {
         "operationId": "getTaskDetails",
         "summary": "Return full metadata for a task",
+        "tags": ["Tasks"],
+        "x-gpt-action": {
+          "name": "Get Task Details"
+        },
         "parameters": [
-          { "name": "task_id", "in": "path", "required": true, "schema": { "type": "string" } }
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
         ],
         "responses": {
           "200": {
@@ -327,7 +376,9 @@
               }
             }
           },
-          "404": { "description": "Task not found" }
+          "404": {
+            "description": "Task not found"
+          }
         }
       }
     },
@@ -335,6 +386,10 @@
       "post": {
         "operationId": "createNewTask",
         "summary": "Create a new custom task from scratch",
+        "tags": ["Tasks"],
+        "x-gpt-action": {
+          "name": "Create New Task"
+        },
         "requestBody": {
           "required": true,
           "content": {
@@ -374,11 +429,15 @@
           }
         }
       }
-    }, 
+    },
     "/memory/index": {
       "post": {
         "operationId": "indexMemory",
         "summary": "Index project files from GitHub repo into memory.yaml",
+        "tags": ["Memory"],
+        "x-gpt-action": {
+          "name": "Index Memory Files"
+        },
         "requestBody": {
           "required": false,
           "content": {
@@ -418,6 +477,10 @@
       "post": {
         "operationId": "memoryDiff",
         "summary": "Detect missing files in memory.yaml compared to GitHub repo",
+        "tags": ["Memory"],
+        "x-gpt-action": {
+          "name": "Diff Memory Files"
+        },
         "requestBody": {
           "required": false,
           "content": {
@@ -444,7 +507,10 @@
                   "type": "object",
                   "properties": {
                     "message": { "type": "string" },
-                    "missing_files": { "type": "array", "items": { "type": "string" } }
+                    "missing_files": {
+                      "type": "array",
+                      "items": { "type": "string" }
+                    }
                   }
                 }
               }
@@ -457,31 +523,34 @@
       "post": {
         "operationId": "addToMemory",
         "summary": "Add new files to memory.yaml",
+        "tags": ["Memory"],
+        "x-gpt-action": {
+          "name": "Add Files to Memory"
+        },
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
+                "required": ["files"],
                 "properties": {
                   "files": {
                     "type": "array",
                     "items": {
                       "type": "object",
+                      "required": ["file_path", "description", "tags"],
                       "properties": {
-                        "file_path": { "type": "string", "example": "docs/project_goals.md" },
-                        "description": { "type": "string", "example": "Project goals document" },
+                        "file_path": { "type": "string" },
+                        "description": { "type": "string" },
                         "tags": {
                           "type": "array",
-                          "items": { "type": "string" },
-                          "example": ["project", "spec"]
+                          "items": { "type": "string" }
                         }
-                      },
-                      "required": ["file_path", "description", "tags"]
+                      }
                     }
                   }
-                },
-                "required": ["files"]
+                }
               }
             }
           }
@@ -496,6 +565,132 @@
                   "properties": {
                     "message": { "type": "string" },
                     "memory_index": { "type": "object" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/memory/validate-files": {
+      "post": {
+        "operationId": "validateMemoryFileExists",
+        "summary": "Validate that given file paths exist in memory.yaml and/or GitHub",
+        "tags": ["Memory"],
+        "x-gpt-action": {
+          "name": "Validate Memory Files"
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "files": {
+                    "type": "array",
+                    "items": { "type": "string" },
+                    "example": ["docs/project_goals.md", "outputs/summary_report.md"]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Validation results",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "validated_files": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "file_path": { "type": "string" },
+                          "exists_in_memory": { "type": "boolean" },
+                          "exists_in_github": { "type": "boolean" }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/memory/search": {
+      "get": {
+        "operationId": "searchMemory",
+        "summary": "Search memory.yaml for keyword matches",
+        "tags": ["Memory"],
+        "x-gpt-action": {
+          "name": "Search Memory by Keyword"
+        },
+        "parameters": [
+          {
+            "name": "keyword",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Matching memory entries",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "matches": {
+                      "type": "array",
+                      "items": { "type": "object" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/actions/list": {
+      "get": {
+        "operationId": "listAvailableActions",
+        "summary": "List available tools and capabilities",
+        "description": "Returns a grouped list of actions that the GPT can perform.",
+        "tags": ["Utilities"],
+        "x-gpt-action": {
+          "name": "List Available Actions"
+        },
+        "responses": {
+          "200": {
+            "description": "List of available actions grouped by category",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "actions": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "category": { "type": "string" },
+                          "actions": {
+                            "type": "array",
+                            "items": { "type": "string" }
+                          }
+                        }
+                      }
+                    }
                   }
                 }
               }

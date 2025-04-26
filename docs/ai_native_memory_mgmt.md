@@ -84,6 +84,20 @@ With it:
 
 ---
 
+# 🔥 Overall Flow After This Patch
+
+| **Step** | **Action** |
+|----------|------------|
+| 1 | Pod completes task and uses `promote_patch` |
+| 2 | FastAPI promotes outputs + updates `memory.yaml` live |
+| 3 | Human downloads ZIP |
+| 4 | `generate_patch_from_output.sh` unzips outputs + `memory.yaml` |
+| 5 | Patch file created with outputs + updated `memory.yaml` |
+| 6 | GitHub PR created |
+| 7 | AI-native delivery system gets smarter every patch 🚀 |
+
+---
+
 # ✨ Memory Management Roadmap
 
 | Step | Action | Who/What |

@@ -138,6 +138,16 @@ else
   echo "ℹ️ No prompt_used.txt file found in ZIP."
 fi
 
+# Handle memory.yaml if exists
+MEMORY_FILE="$TMP_DIR/memory.yaml"
+if [ -f "$MEMORY_FILE" ]; then
+  echo "✅ Found memory.yaml inside ZIP. Staging for Git."
+  cp "$MEMORY_FILE" "memory.yaml"
+  git add "memory.yaml"
+else
+  echo "ℹ️ No memory.yaml found in ZIP."
+fi
+
 echo "🔄 Triggering PR creation script"
 bash scripts/create_pr_from_patch.sh --triggered "$PATCH_FILE"
 echo "✅ PR creation script executed"

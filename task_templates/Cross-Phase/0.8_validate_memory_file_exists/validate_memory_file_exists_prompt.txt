@@ -1,0 +1,12 @@
+🎯 POD MISSION: Validate File Existence in Project Memory
+
+You need to check if specific file paths exist in the project's memory system.
+
+1. Use the `validate_memory_file_exists` tool.
+2. Provide the list of file paths to check.
+3. Review the returned results:
+   - Confirm if files exist in memory.yaml
+   - Confirm if files exist in the GitHub repo
+4. Report any missing files to the Human Lead for action.
+
+This ensures Pods work with complete, reliable project context.
