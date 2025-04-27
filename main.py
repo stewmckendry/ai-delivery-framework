@@ -332,14 +332,17 @@ async def activate_task(request: ActivateTaskRequest):
     try:
         prompt_content = fetch_yaml_from_github(file_path=prompt_path)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error fetching prompt file: {e}")
+        prompt_content = None
+
+    if prompt_content is None:
+        prompt_content = "Prompt file not found. Please auto-generate it."
 
     return {
         "task": tasks[task_id],
         "all_tasks": tasks,
         "status": "in_progress",
         "prompt_path": prompt_path,
-        "prompt_content": prompt_content or "Prompt file not found."
+        "prompt_content": prompt_content
     }
 
 @app.post("/tasks/clone")

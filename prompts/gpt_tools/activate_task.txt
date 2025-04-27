@@ -1,69 +1,47 @@
-🎯 POD MISSION: Activate Task
+POD MISSION: Activate Task
 
 You are the DeliveryPod for this project. The Human Lead wants to activate a specific task and fetch the associated prompt file so the Pod can begin work.
 
----
+What to do:
 
-🧾 What to do:
+1. Call /tasks/activate
+   - Pass the task_id provided by the Human Lead.
+   - The API will return:
+     - The updated task.yaml with "status": "in_progress"
+     - The task metadata
+     - The prompt path and prompt content
 
-1. **Call `/tasks/activate`**
-   - Pass the `task_id` provided by the Human Lead.
-
-2. **The API will return:**
-   - The updated `task.yaml` with `"status": "in_progress"`
-   - The task metadata
-   - The prompt path and prompt content
-
-3. **Before starting work, check for existing handoff notes:**
-   - Use the `getGitHubFile` tool to try to retrieve:
-     ```
-     path = .logs/handoff/{task_id}_handoff.md
-     ```
-     (owner: stewmckendry, repo: ai-concussion-agent)
+2. Before starting work, check for existing handoff notes:
+   - Use the getGitHubFile tool to try to retrieve:
+     - path = .logs/handoff/{task_id}_handoff.md
+     - (owner: stewmckendry, repo: ai-concussion-agent)
    - If found:
      - Read it carefully to understand prior context, assumptions, risks, and recommendations.
    - If not found:
      - Proceed but confirm important assumptions with the Human Lead.
 
+3. Handle Missing Prompt Smartly:
+   - If prompt_content is "Prompt file not found. Please auto-generate it.", auto-draft a suitable prompt based on:
+     - The task's description
+     - The task's category
+     - The pod_owner and phase if relevant
+   - Ensure the drafted prompt clearly guides what the Pod is expected to do.
+   - Save the drafted prompt text so the Human Lead can copy it into the correct prompt folder manually.
 
-4. **Prepare Output Files:**
-   - `task.yaml` → use the updated file exactly as received
-   - `prompt_used.txt` → create with the prompt content returned
-   - `reasoning_trace.md` → document:
+4. Document Observations:
+   - Prepare a reasoning_trace.md summarizing:
      - Why this task was selected
      - Observations about prompt availability or task readiness
+     - Any drafted prompt content and why it was needed
      - Suggested improvements to activation workflow
-   - `metadata.json` → create with the following structure:
-     ```json
-     {
-       "task_id": "0.3_activate_task",
-       "summary": "Activates a specific task and fetches its prompt for delivery",
-       "output_files": [
-         "task.yaml",
-         "prompt_used.txt"
-       ],
-       "prompt": "prompts/used/DeliveryPod/0.3_activate_task_prompt.txt"
-     }
-     ```
 
-5. **Package Outputs:**
-   - Export all files in a ZIP named:
-     `patch_0.3_activate_task_<timestamp>.zip`
+5. After the task is successfully updated:
+   - Print and review the updated task metadata with the Human Lead.
+   - Warn the Human Lead if the prompt was missing and a draft was generated:
+     - Note: Missing prompt is not a blocker to activation
+     - Advise the Human Lead to save the draft prompt to the intended path manually.
 
-6. **Prepare Draft Prompt for Handoff:**
-   - **First, print the `prompt_content` retrieved from GitHub.**
-   - **Then, if handoff notes exist, print them immediately afterward.**
-   - Instruct the Human Lead:
-     - When starting the next Pod, paste BOTH the prompt and the handoff notes.
-     - This ensures the Pod has the full context to work seamlessly.
-
-7. **Send Final Output to Human:**
-   - Confirm that the task has been activated
-   - Summarize the task information (task_id, pod_owner, prompt path)
-   - Provide a download link to the ZIP
-   - Instruct the Human Lead:
-     - Save the ZIP under `chatgpt_repo/outputs/task_updates/`
-     - Run: `bash scripts/generate_patch_from_output.sh`
-     - Confirm that the patch updates the project task.yaml and prompt trace.
-
-Done! 🎯
+6. Use promote_patch to formally promote the updated task:
+   - Category: task_updates
+   - Include the updated task.yaml, prompt_used.txt, and reasoning_trace.md
+   - Summarize clearly what was updated (e.g., task activated, prompt drafted if missing)
