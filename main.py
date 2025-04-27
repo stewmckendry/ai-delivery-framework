@@ -19,6 +19,7 @@ import requests
 import zipfile
 import shutil
 import traceback
+from github import Github, GithubException
 from openai import OpenAI
 from dotenv import load_dotenv
 
