@@ -125,24 +125,37 @@
         }
       }
     },
-    "/tasks/update-metadata": {
-      "post": {
+    "/tasks/update_metadata/{task_id}": {
+      "patch": {
         "operationId": "updateTaskMetadata",
         "summary": "Update metadata fields for a task",
         "tags": ["Tasks"],
         "x-gpt-action": {
           "name": "Update Task Metadata"
         },
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["task_id", "fields"],
                 "properties": {
-                  "task_id": { "type": "string" },
-                  "fields": { "type": "object" }
+                  "description": { "type": "string" },
+                  "prompt": { "type": "string" },
+                  "inputs": { "type": "array", "items": { "type": "string" } },
+                  "outputs": { "type": "array", "items": { "type": "string" } },
+                  "ready": { "type": "boolean" },
+                  "done": { "type": "boolean" }
                 }
               }
             }
@@ -150,14 +163,16 @@
         },
         "responses": {
           "200": {
-            "description": "Updated task.yaml content",
+            "description": "Task metadata updated successfully",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
+                    "message": { "type": "string" },
                     "task_id": { "type": "string" },
-                    "task_yaml": { "type": "string" }
+                    "updated_task_metadata": { "type": "object" },
+                    "updated_tasks": { "type": "object" }
                   }
                 }
               }

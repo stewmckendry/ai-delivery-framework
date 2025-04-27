@@ -60,6 +60,14 @@ class CloneTaskRequest(BaseModel):
     original_task_id: str
     overrides: Optional[Dict[str, str]] = None  # e.g. {"description": "New version of feature"}
 
+class TaskMetadataUpdate(BaseModel):
+    description: Optional[str] = None
+    prompt: Optional[str] = None
+    inputs: Optional[List[str]] = None
+    outputs: Optional[List[str]] = None
+    ready: Optional[bool] = None
+    done: Optional[bool] = None
+
 class PromotePatchRequest(BaseModel):
     task_id: str
     summary: str
@@ -527,6 +535,50 @@ def create_new_task(
         "new_task_metadata": new_task,
         "updated_tasks": tasks
     }
+
+
+@app.patch("/tasks/update_metadata/{task_id}")
+def update_task_metadata(
+    task_id: str,
+    description: Optional[str] = Body(None),
+    prompt: Optional[str] = Body(None),
+    inputs: Optional[List[str]] = Body(default=None),
+    outputs: Optional[List[str]] = Body(default=None),
+    ready: Optional[bool] = Body(default=None),
+    done: Optional[bool] = Body(default=None)
+):
+    task_data = fetch_yaml_from_github(file_path=TASK_FILE_PATH)
+    tasks = task_data.get("tasks", {})
+
+    if task_id not in tasks:
+        raise HTTPException(status_code=404, detail="Task ID not found.")
+
+    task = tasks[task_id]
+
+    # Apply updates if provided
+    if description is not None:
+        task["description"] = description
+    if prompt is not None:
+        task["prompt"] = prompt
+    if inputs is not None:
+        task["inputs"] = inputs
+    if outputs is not None:
+        task["outputs"] = outputs
+    if ready is not None:
+        task["ready"] = ready
+    if done is not None:
+        task["done"] = done
+
+    # Always update the updated_at timestamp
+    task["updated_at"] = datetime.utcnow().isoformat()
+
+    return {
+        "message": f"Updated metadata for task {task_id}",
+        "task_id": task_id,
+        "updated_task_metadata": task,
+        "updated_tasks": tasks
+    }
+
 
 # ---- Memory Management ----
 
