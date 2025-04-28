@@ -4,6 +4,7 @@
 from fastapi import FastAPI, HTTPException, Request, Body, Query, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, FileResponse
+from fastapi.openapi.utils import get_openapi
 from pydantic import BaseModel
 from typing import List, Dict, Optional
 from pathlib import Path
@@ -1029,20 +1030,16 @@ def init_project(
 
 # ---- OpenAPI JSON Schema ----
 
-@app.get("/openapi.json")
-def serve_openapi():
-    dir_path = os.path.dirname(os.path.realpath(__file__))  # This file's directory
-    file_path = os.path.join(dir_path, "openapi.json")
-    with open(file_path, "r") as f:
-        return JSONResponse(content=json.load(f))
-
-from fastapi.openapi.utils import get_openapi
-
+# Override OpenAPI schema
 def custom_openapi():
-    dir_path = os.path.dirname(os.path.realpath(__file__))  # This file's directory
+    if app.openapi_schema:
+        return app.openapi_schema
+    dir_path = os.path.dirname(os.path.realpath(__file__))
     file_path = os.path.join(dir_path, "openapi.json")
     with open(file_path, "r") as f:
-        return json.load(f)
+        openapi_schema = json.load(f)
+    app.openapi_schema = openapi_schema
+    return app.openapi_schema
 
 app.openapi = custom_openapi
 
