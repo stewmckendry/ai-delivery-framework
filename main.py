@@ -1039,7 +1039,9 @@ def serve_openapi():
 from fastapi.openapi.utils import get_openapi
 
 def custom_openapi():
-    with open("openapi.json", "r") as f:
+    dir_path = os.path.dirname(os.path.realpath(__file__))  # This file's directory
+    file_path = os.path.join(dir_path, "openapi.json")
+    with open(file_path, "r") as f:
         return json.load(f)
 
 app.openapi = custom_openapi
