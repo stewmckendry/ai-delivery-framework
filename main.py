@@ -1034,6 +1034,8 @@ def init_project(
 try:
     dir_path = os.path.dirname(os.path.realpath(__file__))
     file_path = os.path.join(dir_path, "openapi.json")
+    print(f"Current working directory: {os.getcwd()}")
+    print(f"Files in {dir_path}: {os.listdir(dir_path)}")
     with open(file_path, "r") as f:
         openapi_schema = json.load(f)
     # Minimal validation: check if it has required fields
