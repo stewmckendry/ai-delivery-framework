@@ -19,8 +19,14 @@ import requests
 import zipfile
 import shutil
 import traceback
+import base64
+import os
+import time
 from github import Github, GithubException
 from openai import OpenAI
+from langchain.chat_models import ChatOpenAI
+from langchain.agents import initialize_agent, Tool
+from langchain.schema import SystemMessage
 from dotenv import load_dotenv
 
 # ---- (2) Global Variables ----
@@ -35,6 +41,9 @@ GITHUB_BRANCH = "main"
 PROMPT_DIR = "prompts/used"
 MEMORY_FILE_PATH = "memory.yaml"
 REASONING_FOLDER_PATH = ".logs/reasoning/"
+
+g = Github(GITHUB_TOKEN)
+repo = g.get_repo(GITHUB_REPO)
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 openai = OpenAI(api_key=OPENAI_API_KEY)
@@ -69,6 +78,7 @@ class TaskMetadataUpdate(BaseModel):
     ready: Optional[bool] = None
     done: Optional[bool] = None
 
+"""  # <<< OLD
 class PromotePatchRequest(BaseModel):
     task_id: str
     summary: str
@@ -77,6 +87,17 @@ class PromotePatchRequest(BaseModel):
     prompt_path: Optional[str] = None
     output_folder: Optional[str] = None
     handoff_notes: Optional[str] = None  # <<< NEW
+"""
+
+class PromotePatchRequest(BaseModel):
+    task_id: str
+    summary: str
+    output_files: dict  # { path: content }
+    prompt_path: str
+    reasoning_trace: str
+    output_folder: str = "misc"
+    handoff_notes: str = None
+
 
 class MemoryFileEntry(BaseModel):
     file_path: str
@@ -88,25 +109,34 @@ class AddToMemoryRequest(BaseModel):
 
 # ---- (4) Helper Functions ----
 def fetch_task_yaml_from_github():
-    url = f"https://raw.githubusercontent.com/{GITHUB_OWNER}/{GITHUB_REPO}/{GITHUB_BRANCH}/{TASK_FILE_PATH}"
-    response = requests.get(url)
-    if response.status_code != 200:
-        raise HTTPException(status_code=404, detail="Failed to fetch task.yaml from GitHub")
-    return yaml.safe_load(response.text)
+    try:
+        file = repo.get_contents("task.yaml", ref=GITHUB_BRANCH)
+        decoded = base64.b64decode(file.content).decode("utf-8")
+        return yaml.safe_load(decoded)
+    except GithubException as e:
+        raise HTTPException(status_code=404, detail=f"Failed to fetch task.yaml: {str(e)}")
 
 def fetch_yaml_from_github(file_path: str):
-    url = f"https://raw.githubusercontent.com/{GITHUB_OWNER}/{GITHUB_REPO}/{GITHUB_BRANCH}/{file_path}"
-    response = requests.get(url)
-    if response.status_code != 200:
-        raise HTTPException(status_code=404, detail=f"Failed to fetch {file_path} from GitHub")
-    return yaml.safe_load(response.text)
+    try:
+        file = repo.get_contents(file_path, ref=GITHUB_BRANCH)
+        decoded = base64.b64decode(file.content).decode("utf-8")
+        return yaml.safe_load(decoded)
+    except GithubException as e:
+        raise HTTPException(status_code=404, detail=f"Failed to fetch {file_path}: {str(e)}")
 
 def fetch_file_content_from_github(file_path: str):
-    url = f"https://raw.githubusercontent.com/{GITHUB_OWNER}/{GITHUB_REPO}/{GITHUB_BRANCH}/{file_path}"
-    response = requests.get(url)
-    if response.status_code != 200:
-        raise HTTPException(status_code=404, detail=f"Failed to fetch {file_path} from GitHub")
-    return response.text
+    try:
+        file = repo.get_contents(file_path, ref=GITHUB_BRANCH)
+        return base64.b64decode(file.content).decode("utf-8")
+    except GithubException as e:
+        raise HTTPException(status_code=404, detail=f"Failed to fetch {file_path}: {str(e)}")
+
+def list_files_from_github(path):
+    try:
+        contents = repo.get_contents(path, ref=GITHUB_BRANCH)
+        return [file.path for file in contents]
+    except GithubException as e:
+        raise HTTPException(status_code=404, detail=f"Failed to list files at {path}: {str(e)}")
 
 def get_next_base_id(tasks, phase):
     phase_index = {
@@ -123,20 +153,6 @@ def get_next_base_id(tasks, phase):
     next_num = round(max_num + 0.1, 1)
 
     return f"{next_num:.1f}"
-
-def list_files_from_github(path):
-    url = f"{GITHUB_API}/repos/{GITHUB_OWNER}/{GITHUB_REPO}/contents/{path}"
-    headers = {
-        "Authorization": f"Bearer {GITHUB_TOKEN}",
-        "Accept": "application/vnd.github+json"
-    }
-    response = requests.get(url, headers=headers)
-    response.raise_for_status()
-    data = response.json()
-    # Handle if it's a single file vs directory
-    if isinstance(data, dict):
-        return [data]
-    return [item for item in data if item["type"] == "file"]
 
 def generate_metrics_summary():
     task_data = fetch_yaml_from_github(TASK_FILE_PATH)
@@ -241,49 +257,39 @@ async def root():
 # ---- GitHub File Proxy ----
 @app.get("/repos/{owner}/{repo}/contents/{path:path}")
 async def get_file(owner: str, repo: str, path: str, ref: str = None):
-    headers = {
-        "Authorization": f"Bearer {GITHUB_TOKEN}",
-        "Accept": "application/vnd.github+json"
-    }
-    url = f"{GITHUB_API}/repos/{owner}/{repo}/contents/{path}"
-    params = {"ref": ref} if ref else {}
+    branch = ref if ref else GITHUB_BRANCH
     try:
-        async with httpx.AsyncClient() as client:
-            response = await client.get(url, params=params, headers=headers)
-            response.raise_for_status()
-            data = await response.json()  # <-- critical: await here
-            return data
-    except httpx.HTTPStatusError as e:
-        raise HTTPException(status_code=e.response.status_code, detail=f"{await e.response.aread()}")
-    except Exception as e:
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
+        file = repo.get_contents(path, ref=branch)
+        return {
+            "path": file.path,
+            "sha": file.sha,
+            "content": base64.b64decode(file.content).decode("utf-8")
+        }
+    except GithubException as e:
+        raise HTTPException(status_code=404, detail=f"Error fetching file: {str(e)}")
 
 @app.post("/batch-files")
 async def get_batch_files(request: Request):
     body = await request.json()
-    owner = body.get("owner")
-    repo = body.get("repo")
     paths = body.get("paths", [])
-    ref = body.get("ref")
+    ref = body.get("ref", GITHUB_BRANCH)
 
-    headers = {
-        "Authorization": f"Bearer {GITHUB_TOKEN}",
-        "Accept": "application/vnd.github+json"
-    }
-
-    async with httpx.AsyncClient() as client:
-        results = []
-        for path in paths:
-            url = f"{GITHUB_API}/repos/{owner}/{repo}/contents/{path}"
-            params = {"ref": ref} if ref else {}
-            resp = await client.get(url, headers=headers, params=params)
-            if resp.status_code == 200:
-                results.append({"path": path, "content": resp.json()})
-            else:
-                results.append({"path": path, "error": resp.text})
+    results = []
+    for path in paths:
+        try:
+            file = repo.get_contents(path, ref=ref)
+            results.append({
+                "path": path,
+                "content": base64.b64decode(file.content).decode("utf-8")
+            })
+        except GithubException as e:
+            results.append({
+                "path": path,
+                "error": str(e)
+            })
 
     return {"files": results}
+
 
 # ---- Task Management ----
 @app.get("/tasks/list")
@@ -386,6 +392,181 @@ async def clone_task(request: CloneTaskRequest):
     }
 
 @app.post("/patches/promote")
+async def promote_patch(
+    request: PromotePatchRequest,
+):
+    task_id = request.task_id
+    summary = request.summary
+    output_files = request.output_files
+    reasoning_trace = request.reasoning_trace
+    prompt_path = request.prompt_path
+    output_folder = request.output_folder
+    handoff_notes = request.handoff_notes
+    timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+
+    # Fetch task.yaml to get category and pod_owner
+    task_file = repo.get_contents("task.yaml", ref=GITHUB_BRANCH)
+    task_data = yaml.safe_load(base64.b64decode(task_file.content))
+
+    task_meta = task_data.get("tasks", {}).get(task_id)
+    if not task_meta:
+        raise HTTPException(status_code=404, detail=f"Task {task_id} not found in task.yaml")
+
+    category = task_meta.get("category", "misc")
+    pod_owner = task_meta.get("pod_owner", "misc")
+
+    branch_name = f"chatgpt/auto/{category}/{task_id}"
+
+    # Create new branch
+    main_ref = repo.get_branch(GITHUB_BRANCH)
+    try:
+        repo.create_git_ref(ref=f"refs/heads/{branch_name}", sha=main_ref.commit.sha)
+    except GithubException as e:
+        if e.status != 422:
+            raise e
+
+    def create_or_update_file(file_path: str, content: str, commit_message: str):
+        try:
+            existing_file = repo.get_contents(file_path, ref=branch_name)
+            repo.update_file(file_path, commit_message, content, existing_file.sha, branch=branch_name)
+        except GithubException as e:
+            if e.status == 404:
+                repo.create_file(file_path, commit_message, content, branch=branch_name)
+            else:
+                raise
+
+    # Upload output files
+    for file_path, file_content in output_files.items():
+        create_or_update_file(
+            file_path,
+            file_content,
+            commit_message=f"[Auto] Add or update {file_path} for task {task_id}"
+        )
+
+    # Upload reasoning trace
+    reasoning_path = f".logs/reasoning/{task_id}_{timestamp}_reasoning_trace.md"
+    create_or_update_file(
+        reasoning_path,
+        reasoning_trace,
+        commit_message=f"[Auto] Add or update reasoning trace for task {task_id}"
+    )
+
+    # Upload changelog
+    changelog_content = f"""# Changelog for Task {task_id}
+
+    ## Summary
+    {summary}
+
+    ## Files Added or Updated
+    {chr(10).join([f"- {path}" for path in output_files.keys()])}
+
+    ## Reasoning Trace
+    See `.logs/reasoning/{task_id}_{timestamp}_reasoning_trace.md`
+
+    ## Prompt Used
+    See `.logs/prompts/{pod_owner}/{task_id}_{timestamp}_prompt.txt`
+    """
+
+    changelog_path = f".logs/changelogs/{task_id}_{timestamp}_changelog.md"
+    create_or_update_file(
+        changelog_path,
+        changelog_content,
+        commit_message=f"[Auto] Add changelog for task {task_id}"
+    )
+
+    # Upload handoff notes
+    if handoff_notes:
+        handoff_path = f".logs/handoff/{task_id}_{timestamp}_handoff.md"
+        create_or_update_file(
+            handoff_path,
+            handoff_notes,
+            commit_message=f"[Auto] Add or update handoff notes for task {task_id}"
+        )
+
+    # Upload prompt used
+    if prompt_path:
+        prompt_log_path = f".logs/prompts/{pod_owner}/{task_id}_{timestamp}_prompt.txt"
+        create_or_update_file(
+            prompt_log_path,
+            f"Prompt used for task {task_id}: {prompt_path}",
+            commit_message=f"[Auto] Save prompt used for task {task_id}"
+        )
+
+    # Update memory.yaml
+    memory_file = repo.get_contents("memory.yaml", ref=branch_name)
+    memory_data = yaml.safe_load(base64.b64decode(memory_file.content))
+
+    def smart_merge_memory(memory, key, file_path, description, tags):
+        existing_entry = memory.get(key)
+        if existing_entry:
+            if existing_entry.get("description", "").startswith("Output file generated from task") or not existing_entry.get("description"):
+                existing_entry["description"] = description
+            existing_tags = set(existing_entry.get("tags", []))
+            new_tags = set(tags)
+            existing_entry["tags"] = list(existing_tags.union(new_tags))
+            existing_entry["last_updated"] = timestamp
+        else:
+            memory[key] = {
+                "file_path": file_path,
+                "description": description,
+                "tags": tags,
+                "last_updated": timestamp
+            }
+
+    # Update memory entries
+    for file_path in output_files.keys():
+        key = file_path.replace("/", "_").replace(".", "_")
+        smart_merge_memory(memory_data, key, file_path, f"Output file generated from task {task_id}", ["project", "outputs"])
+
+    trace_key = f"logs_reasoning_{task_id}_reasoning_trace_md"
+    smart_merge_memory(memory_data, trace_key, reasoning_path, f"Reasoning trace for task {task_id}", ["project", "reasoning"])
+
+    if prompt_path:
+        prompt_key = prompt_path.replace("/", "_").replace(".", "_")
+        smart_merge_memory(memory_data, prompt_key, prompt_log_path, f"Prompt used for task {task_id}", ["project", "prompt"])
+
+    new_memory_yaml = yaml.safe_dump(memory_data, sort_keys=False)
+    repo.update_file(
+        path="memory.yaml",
+        message=f"[Auto] Update memory.yaml for task {task_id}",
+        content=new_memory_yaml,
+        sha=memory_file.sha,
+        branch=branch_name
+    )
+
+    # Create PR
+    pr_body = f"""
+## ✨ What was added?
+- Covers task: `{task_id}`
+{''.join([f"- New or updated file: `{path}`\n" for path in output_files.keys()])}
+
+## 🎯 Why it matters
+{summary}
+
+## 🧠 Thought process
+See `.logs/reasoning/{task_id}_{timestamp}_reasoning_trace.md`
+
+## 📄 Related
+- Task ID: {task_id}
+- Changelog: `.logs/changelogs/{task_id}_{timestamp}_changelog.md`
+- Prompt snapshot saved: `.logs/prompts/{pod_owner}/{task_id}_{timestamp}_prompt.txt`
+    """
+
+    pr = repo.create_pull(
+        title=f"Promote patch for {task_id}",
+        body=pr_body,
+        head=branch_name,
+        base=GITHUB_BRANCH
+    )
+
+    return {
+        "pr_url": pr.html_url,
+        "branch_name": branch_name
+    }
+
+
+"""
+@app.post("/patches/promote")
 async def promote_patch(request: PromotePatchRequest):
     task_id = request.task_id
     summary = request.summary
@@ -482,6 +663,8 @@ async def promote_patch(request: PromotePatchRequest):
         "output_folder": output_folder,
         "timestamp": timestamp
     }
+"""
+
 
 @app.get("/tasks/{task_id}")
 def get_task_details(task_id: str):
