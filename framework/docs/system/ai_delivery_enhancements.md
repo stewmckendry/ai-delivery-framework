@@ -625,7 +625,7 @@ To fully implement Batch 1 successfully, you will need to:
 
 | Task | Notes |
 | :--- | :--- |
-| Rename the `ai-delivery-framework` repo → `ai-delivery-framework` | This will officially establish it as the framework repo |
+| Rename the `ai-concussion-agent` repo → `ai-delivery-framework` | This will officially establish it as the framework repo |
 | Create new repo: `nhl-predictor` (or similar) | This will be the PoC project repo |
 | Confirm both repos have `/framework/` folder | It must exist and have baseline templates |
 | Confirm GitHub PAT has access to new repos | (Should be true if using the same token) |
@@ -804,4 +804,73 @@ framework/
 # 🛎️ Reminder
 
 When you run `/project/init_project`, it copies this `/framework/` into the new project repo under `/framework/` automatically — ready for the Pod to get working.
+
+# 🛠️ Update on Batch 1 Progress
+
+## ✅ What’s Completed
+
+1. Renamed `ai-concussion-agent` repo to `ai-delivery-framework`, synced with local repo, and updated file references.
+2. Re-organized files in `ai-delivery-framework` per the new repo structure.
+3. Ran `init_repo.sh` to create new `nhl-predictor` GitHub repo.
+
+---
+
+# 🛠️ 1. Setup Local Folder for New NHL Predictor Repo
+
+Now that the `nhl-predictor` repo is created on GitHub, you should:
+
+```bash
+# Navigate to your projects folder
+cd /Users/liammckendry/Projects/
+
+# Clone the new repo
+git clone https://github.com/stewmckendry/nhl-predictor.git
+
+# Move into the project folder
+cd nhl-predictor
+```
+
+✅ You should now have a clean, empty `nhl-predictor/` project folder locally — ready for `/project/init_project`.
+
+---
+
+# 🔥 2. What You Still Need to Do to Complete Batch 1
+
+| Step | Description |
+| :--- | :--- |
+| Confirm local clone is clean | `git status` inside `nhl-predictor/` should show a clean, empty repo |
+| Run `/project/init_project` via your FastAPI app | Inputs:<br>- `repo_name='nhl-predictor'`<br>- `project_name='NHL Predictor'`<br>- `project_description='Proof of concept NHL playoff outcome predictor.'` |
+| Verify post-init project structure | Check that `/framework/`, `/project/outputs/`, `/project/scripts/`, etc., were properly created |
+| Verify auto-commit happened | Check GitHub: repo should have a new commit (`chatgpt/auto/init_project` branch or similar) with init files |
+| Confirm reasoning trace + prompt_used.txt | Check `/project/outputs/project_init/` for generated trace files |
+| Manual review | - Framework files copied ✔️<br>- Project folders created ✔️<br>- Minor files like `memory.yaml`, `task.yaml` are present ✔️ |
+
+---
+
+# 📋 Quick Validation Checklist
+
+| Item | Expected Outcome |
+| :--- | :--- |
+| Repo cloned locally | ✅ |
+| `/framework/` copied into repo | ✅ |
+| `/project/outputs/`, `/scripts/`, `/templates/` created | ✅ |
+| `task.yaml` and `memory.yaml` exist at project root | ✅ |
+| `prompt_used.txt` and `reasoning_trace.md` generated in `outputs/project_init/` | ✅ |
+| GitHub commit created with init changes | ✅ |
+
+---
+
+# ⚡ Quick Reminder
+
+✅ **Batch 1** covers:
+- Initial project setup
+- Framework copy
+- Auto-initial commit
+
+❌ **Deferred to later batches**:
+- Chain of Thought enrichment
+- Project context linking to `memory.yaml`
+- Deeper Discovery phase artifacts
+
+---
 
