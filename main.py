@@ -263,8 +263,15 @@ def copy_framework_baseline(source_repo, destination_repo, source_path, dest_pat
             # Recursively copy subfolders
             copy_framework_baseline(source_repo, destination_repo, item.path, f"{dest_path}/{item.name}")
         else:
-            file_content = source_repo.get_contents(item.path).decoded_content.decode()
-            destination_repo.create_file(f"{dest_path}/{item.name}", f"Copied {item.name} from framework", file_content)
+            file_content_bytes = source_repo.get_contents(item.path).decoded_content
+            try:
+                # Try to decode as text (utf-8)
+                file_content = file_content_bytes.decode('utf-8')
+                destination_repo.create_file(f"{dest_path}/{item.name}", f"Copied {item.name} from framework", file_content)
+            except UnicodeDecodeError:
+                # It's binary — skip it safely
+                print(f"⚠️ Skipping binary file during copy: {item.path}")
+
 
 def create_initial_files(project_repo, project_name, project_description):
     starter_task_yaml = f"""tasks:
@@ -1009,13 +1016,12 @@ async def init_project(project_name: str = Body(...), repo_name: str = Body(...)
         project_repo = github_client.get_repo(f"stewmckendry/{repo_name}")
 
         framework_path = "framework"
-        project_path = f"project/{project_name}"
+        project_path = ""
 
         # Validate framework exists
         framework_repo.get_contents(framework_path)
 
         # Create structure + copy files
-        create_project_structure(project_repo, project_path)
         copy_framework_baseline(framework_repo, project_repo, framework_path, project_path)
         create_initial_files(project_repo, project_path, project_description)
 
