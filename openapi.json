@@ -27,7 +27,6 @@
     "schemas": {}
   },
   "paths": {
-    {
       "/repos/{owner}/{repo}/contents/{path}": {
         "get": {
           "operationId": "getGitHubFile",
