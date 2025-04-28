@@ -11,7 +11,7 @@ This was a proof-of-concept (PoC) test to validate batch GitHub file retrieval a
 - **Input Files:**
   - `src/models/agent/concussion_agent.py`
   - `src/models/agent/concussion_validator.py`
-- **Repo:** [stewmckendry/ai-concussion-agent](https://github.com/stewmckendry/ai-concussion-agent)
+- **Repo:** [stewmckendry/ai-delivery-framework](https://github.com/stewmckendry/ai-delivery-framework)
 
 ---
 

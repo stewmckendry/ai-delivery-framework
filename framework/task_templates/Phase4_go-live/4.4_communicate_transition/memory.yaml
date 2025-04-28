@@ -2,8 +2,8 @@ template: true
 
 go_live_log:
   - path: .logs/deployments/go_live_log.md
-    raw_url: https://raw.githubusercontent.com/stewmckendry/ai-concussion-agent/main/.logs/deployments/go_live_log.md
-    repo: stewmckendry/ai-concussion-agent
+    raw_url: https://raw.githubusercontent.com/stewmckendry/ai-delivery-framework/main/.logs/deployments/go_live_log.md
+    repo: stewmckendry/ai-delivery-framework
     file_type: markdown
     description: Timestamped log of go-live deployment
     tags: [release, handoff, announcement]

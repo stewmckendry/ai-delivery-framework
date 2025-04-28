@@ -11,7 +11,7 @@
 
   Prompt: Please fetch the following file from GitHub using the getGitHubFile tool: 
   owner: stewmckendry 
-  repo: ai-concussion-agent 
+  repo: ai-delivery-framework 
   path: prompts/used/dev/1.1_capture_project_goals_prompt.txt
 
   The tool should return the contents of the file. If the tool fails, ask the Human Lead to:

@@ -2,8 +2,8 @@ template: true
 
 qa_test_results:
   - path: test/feature_<feature_id>/qa_test_results.md
-    raw_url: https://raw.githubusercontent.com/stewmckendry/ai-concussion-agent/main/test/feature_<feature_id>/qa_test_results.md
-    repo: stewmckendry/ai-concussion-agent
+    raw_url: https://raw.githubusercontent.com/stewmckendry/ai-delivery-framework/main/test/feature_<feature_id>/qa_test_results.md
+    repo: stewmckendry/ai-delivery-framework
     file_type: markdown
     description: QA log of test cases, outcomes, and diagnostic notes
     tags: [qa, test_results, bugs]
@@ -15,8 +15,8 @@ qa_test_results:
 
 spec_bugfix_target:
   - path: docs/specs/spec_<feature_id>.md
-    raw_url: https://raw.githubusercontent.com/stewmckendry/ai-concussion-agent/main/docs/specs/spec_<feature_id>.md
-    repo: stewmckendry/ai-concussion-agent
+    raw_url: https://raw.githubusercontent.com/stewmckendry/ai-delivery-framework/main/docs/specs/spec_<feature_id>.md
+    repo: stewmckendry/ai-delivery-framework
     file_type: markdown
     description: Feature spec being updated with bugfix coverage
     tags: [spec, bugfix, update]

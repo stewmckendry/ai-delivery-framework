@@ -5,7 +5,7 @@ echo "🧠 Initializing AI Concussion Agent Project (Full Delivery Kit)"
 
 # 1. Init Git
 git init
-git remote add origin https://github.com/stewmckendry/ai-concussion-agent.git || true
+git remote add origin https://github.com/stewmckendry/ai-delivery-framework.git || true
 git checkout -b main || git checkout main
 
 # 2. Create folder structure

@@ -14,5 +14,5 @@ Returns:
 Prompt:
 Please fetch the following file from GitHub using the getGitHubFile tool:
 owner: stewmckendry
-repo: ai-concussion-agent
+repo: ai-delivery-framework
 path: docs/project_goals.md

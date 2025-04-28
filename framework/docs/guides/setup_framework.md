@@ -105,7 +105,7 @@ In OpenAI:
 
 ```bash
 GITHUB_OWNER=stewmckendry
-GITHUB_REPO=ai-concussion-agent
+GITHUB_REPO=ai-delivery-framework
 GITHUB_BRANCH=main
 GITHUB_TOKEN=your_pat_here
 ```

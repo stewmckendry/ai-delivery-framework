@@ -526,7 +526,7 @@ This is the very first step before we can kick off any SDLC tasks (Discovery, De
 | Change | Why |
 | :--- | :--- |
 | `/project/init_project` FastAPI route | To orchestrate project setup |
-| Repo renaming (`ai-concussion-agent` → `ai-delivery-framework`) | To accurately reflect that it's the framework |
+| Repo renaming (`ai-delivery-framework` → `ai-delivery-framework`) | To accurately reflect that it's the framework |
 | Create new repo for NHL Predictor app | Separation of framework vs project |
 | Auto-copy `/framework/` files if missing | Ensure project starts with full framework baseline |
 | Initialize clean `/project/` folder | Structure organized clearly |
@@ -558,7 +558,7 @@ This is the very first step before we can kick off any SDLC tasks (Discovery, De
 
 | Assumption | Status |
 | :--- | :--- |
-| Repo already exists for Framework (`ai-concussion-agent`) | ✅ Yes (will rename) |
+| Repo already exists for Framework (`ai-delivery-framework`) | ✅ Yes (will rename) |
 | Repo exists or will create new for NHL Predictor | ✅ New repo needed |
 | PyGitHub token available and working | ✅ Confirmed |
 | Permissions to create files/commit | ✅ Confirmed |
@@ -625,7 +625,7 @@ To fully implement Batch 1 successfully, you will need to:
 
 | Task | Notes |
 | :--- | :--- |
-| Rename the `ai-concussion-agent` repo → `ai-delivery-framework` | This will officially establish it as the framework repo |
+| Rename the `ai-delivery-framework` repo → `ai-delivery-framework` | This will officially establish it as the framework repo |
 | Create new repo: `nhl-predictor` (or similar) | This will be the PoC project repo |
 | Confirm both repos have `/framework/` folder | It must exist and have baseline templates |
 | Confirm GitHub PAT has access to new repos | (Should be true if using the same token) |
@@ -696,7 +696,7 @@ To fully implement Batch 1 successfully, you will need to:
 #!/bin/bash
 
 # Rename existing repo (manual via GitHub Web UI advised)
-echo "Please manually rename 'ai-concussion-agent' to 'ai-delivery-framework' via GitHub settings."
+echo "Please manually rename 'ai-delivery-framework' to 'ai-delivery-framework' via GitHub settings."
 echo "\nWaiting 10 seconds for you to complete..."
 sleep 10
 

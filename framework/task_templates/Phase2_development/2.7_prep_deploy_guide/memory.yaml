@@ -2,8 +2,8 @@ template: true
 
 deployment_spec:
   - path: docs/specs/spec_<feature_id>.md
-    raw_url: https://raw.githubusercontent.com/stewmckendry/ai-concussion-agent/main/docs/specs/spec_<feature_id>.md
-    repo: stewmckendry/ai-concussion-agent
+    raw_url: https://raw.githubusercontent.com/stewmckendry/ai-delivery-framework/main/docs/specs/spec_<feature_id>.md
+    repo: stewmckendry/ai-delivery-framework
     file_type: markdown
     description: Feature spec referenced in deployment documentation
     tags: [spec, deployment]
@@ -15,8 +15,8 @@ deployment_spec:
 
 deployment_patch:
   - path: .patches/patch_<timestamp>.diff
-    raw_url: https://raw.githubusercontent.com/stewmckendry/ai-concussion-agent/main/.patches/patch_<timestamp>.diff
-    repo: stewmckendry/ai-concussion-agent
+    raw_url: https://raw.githubusercontent.com/stewmckendry/ai-delivery-framework/main/.patches/patch_<timestamp>.diff
+    repo: stewmckendry/ai-delivery-framework
     file_type: diff
     description: Patch file containing implementation diff for deployment
     tags: [patch, deployment]

@@ -160,7 +160,7 @@ inputs:
 
 📁 MEMORY:
 - path: docs/features/feature_list.md
-  repo: stewmckendry/ai-concussion-agent
+  repo: stewmckendry/ai-delivery-framework
 
 📡 TOOL USE:
 Use the GitHub File Tool to retrieve the list of assigned features.
@@ -270,7 +270,7 @@ inputs:
 
 📁 MEMORY:
 - path: docs/specs/spec_<feature_id>.md
-  repo: stewmckendry/ai-concussion-agent
+  repo: stewmckendry/ai-delivery-framework
 
 📡 TOOL USE:
 Use GitHub File Tool to retrieve spec. Use patch generation tool to create `.diff` file.
@@ -387,9 +387,9 @@ inputs:
 
 📁 MEMORY:
 - path: docs/specs/spec_<feature_id>.md  
-  repo: stewmckendry/ai-concussion-agent
+  repo: stewmckendry/ai-delivery-framework
 - path: docs/qa/acceptance_matrix.md  
-  repo: stewmckendry/ai-concussion-agent
+  repo: stewmckendry/ai-delivery-framework
 
 📡 TOOL USE:
 Use the GitHub File Tool to retrieve:

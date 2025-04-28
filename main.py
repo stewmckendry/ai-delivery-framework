@@ -31,7 +31,7 @@ load_dotenv()
 
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
 GITHUB_API = "https://api.github.com"
-GITHUB_REPO = "ai-concussion-agent"
+GITHUB_REPO = "ai-delivery-framework"
 GITHUB_OWNER = "stewmckendry"
 TASK_FILE_PATH = "task.yaml"
 GITHUB_BRANCH = "main"

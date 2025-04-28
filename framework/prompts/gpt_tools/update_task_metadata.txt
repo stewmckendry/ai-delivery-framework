@@ -34,7 +34,7 @@ Save this text to a file named `task.yaml`.
 Please fetch the following file from GitHub using the getGitHubFile tool:
 
 - owner: stewmckendry  
-- repo: ai-concussion-agent  
+- repo: ai-delivery-framework  
 - path: prompts/used/DevPod/1.1_capture_project_goals_prompt.txt
 
 If the tool fails, ask the Human Lead to paste the full prompt text in the chat or upload it directly.

@@ -1,5 +1,5 @@
 - path: task.yaml
-  raw_url: https://raw.githubusercontent.com/stewmckendry/ai-concussion-agent/main/task.yaml
+  raw_url: https://raw.githubusercontent.com/stewmckendry/ai-delivery-framework/main/task.yaml
   file_type: yaml
   description: ''
   tags: []
@@ -7,7 +7,7 @@
   pod_owner: ''
 
 - path: docs/repo_structure_upkeep_guide.md
-  raw_url: https://raw.githubusercontent.com/stewmckendry/ai-concussion-agent/main/docs/repo_structure_upkeep_guide.md
+  raw_url: https://raw.githubusercontent.com/stewmckendry/ai-delivery-framework/main/docs/repo_structure_upkeep_guide.md
   file_type: md
   description: ''
   tags: []
@@ -15,7 +15,7 @@
   pod_owner: 'WoW Pod'
 
 - path: docs/ai_delivery_operating_system.md
-  raw_url: https://raw.githubusercontent.com/stewmckendry/ai-concussion-agent/main/docs/ai_delivery_operating_system.md
+  raw_url: https://raw.githubusercontent.com/stewmckendry/ai-delivery-framework/main/docs/ai_delivery_operating_system.md
   file_type: md
   description: ''
   tags: []
@@ -23,7 +23,7 @@
   pod_owner: 'WoW Pod'
 
 - path: docs/ai_native_progress.md
-  raw_url: https://raw.githubusercontent.com/stewmckendry/ai-concussion-agent/main/docs/ai_native_progress.md
+  raw_url: https://raw.githubusercontent.com/stewmckendry/ai-delivery-framework/main/docs/ai_native_progress.md
   file_type: md
   description: ''
   tags: []
@@ -31,7 +31,7 @@
   pod_owner: 'WoW Pod'
 
 - path: docs/POD_SOPs.md
-  raw_url: https://raw.githubusercontent.com/stewmckendry/ai-concussion-agent/main/docs/POD_SOPs.md
+  raw_url: https://raw.githubusercontent.com/stewmckendry/ai-delivery-framework/main/docs/POD_SOPs.md
   file_type: md
   description: ''
   tags: []
@@ -39,7 +39,7 @@
   pod_owner: 'WoW Pod'
 
 - path: docs/ai_native_generate_patch.md
-  raw_url: https://raw.githubusercontent.com/stewmckendry/ai-concussion-agent/main/docs/ai_native_generate_patch.md
+  raw_url: https://raw.githubusercontent.com/stewmckendry/ai-delivery-framework/main/docs/ai_native_generate_patch.md
   file_type: md
   description: ''
   tags: []
@@ -47,7 +47,7 @@
   pod_owner: 'WoW Pod'
 
 - path: memory.yaml
-  raw_url: https://raw.githubusercontent.com/stewmckendry/ai-concussion-agent/main/memory.yaml
+  raw_url: https://raw.githubusercontent.com/stewmckendry/ai-delivery-framework/main/memory.yaml
   file_type: yaml
   description: ''
   tags: []
@@ -55,7 +55,7 @@
   pod_owner: ''
 
 - path: README.md
-  raw_url: https://raw.githubusercontent.com/stewmckendry/ai-concussion-agent/main/README.md
+  raw_url: https://raw.githubusercontent.com/stewmckendry/ai-delivery-framework/main/README.md
   file_type: md
   description: ''
   tags: []
@@ -63,7 +63,7 @@
   pod_owner: 'WoW Pod'
 
 - path: .gitignore
-  raw_url: https://raw.githubusercontent.com/stewmckendry/ai-concussion-agent/main/.gitignore
+  raw_url: https://raw.githubusercontent.com/stewmckendry/ai-delivery-framework/main/.gitignore
   file_type: gitignore
   description: ''
   tags: []
@@ -71,7 +71,7 @@
   pod_owner: ''
 
 - path: scripts/setup_ai_delivery.sh
-  raw_url: https://raw.githubusercontent.com/stewmckendry/ai-concussion-agent/main/scripts/setup_ai_delivery.sh
+  raw_url: https://raw.githubusercontent.com/stewmckendry/ai-delivery-framework/main/scripts/setup_ai_delivery.sh
   file_type: sh
   description: ''
   tags: []
@@ -79,7 +79,7 @@
   pod_owner: 'WoW Pod'
 
 - path: scripts/create_pr_from_patch.sh
-  raw_url: https://raw.githubusercontent.com/stewmckendry/ai-concussion-agent/main/scripts/create_pr_from_patch.sh
+  raw_url: https://raw.githubusercontent.com/stewmckendry/ai-delivery-framework/main/scripts/create_pr_from_patch.sh
   file_type: sh
   description: ''
   tags: []
@@ -87,7 +87,7 @@
   pod_owner: 'WoW Pod'
 
 - path: scripts/validate_patch.py
-  raw_url: https://raw.githubusercontent.com/stewmckendry/ai-concussion-agent/main/scripts/validate_patch.py
+  raw_url: https://raw.githubusercontent.com/stewmckendry/ai-delivery-framework/main/scripts/validate_patch.py
   file_type: py
   description: ''
   tags: []
@@ -95,7 +95,7 @@
   pod_owner: 'WoW Pod'
 
 - path: scripts/clean_legacy_script.py
-  raw_url: https://raw.githubusercontent.com/stewmckendry/ai-concussion-agent/main/scripts/clean_legacy_script.py
+  raw_url: https://raw.githubusercontent.com/stewmckendry/ai-delivery-framework/main/scripts/clean_legacy_script.py
   file_type: py
   description: ''
   tags: []
@@ -103,7 +103,7 @@
   pod_owner: 'WoW Pod'
 
 - path: scripts/generate_patch.py
-  raw_url: https://raw.githubusercontent.com/stewmckendry/ai-concussion-agent/main/scripts/generate_patch.py
+  raw_url: https://raw.githubusercontent.com/stewmckendry/ai-delivery-framework/main/scripts/generate_patch.py
   file_type: py
   description: ''
   tags: []
@@ -111,7 +111,7 @@
   pod_owner: 'WoW Pod'
 
 - path: scripts/generate_memory.sh
-  raw_url: https://raw.githubusercontent.com/stewmckendry/ai-concussion-agent/main/scripts/generate_memory.sh
+  raw_url: https://raw.githubusercontent.com/stewmckendry/ai-delivery-framework/main/scripts/generate_memory.sh
   file_type: sh
   description: ''
   tags: []
@@ -119,7 +119,7 @@
   pod_owner: 'WoW Pod'
 
 - path: scripts/reset_conflicts.sh
-  raw_url: https://raw.githubusercontent.com/stewmckendry/ai-concussion-agent/main/scripts/reset_conflicts.sh
+  raw_url: https://raw.githubusercontent.com/stewmckendry/ai-delivery-framework/main/scripts/reset_conflicts.sh
   file_type: sh
   description: ''
   tags: []
@@ -127,7 +127,7 @@
   pod_owner: 'WoW Pod'
 
 - path: .github/workflows/promote_patch.yaml
-  raw_url: https://raw.githubusercontent.com/stewmckendry/ai-concussion-agent/main/.github/workflows/promote_patch.yaml
+  raw_url: https://raw.githubusercontent.com/stewmckendry/ai-delivery-framework/main/.github/workflows/promote_patch.yaml
   file_type: yaml
   description: ''
   tags: []
@@ -135,7 +135,7 @@
   pod_owner: 'WoW Pod'
 
 - path: memory_stub.yaml
-  raw_url: https://raw.githubusercontent.com/stewmckendry/ai-concussion-agent/main/memory_stub.yaml
+  raw_url: https://raw.githubusercontent.com/stewmckendry/ai-delivery-framework/main/memory_stub.yaml
   file_type: yaml
   description: ''
   tags: []
@@ -143,7 +143,7 @@
   pod_owner: ''
 
 - path: .logs/thought_trace.yaml
-  raw_url: https://raw.githubusercontent.com/stewmckendry/ai-concussion-agent/main/.logs/thought_trace.yaml
+  raw_url: https://raw.githubusercontent.com/stewmckendry/ai-delivery-framework/main/.logs/thought_trace.yaml
   file_type: yaml
   description: ''
   tags: []
@@ -151,7 +151,7 @@
   pod_owner: ''
 
 - path: .logs/handoff_log.yaml
-  raw_url: https://raw.githubusercontent.com/stewmckendry/ai-concussion-agent/main/.logs/handoff_log.yaml
+  raw_url: https://raw.githubusercontent.com/stewmckendry/ai-delivery-framework/main/.logs/handoff_log.yaml
   file_type: yaml
   description: ''
   tags: []
@@ -159,7 +159,7 @@
   pod_owner: ''
 
 - path: .logs/changelog.yaml
-  raw_url: https://raw.githubusercontent.com/stewmckendry/ai-concussion-agent/main/.logs/changelog.yaml
+  raw_url: https://raw.githubusercontent.com/stewmckendry/ai-delivery-framework/main/.logs/changelog.yaml
   file_type: yaml
   description: ''
   tags: []

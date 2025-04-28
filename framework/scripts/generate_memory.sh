@@ -2,7 +2,7 @@
 
 # CONFIG — customize for your repo
 GITHUB_USER="stewmckendry"
-REPO_NAME="ai-concussion-agent"
+REPO_NAME="ai-delivery-framework"
 BRANCH_NAME="main"
 
 echo "🧠 Indexing repo files into memory_stub.yaml with auto-assigned pod_owner..."

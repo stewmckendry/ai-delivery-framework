@@ -9,7 +9,7 @@ This was a proof-of-concept (PoC) test to validate the functionality of the GitH
 - **Task ID:** F1.1-generate-tests
 - **Description:** Generate `pytest` unit tests for `ConcussionAgent`
 - **Input File:** `src/models/agent/concussion_agent.py`
-- **Repo:** [stewmckendry/ai-concussion-agent](https://github.com/stewmckendry/ai-concussion-agent)
+- **Repo:** [stewmckendry/ai-delivery-framework](https://github.com/stewmckendry/ai-delivery-framework)
 
 ---
 

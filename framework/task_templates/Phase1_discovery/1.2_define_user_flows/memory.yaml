@@ -2,8 +2,8 @@ template: true
 
 user_roles:
   - path: docs/personas/user_roles.md
-    raw_url: https://raw.githubusercontent.com/stewmckendry/ai-concussion-agent/main/docs/personas/user_roles.md
-    repo: stewmckendry/ai-concussion-agent
+    raw_url: https://raw.githubusercontent.com/stewmckendry/ai-delivery-framework/main/docs/personas/user_roles.md
+    repo: stewmckendry/ai-delivery-framework
     file_type: markdown
     description: Personas and user roles that interact with the application
     tags: [personas, user_flows]
@@ -14,8 +14,8 @@ user_roles:
     notes: Initial persona sketches
 app_walkthrough:
   - path: docs/journeys/app_walkthrough.md
-    raw_url: https://raw.githubusercontent.com/stewmckendry/ai-concussion-agent/main/docs/journeys/app_walkthrough.md
-    repo: stewmckendry/ai-concussion-agent
+    raw_url: https://raw.githubusercontent.com/stewmckendry/ai-delivery-framework/main/docs/journeys/app_walkthrough.md
+    repo: stewmckendry/ai-delivery-framework
     file_type: markdown
     description: End-to-end walkthrough of the app from a user perspective
     tags: [journeys, user_flows]
@@ -26,8 +26,8 @@ app_walkthrough:
     notes: App experience draft
 delivery_flow:
   - path: docs/workflows/delivery_flow.md
-    raw_url: https://raw.githubusercontent.com/stewmckendry/ai-concussion-agent/main/docs/workflows/delivery_flow.md
-    repo: stewmckendry/ai-concussion-agent
+    raw_url: https://raw.githubusercontent.com/stewmckendry/ai-delivery-framework/main/docs/workflows/delivery_flow.md
+    repo: stewmckendry/ai-delivery-framework
     file_type: markdown
     description: Delivery flow including SDLC phases and pod roles
     tags: [delivery_flow, workflows]
@@ -38,8 +38,8 @@ delivery_flow:
     notes: Draft for review based on ai_delivery_operating_system.md
 ai_delivery_operating_system:
   - path: docs/ai_delivery_operating_system.md
-    raw_url: https://raw.githubusercontent.com/stewmckendry/ai-concussion-agent/main/docs/ai_delivery_operating_system.md
-    repo: stewmckendry/ai-concussion-agent
+    raw_url: https://raw.githubusercontent.com/stewmckendry/ai-delivery-framework/main/docs/ai_delivery_operating_system.md
+    repo: stewmckendry/ai-delivery-framework
     file_type: markdown
     description: Canonical SDLC model and pod role definitions
     tags: [delivery_flow, architecture, sdlc]

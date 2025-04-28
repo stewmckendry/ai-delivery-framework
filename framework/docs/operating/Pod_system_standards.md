@@ -177,7 +177,7 @@ _Follow the Pod Code of Conduct throughout._"
 
 #### Base URL
 ```
-https://ai-concussion-agent-production.up.railway.app
+https://ai-delivery-framework-production.up.railway.app
 ```
 
 #### Authentication
@@ -188,7 +188,7 @@ https://ai-concussion-agent-production.up.railway.app
 #### Import Action Schema
 - **URL:** 
 ```
-https://ai-concussion-agent-production.up.railway.app/openapi.json
+https://ai-delivery-framework-production.up.railway.app/openapi.json
 ```
 - This will **automatically load** the available endpoints.
 

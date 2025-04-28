@@ -2,8 +2,8 @@ template: true
 
 e2e_test_plan:
   - path: test/e2e/e2e_test_plan.md
-    raw_url: https://raw.githubusercontent.com/stewmckendry/ai-concussion-agent/main/test/e2e/e2e_test_plan.md
-    repo: stewmckendry/ai-concussion-agent
+    raw_url: https://raw.githubusercontent.com/stewmckendry/ai-delivery-framework/main/test/e2e/e2e_test_plan.md
+    repo: stewmckendry/ai-delivery-framework
     file_type: markdown
     description: Full set of E2E test scenarios including flows, conditions, and expected outcomes
     tags: [e2e, qa, test_plan]

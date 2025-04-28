@@ -44,9 +44,9 @@ description: Address bugs identified by QAPod during QA review, apply code and t
 
 📁 MEMORY:
 - path: test/feature_<feature_id>/qa_test_results.md  
-  repo: stewmckendry/ai-concussion-agent  
+  repo: stewmckendry/ai-delivery-framework  
 - path: docs/specs/spec_<feature_id>.md  
-  repo: stewmckendry/ai-concussion-agent  
+  repo: stewmckendry/ai-delivery-framework  
 
 📡 TOOL USE:
 Use the GitHub File Tool’s POST /batch-files endpoint to fetch all inputs.
@@ -127,13 +127,13 @@ description: Re-run previously failed or blocked test cases, confirm issues are 
 
 📁 MEMORY:
 - path: test/feature_<feature_id>/qa_test_results.md  
-  repo: stewmckendry/ai-concussion-agent  
+  repo: stewmckendry/ai-delivery-framework  
 - path: docs/qa/acceptance_matrix.md  
-  repo: stewmckendry/ai-concussion-agent  
+  repo: stewmckendry/ai-delivery-framework  
 - path: src/feature_<feature_id>/**/*  
-  repo: stewmckendry/ai-concussion-agent  
+  repo: stewmckendry/ai-delivery-framework  
 - path: tests/feature_<feature_id>/**/*  
-  repo: stewmckendry/ai-concussion-agent  
+  repo: stewmckendry/ai-delivery-framework  
 
 
 📡 TOOL USE:
@@ -221,11 +221,11 @@ description: Investigate unresolved technical or domain-specific questions raise
 
 📁 MEMORY:
 - path: .logs/feedback/2.x_*.md  
-  repo: stewmckendry/ai-concussion-agent  
+  repo: stewmckendry/ai-delivery-framework  
 - path: docs/specs/spec_<feature_id>.md  
-  repo: stewmckendry/ai-concussion-agent  
+  repo: stewmckendry/ai-delivery-framework  
 - path: docs/qa/acceptance_matrix.md  
-  repo: stewmckendry/ai-concussion-agent  
+  repo: stewmckendry/ai-delivery-framework  
 
 📡 TOOL USE:
 Use the GitHub File Tool’s POST /batch-files endpoint to fetch all inputs.
@@ -316,9 +316,9 @@ description: Facilitate agile rituals for the iteration, analyze delivery metric
 
 📁 MEMORY:
 - path: .logs/feedback/2.*.md  
-  repo: stewmckendry/ai-concussion-agent  
+  repo: stewmckendry/ai-delivery-framework  
 - path: metrics/metrics.yaml  
-  repo: stewmckendry/ai-concussion-agent  
+  repo: stewmckendry/ai-delivery-framework  
 
 📡 TOOL USE:
 Use the GitHub File Tool’s POST /batch-files endpoint to fetch all inputs.
@@ -423,9 +423,9 @@ description: Create a guide to deploy the current feature set to a test, staging
 
 📁 MEMORY:
 - path: docs/specs/spec_<feature_id>.md  
-  repo: stewmckendry/ai-concussion-agent  
+  repo: stewmckendry/ai-delivery-framework  
 - path: .patches/patch_<timestamp>.diff  
-  repo: stewmckendry/ai-concussion-agent  
+  repo: stewmckendry/ai-delivery-framework  
 
 📡 TOOL USE:
 Use the GitHub File Tool to retrieve:

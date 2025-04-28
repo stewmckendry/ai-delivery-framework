@@ -7,8 +7,8 @@ Welcome to the team! Here's how ChatGPT pods contribute to this project using th
 ## 📦 One-Time Setup
 
 ```bash
-git clone https://github.com/stewmckendry/ai-concussion-agent.git
-cd ai-concussion-agent
+git clone https://github.com/stewmckendry/ai-delivery-framework.git
+cd ai-delivery-framework
 ./scripts/setup_ai_delivery.sh
 ```
 

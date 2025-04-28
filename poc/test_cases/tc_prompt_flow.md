@@ -6,7 +6,7 @@ Let’s validate everything using 1.1_capture_project_goals.
 - Task ID: 1.1_capture_project_goals
 - Pod: DevPod
 - Prompt path: prompts/used/DevPod/1.1_capture_project_goals_prompt.txt
-- Repo: ai-concussion-agent
+- Repo: ai-delivery-framework
 - Files produced: docs/project_goals.md, metadata.json, reasoning_trace.md, prompt_used.txt
 - Human lead: You!
 

@@ -2,8 +2,8 @@ template: true
 
 cutover_checklist:
   - path: docs/release/cutover_checklist.md
-    raw_url: https://raw.githubusercontent.com/stewmckendry/ai-concussion-agent/main/docs/release/cutover_checklist.md
-    repo: stewmckendry/ai-concussion-agent
+    raw_url: https://raw.githubusercontent.com/stewmckendry/ai-delivery-framework/main/docs/release/cutover_checklist.md
+    repo: stewmckendry/ai-delivery-framework
     file_type: markdown
     description: Final go-live sequence including rollback and checks
     tags: [cutover, production, deployment]

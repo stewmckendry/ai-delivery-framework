@@ -10,13 +10,13 @@ description: Re-run previously failed or blocked test cases, confirm issues are 
 
 📁 MEMORY:
 - path: test/feature_<feature_id>/qa_test_results.md  
-  repo: stewmckendry/ai-concussion-agent  
+  repo: stewmckendry/ai-delivery-framework  
 - path: docs/qa/acceptance_matrix.md  
-  repo: stewmckendry/ai-concussion-agent  
+  repo: stewmckendry/ai-delivery-framework  
 - path: src/feature_<feature_id>/**/*  
-  repo: stewmckendry/ai-concussion-agent  
+  repo: stewmckendry/ai-delivery-framework  
 - path: tests/feature_<feature_id>/**/*  
-  repo: stewmckendry/ai-concussion-agent  
+  repo: stewmckendry/ai-delivery-framework  
 
 
 📡 TOOL USE:

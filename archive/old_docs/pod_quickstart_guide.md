@@ -30,9 +30,9 @@ inputs:
 #### `memory.yaml`
 ```yaml
 - path: src/models/agent/concussion_agent.py
-  repo: stewmckendry/ai-concussion-agent
+  repo: stewmckendry/ai-delivery-framework
 - path: src/models/agent/concussion_validator.py
-  repo: stewmckendry/ai-concussion-agent
+  repo: stewmckendry/ai-delivery-framework
 ```
 
 ---
@@ -77,7 +77,7 @@ Preferred for multi-input tasks
 ```json
 {
   "owner": "stewmckendry",
-  "repo": "ai-concussion-agent",
+  "repo": "ai-delivery-framework",
   "paths": [
     "src/models/agent/concussion_agent.py",
     "src/models/agent/concussion_validator.py"

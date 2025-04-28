@@ -55,8 +55,8 @@ template: true
 
 deployment_guide:
   - path: docs/deployment/deployment_guide.md
-    raw_url: https://raw.githubusercontent.com/stewmckendry/ai-concussion-agent/main/docs/deployment/deployment_guide.md
-    repo: stewmckendry/ai-concussion-agent
+    raw_url: https://raw.githubusercontent.com/stewmckendry/ai-delivery-framework/main/docs/deployment/deployment_guide.md
+    repo: stewmckendry/ai-delivery-framework
     file_type: markdown
     description: Technical and procedural deployment reference
     tags: [deployment, release]
@@ -119,8 +119,8 @@ Use the GitHub File Tool’s GET /repos/.../contents/... endpoint to fetch the i
 ```yaml
 smoke_test_plan:
   - path: test/e2e/e2e_test_plan.md
-    raw_url: https://raw.githubusercontent.com/stewmckendry/ai-concussion-agent/main/test/e2e/e2e_test_plan.md
-    repo: stewmckendry/ai-concussion-agent
+    raw_url: https://raw.githubusercontent.com/stewmckendry/ai-delivery-framework/main/test/e2e/e2e_test_plan.md
+    repo: stewmckendry/ai-delivery-framework
     file_type: markdown
     description: List of end-to-end test scenarios used to select smoke tests
     tags: [qa, smoke, prod_tests]
@@ -178,8 +178,8 @@ Use the GitHub File Tool’s GET /repos/.../contents/... endpoint to fetch the i
 ```yaml
 cutover_checklist:
   - path: docs/release/cutover_checklist.md
-    raw_url: https://raw.githubusercontent.com/stewmckendry/ai-concussion-agent/main/docs/release/cutover_checklist.md
-    repo: stewmckendry/ai-concussion-agent
+    raw_url: https://raw.githubusercontent.com/stewmckendry/ai-delivery-framework/main/docs/release/cutover_checklist.md
+    repo: stewmckendry/ai-delivery-framework
     file_type: markdown
     description: Final go-live sequence including rollback and checks
     tags: [cutover, production, deployment]
@@ -237,8 +237,8 @@ Use the GitHub File Tool’s GET /repos/.../contents/... endpoint to fetch the i
 ```yaml
 go_live_log:
   - path: .logs/deployments/go_live_log.md
-    raw_url: https://raw.githubusercontent.com/stewmckendry/ai-concussion-agent/main/.logs/deployments/go_live_log.md
-    repo: stewmckendry/ai-concussion-agent
+    raw_url: https://raw.githubusercontent.com/stewmckendry/ai-delivery-framework/main/.logs/deployments/go_live_log.md
+    repo: stewmckendry/ai-delivery-framework
     file_type: markdown
     description: Timestamped log of go-live deployment
     tags: [release, handoff, announcement]
@@ -296,8 +296,8 @@ Use the GitHub File Tool’s GET /repos/.../contents/... endpoint to fetch the i
 ```yaml
 go_live_log:
   - path: .logs/deployments/go_live_log.md
-    raw_url: https://raw.githubusercontent.com/stewmckendry/ai-concussion-agent/main/.logs/deployments/go_live_log.md
-    repo: stewmckendry/ai-concussion-agent
+    raw_url: https://raw.githubusercontent.com/stewmckendry/ai-delivery-framework/main/.logs/deployments/go_live_log.md
+    repo: stewmckendry/ai-delivery-framework
     file_type: markdown
     description: Log of deployment sequence for post-mortem review
     tags: [retrospective, release]
@@ -360,8 +360,8 @@ Use the GitHub File Tool’s POST /batch-files endpoint to fetch both inputs.
 ```yaml
 runbook_inputs:
   - path: docs/deployment/deployment_guide.md
-    raw_url: https://raw.githubusercontent.com/stewmckendry/ai-concussion-agent/main/docs/deployment/deployment_guide.md
-    repo: stewmckendry/ai-concussion-agent
+    raw_url: https://raw.githubusercontent.com/stewmckendry/ai-delivery-framework/main/docs/deployment/deployment_guide.md
+    repo: stewmckendry/ai-delivery-framework
     file_type: markdown
     description: Deployment procedures and configurations
     tags: [deployment, guide]
@@ -372,8 +372,8 @@ runbook_inputs:
     notes: Used to update runbook
 
   - path: .logs/deployments/go_live_log.md
-    raw_url: https://raw.githubusercontent.com/stewmckendry/ai-concussion-agent/main/.logs/deployments/go_live_log.md
-    repo: stewmckendry/ai-concussion-agent
+    raw_url: https://raw.githubusercontent.com/stewmckendry/ai-delivery-framework/main/.logs/deployments/go_live_log.md
+    repo: stewmckendry/ai-delivery-framework
     file_type: markdown
     description: Execution log from production cutover
     tags: [deployment, runbook, logs]

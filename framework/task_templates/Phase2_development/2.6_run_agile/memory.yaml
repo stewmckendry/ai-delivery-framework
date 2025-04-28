@@ -2,8 +2,8 @@ template: true
 
 metrics_source:
   - path: metrics/metrics.yaml
-    raw_url: https://raw.githubusercontent.com/stewmckendry/ai-concussion-agent/main/metrics/metrics.yaml
-    repo: stewmckendry/ai-concussion-agent
+    raw_url: https://raw.githubusercontent.com/stewmckendry/ai-delivery-framework/main/metrics/metrics.yaml
+    repo: stewmckendry/ai-delivery-framework
     file_type: yaml
     description: Canonical record of delivery metrics and patch tracking
     tags: [metrics, velocity, burndown]
@@ -15,8 +15,8 @@ metrics_source:
 
 sprint_feedback:
   - path: .logs/feedback/2.*.md
-    raw_url: https://raw.githubusercontent.com/stewmckendry/ai-concussion-agent/main/.logs/feedback/2.x_sample.md
-    repo: stewmckendry/ai-concussion-agent
+    raw_url: https://raw.githubusercontent.com/stewmckendry/ai-delivery-framework/main/.logs/feedback/2.x_sample.md
+    repo: stewmckendry/ai-delivery-framework
     file_type: markdown
     description: Iteration-wide task feedback and process learnings
     tags: [feedback, retrospective]

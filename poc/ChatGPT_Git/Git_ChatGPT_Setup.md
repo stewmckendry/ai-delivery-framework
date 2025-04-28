@@ -78,12 +78,12 @@ priority: high
 
 📁 MEMORY ENTRIES:
 - path: src/models/agent/concussion_agent.py
-  repo: stewmckendry/ai-concussion-agent
-  raw_url: https://raw.githubusercontent.com/stewmckendry/ai-concussion-agent/main/src/models/agent/concussion_agent.py
+  repo: stewmckendry/ai-delivery-framework
+  raw_url: https://raw.githubusercontent.com/stewmckendry/ai-delivery-framework/main/src/models/agent/concussion_agent.py
 
 - path: src/models/agent/concussion_validator.py
-  repo: stewmckendry/ai-concussion-agent
-  raw_url: https://raw.githubusercontent.com/stewmckendry/ai-concussion-agent/main/src/models/agent/concussion_validator.py
+  repo: stewmckendry/ai-delivery-framework
+  raw_url: https://raw.githubusercontent.com/stewmckendry/ai-delivery-framework/main/src/models/agent/concussion_validator.py
 
 📂 FILE FETCH:
 Use the GitHub File Tool to retrieve the two input files listed above using their paths.

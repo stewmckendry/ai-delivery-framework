@@ -14,5 +14,5 @@ Returns:
 Prompt:
 Please fetch a batch of files from the following GitHub repo using the getBatchFiles tool:
 owner: stewmckendry
-repo: ai-concussion-agent
+repo: ai-delivery-framework
 paths: ["docs/project_goals.md", "docs/ai_delivery_operating_system.md"]

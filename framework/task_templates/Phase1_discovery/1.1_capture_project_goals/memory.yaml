@@ -2,8 +2,8 @@ template: true
 
 project_goals:
   - path: docs/project_goals.md
-    raw_url: https://raw.githubusercontent.com/stewmckendry/ai-concussion-agent/main/docs/project_goals.md
-    repo: stewmckendry/ai-concussion-agent
+    raw_url: https://raw.githubusercontent.com/stewmckendry/ai-delivery-framework/main/docs/project_goals.md
+    repo: stewmckendry/ai-delivery-framework
     file_type: markdown
     description: Summary of the goals, purpose, and intended impact of the project
     tags: [project_goals, vision]

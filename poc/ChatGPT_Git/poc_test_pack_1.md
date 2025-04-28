@@ -25,8 +25,8 @@ inputs:
 📁 MEMORY:
 ```yaml
 - path: src/models/agent/concussion_agent.py
-  repo: stewmckendry/ai-concussion-agent
-  raw_url: https://raw.githubusercontent.com/stewmckendry/ai-concussion-agent/main/src/models/agent/concussion_agent.py
+  repo: stewmckendry/ai-delivery-framework
+  raw_url: https://raw.githubusercontent.com/stewmckendry/ai-delivery-framework/main/src/models/agent/concussion_agent.py
 ```
 
 🧰 TOOL USE:
@@ -44,7 +44,7 @@ Then:
 ## 🧾 Supporting Files
 > Use this mock file for testing – place it at:
 ```
-ai-concussion-agent/src/models/agent/concussion_agent.py
+ai-delivery-framework/src/models/agent/concussion_agent.py
 ```
 
 ```python

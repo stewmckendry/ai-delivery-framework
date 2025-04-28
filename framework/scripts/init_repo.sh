@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Rename existing repo (manual via GitHub Web UI advised)
-echo "Please manually rename 'ai-concussion-agent' to 'ai-delivery-framework' via GitHub settings."
+echo "Please manually rename 'ai-delivery-framework' to 'ai-delivery-framework' via GitHub settings."
 echo "\nWaiting 10 seconds for you to complete..."
 sleep 10
 

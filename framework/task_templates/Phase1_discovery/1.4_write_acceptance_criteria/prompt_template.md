@@ -9,9 +9,9 @@ inputs:
 
 📁 MEMORY:
 - path: docs/features/feature_*.md
-  repo: stewmckendry/ai-concussion-agent
+  repo: stewmckendry/ai-delivery-framework
 - path: docs/qa/acceptance_matrix.md
-  repo: stewmckendry/ai-concussion-agent
+  repo: stewmckendry/ai-delivery-framework
 
 📡 TOOL USE:
 Use the GitHub File Tool’s POST /batch-files endpoint to fetch all inputs.

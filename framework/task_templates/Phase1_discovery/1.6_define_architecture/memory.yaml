@@ -2,8 +2,8 @@ template: true
 
 architecture:
   - path: docs/architecture/solution_overview.md
-    repo: stewmckendry/ai-concussion-agent
-    raw_url: https://raw.githubusercontent.com/stewmckendry/ai-concussion-agent/main/docs/architecture/solution_overview.md
+    repo: stewmckendry/ai-delivery-framework
+    raw_url: https://raw.githubusercontent.com/stewmckendry/ai-delivery-framework/main/docs/architecture/solution_overview.md
     file_type: markdown
     description: Overview of the technical architecture, patterns, and deployment
     tags: [architecture, solution_design]
@@ -14,8 +14,8 @@ architecture:
     notes: System-level view for reference by all pods
 
   - path: docs/architecture/standards.md
-    repo: stewmckendry/ai-concussion-agent
-    raw_url: https://raw.githubusercontent.com/stewmckendry/ai-concussion-agent/main/docs/architecture/standards.md
+    repo: stewmckendry/ai-delivery-framework
+    raw_url: https://raw.githubusercontent.com/stewmckendry/ai-delivery-framework/main/docs/architecture/standards.md
     file_type: markdown
     description: Code, documentation, and interface standards
     tags: [standards, architecture]

@@ -87,8 +87,8 @@ template: true
 
 research_spikes:
   - path: docs/research/spikes/spike_*.md
-    repo: stewmckendry/ai-concussion-agent
-    raw_url: https://raw.githubusercontent.com/stewmckendry/ai-concussion-agent/main/docs/research/spikes/spike_sample.md
+    repo: stewmckendry/ai-delivery-framework
+    raw_url: https://raw.githubusercontent.com/stewmckendry/ai-delivery-framework/main/docs/research/spikes/spike_sample.md
     file_type: markdown
     description: Research findings and technical explorations to resolve open questions
     tags: [research, spike, investigations]
@@ -100,8 +100,8 @@ research_spikes:
 
 architecture:
   - path: docs/architecture/solution_overview.md
-    repo: stewmckendry/ai-concussion-agent
-    raw_url: https://raw.githubusercontent.com/stewmckendry/ai-concussion-agent/main/docs/architecture/solution_overview.md
+    repo: stewmckendry/ai-delivery-framework
+    raw_url: https://raw.githubusercontent.com/stewmckendry/ai-delivery-framework/main/docs/architecture/solution_overview.md
     file_type: markdown
     description: Overview of the technical architecture, patterns, and deployment
     tags: [architecture, solution_design]
@@ -112,8 +112,8 @@ architecture:
     notes: System-level view for reference by all pods
 
   - path: docs/architecture/standards.md
-    repo: stewmckendry/ai-concussion-agent
-    raw_url: https://raw.githubusercontent.com/stewmckendry/ai-concussion-agent/main/docs/architecture/standards.md
+    repo: stewmckendry/ai-delivery-framework
+    raw_url: https://raw.githubusercontent.com/stewmckendry/ai-delivery-framework/main/docs/architecture/standards.md
     file_type: markdown
     description: Code, documentation, and interface standards
     tags: [standards, architecture]
@@ -142,9 +142,9 @@ inputs:
 
 📁 MEMORY:
 - path: docs/project_goals.md
-  repo: stewmckendry/ai-concussion-agent
+  repo: stewmckendry/ai-delivery-framework
 - path: docs/features/feature_*.md
-  repo: stewmckendry/ai-concussion-agent
+  repo: stewmckendry/ai-delivery-framework
 
 📡 TOOL USE:
 Use the GitHub File Tool to retrieve goals and feature specs.
@@ -198,11 +198,11 @@ inputs:
 
 📁 MEMORY:
 - path: docs/project_goals.md
-  repo: stewmckendry/ai-concussion-agent
+  repo: stewmckendry/ai-delivery-framework
 - path: docs/features/feature_*.md
-  repo: stewmckendry/ai-concussion-agent
+  repo: stewmckendry/ai-delivery-framework
 - path: docs/research/spikes/spike_*.md
-  repo: stewmckendry/ai-concussion-agent
+  repo: stewmckendry/ai-delivery-framework
 
 📡 TOOL USE:
 Use GitHub File Tool to load project context + spike outputs.
@@ -356,7 +356,7 @@ inputs:
 
 📁 MEMORY:
 - path: .logs/feedback/*.md
-  repo: stewmckendry/ai-concussion-agent
+  repo: stewmckendry/ai-delivery-framework
 
 📡 TOOL USE:
 No tool use required.

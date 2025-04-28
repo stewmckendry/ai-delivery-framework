@@ -10,9 +10,9 @@ description: Facilitate agile rituals for the iteration, analyze delivery metric
 
 📁 MEMORY:
 - path: .logs/feedback/2.*.md  
-  repo: stewmckendry/ai-concussion-agent  
+  repo: stewmckendry/ai-delivery-framework  
 - path: metrics/metrics.yaml  
-  repo: stewmckendry/ai-concussion-agent  
+  repo: stewmckendry/ai-delivery-framework  
 
 📡 TOOL USE:
 Use the GitHub File Tool’s POST /batch-files endpoint to fetch all inputs.

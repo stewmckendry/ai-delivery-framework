@@ -2,8 +2,8 @@ template: true
 
 feature_list:
   - path: docs/features/feature_list.md
-    raw_url: https://raw.githubusercontent.com/stewmckendry/ai-concussion-agent/main/docs/features/feature_list.md
-    repo: stewmckendry/ai-concussion-agent
+    raw_url: https://raw.githubusercontent.com/stewmckendry/ai-delivery-framework/main/docs/features/feature_list.md
+    repo: stewmckendry/ai-delivery-framework
     file_type: markdown
     description: List of all defined product features for the current release
     tags: [features, planning]
@@ -15,8 +15,8 @@ feature_list:
 
 acceptance_matrix:
   - path: docs/qa/acceptance_matrix.md
-    raw_url: https://raw.githubusercontent.com/stewmckendry/ai-concussion-agent/main/docs/qa/acceptance_matrix.md
-    repo: stewmckendry/ai-concussion-agent
+    raw_url: https://raw.githubusercontent.com/stewmckendry/ai-delivery-framework/main/docs/qa/acceptance_matrix.md
+    repo: stewmckendry/ai-delivery-framework
     file_type: markdown
     description: Final list of feature acceptance criteria
     tags: [qa, criteria]

@@ -2,8 +2,8 @@ template: true
 
 user_roles:
   - path: docs/personas/user_roles.md
-    raw_url: https://raw.githubusercontent.com/stewmckendry/ai-concussion-agent/main/docs/personas/user_roles.md
-    repo: stewmckendry/ai-concussion-agent
+    raw_url: https://raw.githubusercontent.com/stewmckendry/ai-delivery-framework/main/docs/personas/user_roles.md
+    repo: stewmckendry/ai-delivery-framework
     file_type: markdown
     description: Personas and user roles that interact with the application
     tags: [personas, user_flows]
@@ -15,8 +15,8 @@ user_roles:
 
 project_goals:
   - path: docs/project_goals.md
-    repo: stewmckendry/ai-concussion-agent
-    raw_url: https://raw.githubusercontent.com/stewmckendry/ai-concussion-agent/main/docs/project_goals.md
+    repo: stewmckendry/ai-delivery-framework
+    raw_url: https://raw.githubusercontent.com/stewmckendry/ai-delivery-framework/main/docs/project_goals.md
     file_type: markdown
     description: Describes overall project goals and vision
     tags: [project_goals]
@@ -28,7 +28,7 @@ project_goals:
 
 user_roles:
   - path: docs/personas/user_roles.md
-    raw_url: https://raw.githubusercontent.com/stewmckendry/ai-concussion-agent/main/docs/personas/user_roles.md
+    raw_url: https://raw.githubusercontent.com/stewmckendry/ai-delivery-framework/main/docs/personas/user_roles.md
     file_type: markdown
     description: Personas and user roles that interact with the application
     tags: [personas, user_flows]
@@ -40,7 +40,7 @@ user_roles:
 
 app_walkthrough:
   - path: docs/journeys/app_walkthrough.md
-    raw_url: https://raw.githubusercontent.com/stewmckendry/ai-concussion-agent/main/docs/journeys/app_walkthrough.md
+    raw_url: https://raw.githubusercontent.com/stewmckendry/ai-delivery-framework/main/docs/journeys/app_walkthrough.md
     file_type: markdown
     description: End-to-end walkthrough of the app from a user perspective
     tags: [journeys, user_flows]

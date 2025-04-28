@@ -2,8 +2,8 @@ template: true
 
 research_spikes:
   - path: docs/research/spikes/spike_*.md
-    repo: stewmckendry/ai-concussion-agent
-    raw_url: https://raw.githubusercontent.com/stewmckendry/ai-concussion-agent/main/docs/research/spikes/spike_sample.md
+    repo: stewmckendry/ai-delivery-framework
+    raw_url: https://raw.githubusercontent.com/stewmckendry/ai-delivery-framework/main/docs/research/spikes/spike_sample.md
     file_type: markdown
     description: Research findings and technical explorations to resolve open questions
     tags: [research, spike, investigations]

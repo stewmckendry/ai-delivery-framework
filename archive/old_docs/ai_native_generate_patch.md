@@ -142,6 +142,6 @@ bash scripts/resolve_merge_conflicts.sh
 ---
 
 ## 📌 Reference
-- [`scripts/generate_patch.py`](https://github.com/stewmckendry/ai-concussion-agent/blob/main/scripts/generate_patch.py)
-- [`scripts/create_pr_from_patch.sh`](https://github.com/stewmckendry/ai-concussion-agent/blob/main/scripts/create_pr_from_patch.sh)
-- [Workflow YAML](https://github.com/stewmckendry/ai-concussion-agent/blob/main/.github/workflows/promote_patch.yaml)
+- [`scripts/generate_patch.py`](https://github.com/stewmckendry/ai-delivery-framework/blob/main/scripts/generate_patch.py)
+- [`scripts/create_pr_from_patch.sh`](https://github.com/stewmckendry/ai-delivery-framework/blob/main/scripts/create_pr_from_patch.sh)
+- [Workflow YAML](https://github.com/stewmckendry/ai-delivery-framework/blob/main/.github/workflows/promote_patch.yaml)

@@ -16,7 +16,7 @@ This PoC tested the complete task workflow from GitHub file input, through human
 - **Description:** Capture and refine project goals from markdown file
 - **Input File:** `poc/test_data/docs/project_goals.md`
 - **Patch File:** `patch_1.1_capture_project_goals.diff`
-- **Patch Download URL:** [Download Patch](https://ai-concussion-agent-production.up.railway.app/patches/patch_1.1_capture_project_goals.diff)
+- **Patch Download URL:** [Download Patch](https://ai-delivery-framework-production.up.railway.app/patches/patch_1.1_capture_project_goals.diff)
 
 ---
 

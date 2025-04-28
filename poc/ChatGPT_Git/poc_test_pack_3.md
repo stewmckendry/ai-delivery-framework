@@ -26,7 +26,7 @@ inputs:
 ## 📁 MEMORY YAML (used by file tool)
 ```yaml
 - path: poc/test_data/docs/project_goals.md
-  repo: stewmckendry/ai-concussion-agent
+  repo: stewmckendry/ai-delivery-framework
 ```
 
 ---
@@ -52,7 +52,7 @@ inputs:
 
 📁 MEMORY:
 - path: docs/project_goals.md
-  repo: stewmckendry/ai-concussion-agent
+  repo: stewmckendry/ai-delivery-framework
 
 📡 TOOL USE:
 Use the GitHub File Tool’s GET /repos/.../contents/... endpoint to fetch the input file. Then:

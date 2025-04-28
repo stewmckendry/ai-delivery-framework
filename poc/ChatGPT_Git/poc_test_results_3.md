@@ -9,7 +9,7 @@ This PoC validated GitHub file retrieval and semantic summarization for project 
 - **Task ID:** 1.1_capture_project_goals
 - **Description:** Summarize and refine `project_goals.md` with improved clarity and structure
 - **Input File:** `poc/test_data/docs/project_goals.md`
-- **Repo:** [stewmckendry/ai-concussion-agent](https://github.com/stewmckendry/ai-concussion-agent)
+- **Repo:** [stewmckendry/ai-delivery-framework](https://github.com/stewmckendry/ai-delivery-framework)
 
 ---
 

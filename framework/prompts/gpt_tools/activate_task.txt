@@ -14,7 +14,7 @@ What to do:
 2. Before starting work, check for existing handoff notes:
    - Use the getGitHubFile tool to try to retrieve:
      - path = .logs/handoff/{task_id}_handoff.md
-     - (owner: stewmckendry, repo: ai-concussion-agent)
+     - (owner: stewmckendry, repo: ai-delivery-framework)
    - If found:
      - Read it carefully to understand prior context, assumptions, risks, and recommendations.
    - If not found:

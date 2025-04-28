@@ -10,9 +10,9 @@
   },
   "api": {
     "type": "openapi",
-    "url": "https://ai-concussion-agent-production.up.railway.app/openapi.json"
+    "url": "https://ai-delivery-framework-production.up.railway.app/openapi.json"
   },
-  "logo_url": "https://stewmckendry.github.io/ai-concussion-agent/poc/ChatGPT_Git/logo.png",
+  "logo_url": "https://stewmckendry.github.io/ai-delivery-framework/poc/ChatGPT_Git/logo.png",
   "contact_email": "support@stewmckendry.com",
-  "legal_info_url": "https://stewmckendry.github.io/ai-concussion-agent/legal"
+  "legal_info_url": "https://stewmckendry.github.io/ai-delivery-framework/legal"
 }

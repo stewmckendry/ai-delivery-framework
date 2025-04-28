@@ -11,7 +11,7 @@ inputs:
 
 📁 MEMORY:
 - path: docs/specs/spec_<feature_id>.md
-  repo: stewmckendry/ai-concussion-agent
+  repo: stewmckendry/ai-delivery-framework
 
 📡 TOOL USE:
 Use the GitHub File Tool’s POST /batch-files endpoint to fetch all inputs.

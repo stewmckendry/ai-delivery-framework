@@ -36,7 +36,7 @@ from typing import List, Dict
 app = FastAPI()
 
 GITHUB_API = "https://api.github.com"
-REPO = "stewmckendry/ai-concussion-agent"
+REPO = "stewmckendry/ai-delivery-framework"
 BRANCH = "main"
 
 

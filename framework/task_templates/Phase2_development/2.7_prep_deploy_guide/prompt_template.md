@@ -10,9 +10,9 @@ description: Create a guide to deploy the current feature set to a test, staging
 
 📁 MEMORY:
 - path: docs/specs/spec_<feature_id>.md  
-  repo: stewmckendry/ai-concussion-agent  
+  repo: stewmckendry/ai-delivery-framework  
 - path: .patches/patch_<timestamp>.diff  
-  repo: stewmckendry/ai-concussion-agent  
+  repo: stewmckendry/ai-delivery-framework  
 
 📡 TOOL USE:
 Use the GitHub File Tool to retrieve:

@@ -22,9 +22,9 @@ inputs:
 📁 MEMORY:
 ```yaml
 - path: src/models/agent/concussion_agent.py
-  repo: stewmckendry/ai-concussion-agent
+  repo: stewmckendry/ai-delivery-framework
 - path: src/models/agent/concussion_validator.py
-  repo: stewmckendry/ai-concussion-agent
+  repo: stewmckendry/ai-delivery-framework
 ```
 
 📡 TOOL USE:
@@ -67,8 +67,8 @@ class ConcussionValidator:
 
 ✅ Place these in your repo at:
 ```
-ai-concussion-agent/src/models/agent/concussion_agent.py
-ai-concussion-agent/src/models/agent/concussion_validator.py
+ai-delivery-framework/src/models/agent/concussion_agent.py
+ai-delivery-framework/src/models/agent/concussion_validator.py
 ```
 
 ---

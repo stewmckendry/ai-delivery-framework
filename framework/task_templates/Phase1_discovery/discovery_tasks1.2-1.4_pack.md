@@ -92,8 +92,8 @@ template: true
 
 user_roles:
     - path: docs/personas/user_roles.md
-      repo: stewmckendry/ai-concussion-agent
-      raw_url: https://raw.githubusercontent.com/stewmckendry/ai-concussion-agent/main/docs/personas/user_roles.md
+      repo: stewmckendry/ai-delivery-framework
+      raw_url: https://raw.githubusercontent.com/stewmckendry/ai-delivery-framework/main/docs/personas/user_roles.md
       file_type: markdown
       description: Personas and user roles that interact with the application
       tags: [personas, user_flows]
@@ -104,8 +104,8 @@ user_roles:
         notes: Initial persona sketches
 app_walkthrough:
       - path: docs/journeys/app_walkthrough.md
-        repo: stewmckendry/ai-concussion-agent
-        raw_url: https://raw.githubusercontent.com/stewmckendry/ai-concussion-agent/main/docs/journeys/app_walkthrough.md
+        repo: stewmckendry/ai-delivery-framework
+        raw_url: https://raw.githubusercontent.com/stewmckendry/ai-delivery-framework/main/docs/journeys/app_walkthrough.md
         file_type: markdown
         description: End-to-end walkthrough of the app from a user perspective
         tags: [journeys, user_flows]
@@ -116,8 +116,8 @@ app_walkthrough:
         notes: App experience draft
 delivery_flow:
       - path: docs/workflows/delivery_flow.md
-        repo: stewmckendry/ai-concussion-agent
-        raw_url: https://raw.githubusercontent.com/stewmckendry/ai-concussion-agent/main/docs/workflows/delivery_flow.md
+        repo: stewmckendry/ai-delivery-framework
+        raw_url: https://raw.githubusercontent.com/stewmckendry/ai-delivery-framework/main/docs/workflows/delivery_flow.md
         file_type: markdown
         description: Delivery flow including SDLC phases and pod roles
         tags: [delivery_flow, workflows]
@@ -128,8 +128,8 @@ delivery_flow:
         notes: Draft for review based on ai_delivery_operating_system.md
 ai_delivery_operating_system:
       - path: docs/ai_delivery_operating_system.md
-        repo: stewmckendry/ai-concussion-agent
-        raw_url: https://raw.githubusercontent.com/stewmckendry/ai-concussion-agent/main/docs/ai_delivery_operating_system.md
+        repo: stewmckendry/ai-delivery-framework
+        raw_url: https://raw.githubusercontent.com/stewmckendry/ai-delivery-framework/main/docs/ai_delivery_operating_system.md
         file_type: markdown
         description: Canonical SDLC model and pod role definitions
         tags: [delivery_flow, architecture, sdlc]
@@ -143,8 +143,8 @@ ai_delivery_operating_system:
 1.3_break_into_features:
     memory:
       - path: docs/project_goals.md
-        repo: stewmckendry/ai-concussion-agent
-        raw_url: https://raw.githubusercontent.com/stewmckendry/ai-concussion-agent/main/docs/project_goals.md
+        repo: stewmckendry/ai-delivery-framework
+        raw_url: https://raw.githubusercontent.com/stewmckendry/ai-delivery-framework/main/docs/project_goals.md
         file_type: markdown
         description: Describes overall project goals and vision
         tags: [project_goals]
@@ -155,7 +155,7 @@ ai_delivery_operating_system:
         notes: Captured at project kickoff
 
       - path: docs/personas/user_roles.md
-        raw_url: https://raw.githubusercontent.com/stewmckendry/ai-concussion-agent/main/docs/personas/user_roles.md
+        raw_url: https://raw.githubusercontent.com/stewmckendry/ai-delivery-framework/main/docs/personas/user_roles.md
         file_type: markdown
         description: Personas and user roles that interact with the application
         tags: [personas, user_flows]
@@ -166,7 +166,7 @@ ai_delivery_operating_system:
         notes: Initial persona sketches
 
       - path: docs/journeys/app_walkthrough.md
-        raw_url: https://raw.githubusercontent.com/stewmckendry/ai-concussion-agent/main/docs/journeys/app_walkthrough.md
+        raw_url: https://raw.githubusercontent.com/stewmckendry/ai-delivery-framework/main/docs/journeys/app_walkthrough.md
         file_type: markdown
         description: End-to-end walkthrough of the app from a user perspective
         tags: [journeys, user_flows]
@@ -179,8 +179,8 @@ ai_delivery_operating_system:
   1.4_write_acceptance_criteria:
     memory:
       - path: docs/features/feature_*.md
-        repo: stewmckendry/ai-concussion-agent
-        raw_url: https://raw.githubusercontent.com/stewmckendry/ai-concussion-agent/main/docs/features/feature_sample.md
+        repo: stewmckendry/ai-delivery-framework
+        raw_url: https://raw.githubusercontent.com/stewmckendry/ai-delivery-framework/main/docs/features/feature_sample.md
         file_type: markdown
         description: Feature descriptions, functionality specs, hypotheses
         tags: [features]
@@ -191,8 +191,8 @@ ai_delivery_operating_system:
         notes: Draft feature specs
 
       - path: docs/qa/acceptance_matrix.md
-        repo: stewmckendry/ai-concussion-agent
-        raw_url: https://raw.githubusercontent.com/stewmckendry/ai-concussion-agent/main/docs/qa/acceptance_matrix.md
+        repo: stewmckendry/ai-delivery-framework
+        raw_url: https://raw.githubusercontent.com/stewmckendry/ai-delivery-framework/main/docs/qa/acceptance_matrix.md
         file_type: markdown
         description: Acceptance criteria for key features and flows
         tags: [qa, acceptance_criteria]
@@ -222,11 +222,11 @@ inputs:
 
 📁 MEMORY:
 - path: docs/personas/user_roles.md
-  repo: stewmckendry/ai-concussion-agent
+  repo: stewmckendry/ai-delivery-framework
 - path: docs/journeys/app_walkthrough.md
-  repo: stewmckendry/ai-concussion-agent
+  repo: stewmckendry/ai-delivery-framework
 - path: docs/workflows/delivery_flow.md
-  repo: stewmckendry/ai-concussion-agent
+  repo: stewmckendry/ai-delivery-framework
 
 📡 TOOL USE:
 Use the GitHub File Tool’s POST /batch-files endpoint to fetch all inputs.
@@ -287,7 +287,7 @@ inputs:
 
 📁 MEMORY:
 - path: docs/project_goals.md
-  repo: stewmckendry/ai-concussion-agent
+  repo: stewmckendry/ai-delivery-framework
 
 📡 TOOL USE:
 Use the GitHub File Tool’s GET /repos/.../contents/... endpoint to fetch the project goals.
@@ -347,9 +347,9 @@ inputs:
 
 📁 MEMORY:
 - path: docs/features/feature_*.md
-  repo: stewmckendry/ai-concussion-agent
+  repo: stewmckendry/ai-delivery-framework
 - path: docs/qa/acceptance_matrix.md
-  repo: stewmckendry/ai-concussion-agent
+  repo: stewmckendry/ai-delivery-framework
 
 📡 TOOL USE:
 Use the GitHub File Tool to retrieve both feature spec(s) and QA matrix.

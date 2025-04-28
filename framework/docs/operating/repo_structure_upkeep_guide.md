@@ -8,7 +8,7 @@ This guide defines the **standard structure** and **upkeep practices** for all A
 ## 📁 Directory Structure (Expanded)
 
 ```
-ai-concussion-agent/
+ai-delivery-framework/
 ├── task.yaml                      # Central task backlog + metadata
 ├── .patches/                      # Git-formatted patch files
 ├── .logs/

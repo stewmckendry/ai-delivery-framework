@@ -235,7 +235,7 @@ class BatchPatchRequest(BaseModel):
 @router.post("/batch-promote-patch")
 async def batch_promote_patch(request: BatchPatchRequest):
     g = Github(os.getenv("GITHUB_TOKEN"))
-    repo = g.get_repo(os.getenv("GITHUB_REPO"))  # e.g., "stewmckendry/ai-concussion-agent"
+    repo = g.get_repo(os.getenv("GITHUB_REPO"))  # e.g., "stewmckendry/ai-delivery-framework"
 
     results = []
 

@@ -10,11 +10,11 @@ description: Investigate unresolved technical or domain-specific questions raise
 
 📁 MEMORY:
 - path: .logs/feedback/2.x_*.md  
-  repo: stewmckendry/ai-concussion-agent  
+  repo: stewmckendry/ai-delivery-framework  
 - path: docs/specs/spec_<feature_id>.md  
-  repo: stewmckendry/ai-concussion-agent  
+  repo: stewmckendry/ai-delivery-framework  
 - path: docs/qa/acceptance_matrix.md  
-  repo: stewmckendry/ai-concussion-agent  
+  repo: stewmckendry/ai-delivery-framework  
 
 📡 TOOL USE:
 Use the GitHub File Tool’s POST /batch-files endpoint to fetch all inputs.
