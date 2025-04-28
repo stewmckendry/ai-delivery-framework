@@ -247,27 +247,20 @@ Keep your summary under 250 words.
 
 # --- Utility Functions for Project Initialization ---
 
-def create_project_structure(github_repo, project_path: str):
-    folders = [
-        f"{project_path}/outputs/",
-        f"{project_path}/scripts/",
-        f"{project_path}/templates/"
-    ]
-    for folder in folders:
-        github_repo.create_file(folder + ".keep", "Initialize folder", "", branch="main")
-
 def copy_framework_baseline(source_repo, destination_repo, source_path, dest_path):
     contents = source_repo.get_contents(source_path)
     for item in contents:
         if item.type == "dir":
             # Recursively copy subfolders
-            copy_framework_baseline(source_repo, destination_repo, item.path, f"{dest_path}/{item.name}")
+            new_dest_path = f"{dest_path}/{item.name}" if dest_path else item.name
+            copy_framework_baseline(source_repo, destination_repo, item.path, new_dest_path)
         else:
             file_content_bytes = source_repo.get_contents(item.path).decoded_content
             try:
                 # Try to decode as text (utf-8)
                 file_content = file_content_bytes.decode('utf-8')
-                destination_repo.create_file(f"{dest_path}/{item.name}", f"Copied {item.name} from framework", file_content)
+                destination_path = f"{dest_path}/{item.name}" if dest_path else item.name
+                destination_repo.create_file(destination_path, f"Copied {item.name} from framework", file_content)
             except UnicodeDecodeError:
                 # It's binary — skip it safely
                 print(f"⚠️ Skipping binary file during copy: {item.path}")
