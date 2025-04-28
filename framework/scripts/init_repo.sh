@@ -30,7 +30,7 @@ mkdir -p project/logs
 mkdir -p project/test
 
 # Also create empty /framework/ folder to be filled later by /project/init_project
-#mkdir -p framework
+mkdir -p framework
 
 # Touch basic placeholder files if necessary
 touch project/outputs/.gitkeep

@@ -5,6 +5,7 @@ from fastapi import FastAPI, HTTPException, Request, Body, Query, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, FileResponse
 from fastapi.openapi.utils import get_openapi
+from fastapi import BackgroundTasks
 from pydantic import BaseModel
 from typing import List, Dict, Optional
 from pathlib import Path
@@ -246,6 +247,32 @@ Keep your summary under 250 words.
     return project_summary
 
 # --- Utility Functions for Project Initialization ---
+
+def run_project_initialization(project_name: str, repo_name: str, project_description: str):
+    try:
+        github_client = Github(GITHUB_TOKEN)
+
+        framework_repo = github_client.get_repo("stewmckendry/ai-delivery-framework")
+        project_repo = github_client.get_repo(f"stewmckendry/{repo_name}")
+
+        framework_path = "framework"
+        framework_dest_path = ""  # ⬅️ will stay clean
+        project_base_path = "project"
+
+        # Validate framework exists
+        framework_repo.get_contents(framework_path)
+
+        # Copy framework files
+        copy_framework_baseline(framework_repo, project_repo, framework_path, framework_dest_path)
+
+        # Create initial project files
+        create_initial_files(project_repo, project_base_path, project_name, project_description)
+
+        print(f"✅ Finished initializing project {project_name} into {repo_name}")
+
+    except Exception as e:
+        print(f"❌ Exception inside run_project_initialization: {type(e).__name__}: {e}")
+
 
 def copy_framework_baseline(source_repo, destination_repo, source_path, dest_path):
     contents = source_repo.get_contents(source_path)
@@ -996,32 +1023,21 @@ def get_metrics_summary():
 
 # ---- Project Initialization ----
 
+from fastapi import BackgroundTasks
+
 @app.post("/project/init_project")
-async def init_project(project_name: str = Body(...), repo_name: str = Body(...), project_description: str = Body(...)):
+async def init_project(
+    background_tasks: BackgroundTasks,
+    project_name: str = Body(...),
+    repo_name: str = Body(...),
+    project_description: str = Body(...)
+):
     try:
-        print(f"🚀 Starting project init for {project_name} into repo {repo_name}")
+        print(f"🚀 Project init requested for {project_name} into repo {repo_name}")
 
-        github_client = Github(GITHUB_TOKEN)
+        background_tasks.add_task(run_project_initialization, project_name, repo_name, project_description)
 
-        framework_repo = github_client.get_repo("stewmckendry/ai-delivery-framework")
-        project_repo = github_client.get_repo(f"stewmckendry/{repo_name}")
-
-        framework_path = "framework"    # <- source path in ai-delivery-framework
-        framework_dest_path = ""        # <- destination base path = root
-        project_base_path = "project"   # <- destination base path for project files
-
-        # Validate framework exists
-        framework_repo.get_contents(framework_path)
-
-        # Copy framework files
-        copy_framework_baseline(framework_repo, project_repo, framework_path, framework_dest_path)
-
-        # Create standard /project/ structure and files
-        create_initial_files(project_repo, project_base_path, project_name, project_description)
-
-        print(f"✅ Project {project_name} initialized successfully.")
-
-        return {"message": f"Initialized project {project_name} in repo {repo_name}.", "project_path": project_path}
+        return {"message": "Project initialization started. Check GitHub repo in 1-2 minutes."}
 
     except Exception as e:
         print(f"❌ Exception during init_project: {type(e).__name__}: {e}")
