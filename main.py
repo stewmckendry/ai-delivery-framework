@@ -265,38 +265,41 @@ def copy_framework_baseline(source_repo, destination_repo, source_path, dest_pat
         else:
             file_content = source_repo.get_contents(item.path).decoded_content.decode()
             destination_repo.create_file(f"{dest_path}/{item.name}", f"Copied {item.name} from framework", file_content)
-            
-def create_initial_files(github_repo, project_path: str, project_description: str):
-    task_template = """tasks:
+
+def create_initial_files(project_repo, project_name, project_description):
+    starter_task_yaml = f"""tasks:
   1.1_capture_project_goals:
-    description: Capture project goals
+    description: Help capture and summarize the goals, purpose, and intended impact of the project.
     phase: Phase 1 - Discovery
     category: discovery
-    pod_owner: DevPod
+    pod_owner: DeliveryPod
     status: pending
-    prompt: prompts/dev/1.1_capture_project_goals_prompt.txt
+    prompt: prompts/used/{project_name}_capture_project_goals_prompt.txt
     inputs: []
-    outputs: []
+    outputs:
+      - outputs/project_goals.md
     ready: true
     done: false
-"""
-    memory_stub = """files:
-  - path: task.yaml
-    description: Task backlog
-    tags: [tasks]
-"""
-    prompt_used = f"""🧠 Project: {project_description}
-Scope: Full lifecycle delivery
+    created_by: human
+    created_at: {datetime.utcnow().isoformat()}
+    updated_at: {datetime.utcnow().isoformat()}
 """
 
-    files_to_create = {
-        f"{project_path}/task.yaml": task_template,
-        f"{project_path}/memory.yaml": memory_stub,
-        f"{project_path}/outputs/project_init/prompt_used.txt": prompt_used,
-        f"{project_path}/outputs/project_init/reasoning_trace.md": "Project initialization reasoning trace."
-    }
-    for file_path, content in files_to_create.items():
-        github_repo.create_file(file_path, f"Create {file_path.split('/')[-1]}", content, branch="main")
+    starter_memory_yaml = f"""memory:
+  context:
+    project_name: {project_name}
+    project_description: {project_description}
+    created_at: {datetime.utcnow().isoformat()}
+"""
+
+    # Create base files
+    project_repo.create_file("task.yaml", "Initialize task.yaml", starter_task_yaml)
+    project_repo.create_file("memory.yaml", "Initialize memory.yaml", starter_memory_yaml)
+
+    # Ensure /outputs/project_init exists with starter files
+    project_repo.create_file("outputs/project_init/prompt_used.txt", "Capture initial project prompt", f"Project: {project_name}\nDescription: {project_description}")
+    project_repo.create_file("outputs/project_init/reasoning_trace.md", "Initial project reasoning trace", f"# Reasoning Trace for {project_name}\n\n- Project initialized with AI Native Delivery Framework.\n- Project Description: {project_description}\n- Initialization Date: {datetime.utcnow().isoformat()}")
+
 
 # ---- (5) API Routes ----
 
@@ -999,11 +1002,10 @@ def get_metrics_summary():
 async def init_project(project_name: str = Body(...), repo_name: str = Body(...), project_description: str = Body(...)):
     github_client = Github(GITHUB_TOKEN)
 
-    framework_repo = github_client.get_repo(f"stewmckendry/{GITHUB_REPO}")  # <-- source framework
-    project_repo = github_client.get_repo(f"stewmckendry/{repo_name}")              # <-- destination project
+    framework_repo = github_client.get_repo("stewmckendry/ai-delivery-framework")  # Source
+    project_repo = github_client.get_repo(f"stewmckendry/{repo_name}")              # Destination
 
     framework_path = "framework"
-    project_path = f"project/{project_name}"
 
     # Validate framework folder exists in source repo
     try:
@@ -1011,16 +1013,16 @@ async def init_project(project_name: str = Body(...), repo_name: str = Body(...)
     except Exception:
         raise HTTPException(status_code=400, detail="Framework folder missing in source repo.")
 
-    # Create project structure inside destination repo
-    create_project_structure(project_repo, project_path)
+    # Copy framework baseline into project repo (at /framework/)
+    copy_framework_baseline(framework_repo, project_repo, framework_path, "framework")
 
-    # Copy framework baseline from source to destination
-    copy_framework_baseline(framework_repo, project_repo, framework_path, project_path)
+    # Create starter task.yaml, memory.yaml, outputs/project_init/, etc. directly at root
+    create_initial_files(project_repo, project_name, project_description)
 
-    # Create starter task.yaml, memory.yaml, and reasoning files
-    create_initial_files(project_repo, project_path, project_description)
-
-    return {"message": "Project initialization complete."}
+    return {
+        "message": f"Initialized project {project_name} in repo {repo_name}.",
+        "project_path": f"/"
+    }
 
 
 # ---- OpenAPI JSON Schema ----
