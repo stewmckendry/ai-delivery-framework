@@ -1006,9 +1006,9 @@ async def init_project(project_name: str = Body(...), repo_name: str = Body(...)
         framework_repo = github_client.get_repo("stewmckendry/ai-delivery-framework")
         project_repo = github_client.get_repo(f"stewmckendry/{repo_name}")
 
-        framework_path = "framework"
-        framework_dest_path = "framework"  # 👈 always copy under /framework
-        project_base_path = "project"      # 👈 always work under /project
+        framework_path = "framework"    # <- source path in ai-delivery-framework
+        framework_dest_path = ""        # <- destination base path = root
+        project_base_path = "project"   # <- destination base path for project files
 
         # Validate framework exists
         framework_repo.get_contents(framework_path)
