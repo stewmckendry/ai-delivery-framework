@@ -1000,29 +1000,35 @@ def get_metrics_summary():
 
 @app.post("/project/init_project")
 async def init_project(project_name: str = Body(...), repo_name: str = Body(...), project_description: str = Body(...)):
-    github_client = Github(GITHUB_TOKEN)
-
-    framework_repo = github_client.get_repo("stewmckendry/ai-delivery-framework")  # Source
-    project_repo = github_client.get_repo(f"stewmckendry/{repo_name}")              # Destination
-
-    framework_path = "framework"
-
-    # Validate framework folder exists in source repo
     try:
+        print(f"🚀 Starting project init for {project_name} into repo {repo_name}")
+
+        github_client = Github(GITHUB_TOKEN)
+
+        framework_repo = github_client.get_repo("stewmckendry/ai-delivery-framework")
+        project_repo = github_client.get_repo(f"stewmckendry/{repo_name}")
+
+        framework_path = "framework"
+        project_path = f"project/{project_name}"
+
+        # Validate framework exists
         framework_repo.get_contents(framework_path)
-    except Exception:
-        raise HTTPException(status_code=400, detail="Framework folder missing in source repo.")
 
-    # Copy framework baseline into project repo (at /framework/)
-    copy_framework_baseline(framework_repo, project_repo, framework_path, "framework")
+        # Create structure + copy files
+        create_project_structure(project_repo, project_path)
+        copy_framework_baseline(framework_repo, project_repo, framework_path, project_path)
+        create_initial_files(project_repo, project_path, project_description)
 
-    # Create starter task.yaml, memory.yaml, outputs/project_init/, etc. directly at root
-    create_initial_files(project_repo, project_name, project_description)
+        print(f"✅ Project {project_name} initialized successfully.")
 
-    return {
-        "message": f"Initialized project {project_name} in repo {repo_name}.",
-        "project_path": f"/"
-    }
+        return {"message": f"Initialized project {project_name} in repo {repo_name}.", "project_path": project_path}
+
+    except Exception as e:
+        print(f"❌ Exception during init_project: {type(e).__name__}: {e}")
+        return JSONResponse(
+            status_code=500,
+            content={"detail": f"Internal Server Error: {type(e).__name__}: {e}"}
+        )
 
 
 # ---- OpenAPI JSON Schema ----
