@@ -264,7 +264,7 @@ def copy_framework_baseline(source_repo, destination_repo, source_path, dest_pat
                 print(f"⚠️ Skipping binary file during copy: {item.path}")
 
 
-def create_initial_files(project_repo, project_name, project_description):
+def create_initial_files(project_repo, project_base_path, project_name, project_description):
     starter_task_yaml = f"""tasks:
   1.1_capture_project_goals:
     description: Help capture and summarize the goals, purpose, and intended impact of the project.
@@ -290,13 +290,13 @@ def create_initial_files(project_repo, project_name, project_description):
     created_at: {datetime.utcnow().isoformat()}
 """
 
-    # Create base files
-    project_repo.create_file("task.yaml", "Initialize task.yaml", starter_task_yaml)
-    project_repo.create_file("memory.yaml", "Initialize memory.yaml", starter_memory_yaml)
+    # Create under the project base path
+    project_repo.create_file(f"{project_base_path}/task.yaml", "Initialize task.yaml", starter_task_yaml)
+    project_repo.create_file(f"{project_base_path}/memory.yaml", "Initialize memory.yaml", starter_memory_yaml)
 
-    # Ensure /outputs/project_init exists with starter files
-    project_repo.create_file("outputs/project_init/prompt_used.txt", "Capture initial project prompt", f"Project: {project_name}\nDescription: {project_description}")
-    project_repo.create_file("outputs/project_init/reasoning_trace.md", "Initial project reasoning trace", f"# Reasoning Trace for {project_name}\n\n- Project initialized with AI Native Delivery Framework.\n- Project Description: {project_description}\n- Initialization Date: {datetime.utcnow().isoformat()}")
+    # Outputs folder
+    project_repo.create_file(f"{project_base_path}/outputs/project_init/prompt_used.txt", "Capture initial project prompt", f"Project: {project_name}\nDescription: {project_description}")
+    project_repo.create_file(f"{project_base_path}/outputs/project_init/reasoning_trace.md", "Initial project reasoning trace", f"# Reasoning Trace for {project_name}\n\n- Project initialized with AI Native Delivery Framework.\n- Project Description: {project_description}\n- Initialization Date: {datetime.utcnow().isoformat()}")
 
 
 # ---- (5) API Routes ----
@@ -1007,14 +1007,17 @@ async def init_project(project_name: str = Body(...), repo_name: str = Body(...)
         project_repo = github_client.get_repo(f"stewmckendry/{repo_name}")
 
         framework_path = "framework"
-        project_path = ""
+        framework_dest_path = "framework"  # 👈 always copy under /framework
+        project_base_path = "project"      # 👈 always work under /project
 
         # Validate framework exists
         framework_repo.get_contents(framework_path)
 
-        # Create structure + copy files
-        copy_framework_baseline(framework_repo, project_repo, framework_path, project_path)
-        create_initial_files(project_repo, project_path, project_description)
+        # Copy framework files
+        copy_framework_baseline(framework_repo, project_repo, framework_path, framework_dest_path)
+
+        # Create standard /project/ structure and files
+        create_initial_files(project_repo, project_base_path, project_name, project_description)
 
         print(f"✅ Project {project_name} initialized successfully.")
 
