@@ -244,6 +244,57 @@ Keep your summary under 250 words.
     project_summary = response.choices[0].message.content.strip()
     return project_summary
 
+# --- Utility Functions for Project Initialization ---
+
+def create_project_structure(github_repo, project_path: str):
+    folders = [
+        f"{project_path}/outputs/",
+        f"{project_path}/scripts/",
+        f"{project_path}/templates/"
+    ]
+    for folder in folders:
+        github_repo.create_file(folder + ".keep", "Initialize folder", "", branch="main")
+
+def copy_framework_baseline(github_repo, framework_path: str, project_path: str):
+    contents = github_repo.get_contents(framework_path)
+    for content_file in contents:
+        if content_file.type == "file":
+            file_data = github_repo.get_contents(content_file.path).decoded_content.decode()
+            dest_path = f"{project_path}/framework/{content_file.name}"
+            github_repo.create_file(dest_path, f"Copy framework file {content_file.name}", file_data, branch="main")
+
+def create_initial_files(github_repo, project_path: str, project_description: str):
+    task_template = """tasks:
+  1.1_capture_project_goals:
+    description: Capture project goals
+    phase: Phase 1 - Discovery
+    category: discovery
+    pod_owner: DevPod
+    status: pending
+    prompt: prompts/dev/1.1_capture_project_goals_prompt.txt
+    inputs: []
+    outputs: []
+    ready: true
+    done: false
+"""
+    memory_stub = """files:
+  - path: task.yaml
+    description: Task backlog
+    tags: [tasks]
+"""
+    prompt_used = f"""🧠 Project: {project_description}
+Scope: Full lifecycle delivery
+"""
+
+    files_to_create = {
+        f"{project_path}/task.yaml": task_template,
+        f"{project_path}/memory.yaml": memory_stub,
+        f"{project_path}/outputs/project_init/prompt_used.txt": prompt_used,
+        f"{project_path}/outputs/project_init/reasoning_trace.md": "Project initialization reasoning trace."
+    }
+    for file_path, content in files_to_create.items():
+        github_repo.create_file(file_path, f"Create {file_path.split('/')[-1]}", content, branch="main")
+
 # ---- (5) API Routes ----
 
 # ---- Root ----
@@ -938,6 +989,43 @@ def get_metrics_summary():
     reasoning_summary = generate_project_reasoning_summary()
     summary["reasoning_summary"] = reasoning_summary
     return summary
+
+# ---- Project Initialization ----
+
+@app.post("/project/init_project")
+def init_project(
+    repo_name: str = Body(...),
+    project_name: str = Body(...),
+    project_description: str = Body(...)
+):
+    from github import Github
+
+    # Authenticate
+    github_client = Github(GITHUB_TOKEN)
+    github_repo = github_client.get_repo(f"stewmckendry/{repo_name}")
+
+    framework_path = "framework"
+    project_path = f"project/{project_name}"
+
+    # Validate framework folder exists
+    try:
+        github_repo.get_contents(framework_path)
+    except Exception:
+        raise HTTPException(status_code=400, detail="Framework folder missing — cannot initialize project.")
+
+    # Create project structure
+    create_project_structure(github_repo, project_path)
+
+    # Copy framework baseline
+    copy_framework_baseline(github_repo, framework_path, project_path)
+
+    # Create initial task.yaml, memory.yaml, reasoning files
+    create_initial_files(github_repo, project_path, project_description)
+
+    return {
+        "message": f"Initialized project {project_name} in repo {repo_name}.",
+        "project_path": project_path
+    }
 
 # ---- OpenAPI JSON Schema ----
 

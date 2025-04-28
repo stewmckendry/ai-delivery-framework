@@ -754,6 +754,51 @@
           }
         }
       }
+    },
+    "/project/init_project": {
+      "post": {
+        "operationId": "initProject",
+        "summary": "Initialize a new project in the given repo",
+        "tags": ["Project"],
+        "x-gpt-action": {
+          "name": "Initialize Project"
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["repo_name", "project_name", "project_description"],
+                "properties": {
+                  "repo_name": { "type": "string" },
+                  "project_name": { "type": "string" },
+                  "project_description": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful project initialization",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": { "type": "string" },
+                    "project_path": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Framework folder missing"
+          }
+        }
+      }
     }
   }
 }
