@@ -122,414 +122,137 @@
             }
           }
         }
-      }
-    },    
-    "/tasks/update_metadata/{task_id}": {
-      "patch": {
-        "operationId": "updateTaskMetadata",
-        "summary": "Update metadata fields for a task",
-        "tags": ["Tasks"],
-        "x-gpt-action": {
-          "name": "Update Task Metadata"
-        },
-        "parameters": [
-          {
-            "name": "task_id",
-            "in": "path",
+      },
+      "/tasks/update_metadata/{task_id}": {
+        "patch": {
+          "operationId": "updateTaskMetadata",
+          "summary": "Update metadata fields for a task",
+          "tags": ["Tasks"],
+          "x-gpt-action": {
+            "name": "Update Task Metadata"
+          },
+          "parameters": [
+            {
+              "name": "task_id",
+              "in": "path",
+              "required": true,
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "requestBody": {
             "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "description": { "type": "string" },
-                  "prompt": { "type": "string" },
-                  "inputs": { "type": "array", "items": { "type": "string" } },
-                  "outputs": { "type": "array", "items": { "type": "string" } },
-                  "ready": { "type": "boolean" },
-                  "done": { "type": "boolean" }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Task metadata updated successfully",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "message": { "type": "string" },
-                    "task_id": { "type": "string" },
-                    "updated_task_metadata": { "type": "object" },
-                    "updated_tasks": { "type": "object" }
+                    "description": { "type": "string" },
+                    "prompt": { "type": "string" },
+                    "inputs": { "type": "array", "items": { "type": "string" } },
+                    "outputs": { "type": "array", "items": { "type": "string" } },
+                    "ready": { "type": "boolean" },
+                    "done": { "type": "boolean" }
                   }
                 }
               }
             }
           },
-          "404": {
-            "description": "Task not found"
-          }
-        }
-      }
-    },
-    "/tasks/list": {
-      "get": {
-        "operationId": "listTasks",
-        "summary": "List tasks from GitHub task.yaml",
-        "tags": ["Tasks"],
-        "x-gpt-action": {
-          "name": "List All Tasks"
-        },
-        "parameters": [
-          { "name": "status", "in": "query", "required": false, "schema": { "type": "string" } },
-          { "name": "pod_owner", "in": "query", "required": false, "schema": { "type": "string" } },
-          { "name": "category", "in": "query", "required": false, "schema": { "type": "string" } }
-        ],
-        "responses": {
-          "200": {
-            "description": "List of tasks",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "tasks": {
-                      "type": "object",
-                      "additionalProperties": { "type": "object" }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Error fetching task.yaml"
-          }
-        }
-      }
-    },
-    "/tasks/activate": {
-      "post": {
-        "operationId": "activateTask",
-        "summary": "Activate a task and retrieve updated metadata and prompt",
-        "tags": ["Tasks"],
-        "x-gpt-action": {
-          "name": "Activate Task"
-        },
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": ["task_id"],
-                "properties": {
-                  "task_id": { "type": "string" }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful activation and prompt retrieval",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "task": { "type": "object" },
-                    "all_tasks": { "type": "object" },
-                    "status": { "type": "string" },
-                    "prompt_path": { "type": "string" },
-                    "prompt_content": { "type": "string" }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/tasks/clone": {
-      "post": {
-        "operationId": "cloneTask",
-        "summary": "Clone an existing task and generate a new task ID and metadata",
-        "tags": ["Tasks"],
-        "x-gpt-action": {
-          "name": "Clone Existing Task"
-        },
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": ["original_task_id", "descriptor"],
-                "properties": {
-                  "original_task_id": { "type": "string" },
-                  "descriptor": { "type": "string" },
-                  "overrides": { "type": "object" }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Task cloned and new task ID generated",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": { "type": "string" },
-                    "new_task_id": { "type": "string" },
-                    "new_task_metadata": { "type": "object" },
-                    "updated_tasks": { "type": "object" },
-                    "original_prompt_path": { "type": "string" },
-                    "original_prompt_content": { "type": "string" }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/patches/promote": {
-      "post": {
-        "operationId": "promotePatch",
-        "summary": "Promote a patch by committing output files to a GitHub branch and opening a PR",
-        "tags": ["Patches"],
-        "x-gpt-action": {
-          "name": "Promote Patch"
-        },
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": ["task_id", "summary", "output_files", "prompt_path", "reasoning_trace"],
-                "properties": {
-                  "task_id": { "type": "string" },
-                  "summary": { "type": "string" },
-                  "output_files": {
+          "responses": {
+            "200": {
+              "description": "Task metadata updated successfully",
+              "content": {
+                "application/json": {
+                  "schema": {
                     "type": "object",
-                    "additionalProperties": { "type": "string" },
-                    "description": "Dictionary of {path: content} for files to promote"
-                  },
-                  "prompt_path": { "type": "string" },
-                  "reasoning_trace": { "type": "string" },
-                  "output_folder": {
-                    "type": "string",
-                    "default": "misc",
-                    "description": "Optional output folder name for branch naming"
-                  },
-                  "handoff_notes": {
-                    "type": "string",
-                    "description": "Optional handoff notes to be saved in logs"
+                    "properties": {
+                      "message": { "type": "string" },
+                      "task_id": { "type": "string" },
+                      "updated_task_metadata": { "type": "object" },
+                      "updated_tasks": { "type": "object" }
+                    }
                   }
                 }
               }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Patch promoted and PR created",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "pr_url": { "type": "string" },
-                    "branch_name": { "type": "string" }
-                  }
-                }
-              }
+            },
+            "404": {
+              "description": "Task not found"
             }
           }
         }
-      }
-    },
-    "/tasks/{task_id}": {
-      "get": {
-        "operationId": "getTaskDetails",
-        "summary": "Return full metadata for a task",
-        "tags": ["Tasks"],
-        "x-gpt-action": {
-          "name": "Get Task Details"
-        },
-        "parameters": [
-          {
-            "name": "task_id",
-            "in": "path",
-            "required": true,
-            "schema": { "type": "string" }
+      },
+      "/tasks/list": {
+        "get": {
+          "operationId": "listTasks",
+          "summary": "List tasks from GitHub task.yaml",
+          "tags": ["Tasks"],
+          "x-gpt-action": {
+            "name": "List All Tasks"
+          },
+          "parameters": [
+            { "name": "status", "in": "query", "required": false, "schema": { "type": "string" } },
+            { "name": "pod_owner", "in": "query", "required": false, "schema": { "type": "string" } },
+            { "name": "category", "in": "query", "required": false, "schema": { "type": "string" } }
+          ],
+          "responses": {
+            "200": {
+              "description": "List of tasks",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "tasks": {
+                        "type": "object",
+                        "additionalProperties": { "type": "object" }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "500": {
+              "description": "Error fetching task.yaml"
+            }
           }
-        ],
-        "responses": {
-          "200": {
-            "description": "Metadata for a single task",
+        }
+      },
+      "/tasks/activate": {
+        "post": {
+          "operationId": "activateTask",
+          "summary": "Activate a task and retrieve updated metadata and prompt",
+          "tags": ["Tasks"],
+          "x-gpt-action": {
+            "name": "Activate Task"
+          },
+          "requestBody": {
+            "required": true,
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
+                  "required": ["task_id"],
                   "properties": {
-                    "task_id": { "type": "string" },
-                    "metadata": { "type": "object" }
+                    "task_id": { "type": "string" }
                   }
                 }
               }
             }
           },
-          "404": {
-            "description": "Task not found"
-          }
-        }
-      }
-    },
-    "/tasks/create": {
-      "post": {
-        "operationId": "createNewTask",
-        "summary": "Create a new custom task from scratch",
-        "tags": ["Tasks"],
-        "x-gpt-action": {
-          "name": "Create New Task"
-        },
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": ["phase", "category", "description", "pod_owner", "descriptor"],
-                "properties": {
-                  "phase": { "type": "string" },
-                  "category": { "type": "string" },
-                  "description": { "type": "string" },
-                  "pod_owner": { "type": "string" },
-                  "inputs": { "type": "array", "items": { "type": "string" } },
-                  "outputs": { "type": "array", "items": { "type": "string" } },
-                  "descriptor": { "type": "string" }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Returns newly created task metadata and updated task list",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": { "type": "string" },
-                    "new_task_id": { "type": "string" },
-                    "new_task_metadata": { "type": "object" },
-                    "updated_tasks": { "type": "object" }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/memory/index": {
-      "post": {
-        "operationId": "indexMemory",
-        "summary": "Index project files from GitHub repo into memory.yaml",
-        "tags": ["Memory"],
-        "x-gpt-action": {
-          "name": "Index Memory Files"
-        },
-        "requestBody": {
-          "required": false,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "base_paths": {
-                    "type": "array",
-                    "items": { "type": "string" },
-                    "example": ["prompts/", "scripts/", "task_templates/", "main.py", "openapi.json"]
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Indexed files and returns memory structure",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": { "type": "string" },
-                    "memory_index": { "type": "object" }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/memory/diff": {
-      "post": {
-        "operationId": "memoryDiff",
-        "summary": "Detect missing files in memory.yaml compared to GitHub repo",
-        "tags": ["Memory"],
-        "x-gpt-action": {
-          "name": "Diff Memory Files"
-        },
-        "requestBody": {
-          "required": false,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "base_paths": {
-                    "type": "array",
-                    "items": { "type": "string" },
-                    "example": ["prompts/", "scripts/", "task_templates/", "main.py", "openapi.json"]
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Returns list of missing files",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": { "type": "string" },
-                    "missing_files": {
-                      "type": "array",
-                      "items": { "type": "string" }
+          "responses": {
+            "200": {
+              "description": "Successful activation and prompt retrieval",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "task": { "type": "object" },
+                      "all_tasks": { "type": "object" },
+                      "status": { "type": "string" },
+                      "prompt_path": { "type": "string" },
+                      "prompt_content": { "type": "string" }
                     }
                   }
                 }
@@ -537,36 +260,275 @@
             }
           }
         }
-      }
-    },
-    "/memory/add": {
-      "post": {
-        "operationId": "addToMemory",
-        "summary": "Add new files to memory.yaml",
-        "tags": ["Memory"],
-        "x-gpt-action": {
-          "name": "Add Files to Memory"
-        },
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": ["files"],
-                "properties": {
-                  "files": {
-                    "type": "array",
-                    "items": {
+      },
+      "/tasks/clone": {
+        "post": {
+          "operationId": "cloneTask",
+          "summary": "Clone an existing task and generate a new task ID and metadata",
+          "tags": ["Tasks"],
+          "x-gpt-action": {
+            "name": "Clone Existing Task"
+          },
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["original_task_id", "descriptor"],
+                  "properties": {
+                    "original_task_id": { "type": "string" },
+                    "descriptor": { "type": "string" },
+                    "overrides": { "type": "object" }
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Task cloned and new task ID generated",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "message": { "type": "string" },
+                      "new_task_id": { "type": "string" },
+                      "new_task_metadata": { "type": "object" },
+                      "updated_tasks": { "type": "object" },
+                      "original_prompt_path": { "type": "string" },
+                      "original_prompt_content": { "type": "string" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/patches/promote": {
+        "post": {
+          "operationId": "promotePatch",
+          "summary": "Promote a patch by committing output files to a GitHub branch and opening a PR",
+          "tags": ["Patches"],
+          "x-gpt-action": {
+            "name": "Promote Patch"
+          },
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["task_id", "summary", "output_files", "prompt_path", "reasoning_trace"],
+                  "properties": {
+                    "task_id": { "type": "string" },
+                    "summary": { "type": "string" },
+                    "output_files": {
                       "type": "object",
-                      "required": ["file_path", "description", "tags"],
-                      "properties": {
-                        "file_path": { "type": "string" },
-                        "description": { "type": "string" },
-                        "tags": {
-                          "type": "array",
-                          "items": { "type": "string" }
-                        }
+                      "additionalProperties": { "type": "string" },
+                      "description": "Dictionary of {path: content} for files to promote"
+                    },
+                    "prompt_path": { "type": "string" },
+                    "reasoning_trace": { "type": "string" },
+                    "output_folder": {
+                      "type": "string",
+                      "default": "misc",
+                      "description": "Optional output folder name for branch naming"
+                    },
+                    "handoff_notes": {
+                      "type": "string",
+                      "description": "Optional handoff notes to be saved in logs"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Patch promoted and PR created",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "pr_url": { "type": "string" },
+                      "branch_name": { "type": "string" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/tasks/{task_id}": {
+        "get": {
+          "operationId": "getTaskDetails",
+          "summary": "Return full metadata for a task",
+          "tags": ["Tasks"],
+          "x-gpt-action": {
+            "name": "Get Task Details"
+          },
+          "parameters": [
+            {
+              "name": "task_id",
+              "in": "path",
+              "required": true,
+              "schema": { "type": "string" }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Metadata for a single task",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "task_id": { "type": "string" },
+                      "metadata": { "type": "object" }
+                    }
+                  }
+                }
+              }
+            },
+            "404": {
+              "description": "Task not found"
+            }
+          }
+        }
+      },
+      "/tasks/create": {
+        "post": {
+          "operationId": "createNewTask",
+          "summary": "Create a new custom task from scratch",
+          "tags": ["Tasks"],
+          "x-gpt-action": {
+            "name": "Create New Task"
+          },
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["phase", "category", "description", "pod_owner", "descriptor"],
+                  "properties": {
+                    "phase": { "type": "string" },
+                    "category": { "type": "string" },
+                    "description": { "type": "string" },
+                    "pod_owner": { "type": "string" },
+                    "inputs": { "type": "array", "items": { "type": "string" } },
+                    "outputs": { "type": "array", "items": { "type": "string" } },
+                    "descriptor": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Returns newly created task metadata and updated task list",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "message": { "type": "string" },
+                      "new_task_id": { "type": "string" },
+                      "new_task_metadata": { "type": "object" },
+                      "updated_tasks": { "type": "object" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/memory/index": {
+        "post": {
+          "operationId": "indexMemory",
+          "summary": "Index project files from GitHub repo into memory.yaml",
+          "tags": ["Memory"],
+          "x-gpt-action": {
+            "name": "Index Memory Files"
+          },
+          "requestBody": {
+            "required": false,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "base_paths": {
+                      "type": "array",
+                      "items": { "type": "string" },
+                      "example": ["prompts/", "scripts/", "task_templates/", "main.py", "openapi.json"]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Indexed files and returns memory structure",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "message": { "type": "string" },
+                      "memory_index": { "type": "object" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/memory/diff": {
+        "post": {
+          "operationId": "memoryDiff",
+          "summary": "Detect missing files in memory.yaml compared to GitHub repo",
+          "tags": ["Memory"],
+          "x-gpt-action": {
+            "name": "Diff Memory Files"
+          },
+          "requestBody": {
+            "required": false,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "base_paths": {
+                      "type": "array",
+                      "items": { "type": "string" },
+                      "example": ["prompts/", "scripts/", "task_templates/", "main.py", "openapi.json"]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Returns list of missing files",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "message": { "type": "string" },
+                      "missing_files": {
+                        "type": "array",
+                        "items": { "type": "string" }
                       }
                     }
                   }
@@ -574,137 +536,33 @@
               }
             }
           }
-        },
-        "responses": {
-          "200": {
-            "description": "Updated memory.yaml structure",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": { "type": "string" },
-                    "memory_index": { "type": "object" }
-                  }
-                }
-              }
-            }
-          }
         }
-      }
-    },
-    "/memory/validate-files": {
-      "post": {
-        "operationId": "validateMemoryFileExists",
-        "summary": "Validate that given file paths exist in memory.yaml and/or GitHub",
-        "tags": ["Memory"],
-        "x-gpt-action": {
-          "name": "Validate Memory Files"
-        },
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "files": {
-                    "type": "array",
-                    "items": { "type": "string" },
-                    "example": ["docs/project_goals.md", "outputs/summary_report.md"]
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Validation results",
+      },
+      "/memory/add": {
+        "post": {
+          "operationId": "addToMemory",
+          "summary": "Add new files to memory.yaml",
+          "tags": ["Memory"],
+          "x-gpt-action": {
+            "name": "Add Files to Memory"
+          },
+          "requestBody": {
+            "required": true,
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
+                  "required": ["files"],
                   "properties": {
-                    "validated_files": {
+                    "files": {
                       "type": "array",
                       "items": {
                         "type": "object",
+                        "required": ["file_path", "description", "tags"],
                         "properties": {
                           "file_path": { "type": "string" },
-                          "exists_in_memory": { "type": "boolean" },
-                          "exists_in_github": { "type": "boolean" }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/memory/search": {
-      "get": {
-        "operationId": "searchMemory",
-        "summary": "Search memory.yaml for keyword matches",
-        "tags": ["Memory"],
-        "x-gpt-action": {
-          "name": "Search Memory by Keyword"
-        },
-        "parameters": [
-          {
-            "name": "keyword",
-            "in": "query",
-            "required": true,
-            "schema": { "type": "string" }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Matching memory entries",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "matches": {
-                      "type": "array",
-                      "items": { "type": "object" }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/actions/list": {
-      "get": {
-        "operationId": "listAvailableActions",
-        "summary": "List available tools and capabilities",
-        "description": "Returns a grouped list of actions that the GPT can perform.",
-        "tags": ["Utilities"],
-        "x-gpt-action": {
-          "name": "List Available Actions"
-        },
-        "responses": {
-          "200": {
-            "description": "List of available actions grouped by category",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "actions": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "category": { "type": "string" },
-                          "actions": {
+                          "description": { "type": "string" },
+                          "tags": {
                             "type": "array",
                             "items": { "type": "string" }
                           }
@@ -715,89 +573,230 @@
                 }
               }
             }
-          }
-        }
-      }
-    },
-    "/metrics/summary": {
-      "get": {
-        "operationId": "getMetricsSummary",
-        "summary": "Fetch the current project delivery and reasoning metrics summary",
-        "tags": ["Metrics"],
-        "x-gpt-action": {
-          "name": "Get Delivery Metrics Summary"
-        },
-        "responses": {
-          "200": {
-            "description": "Metrics summary retrieved successfully",
-            "content": {
-              "application/json": {
-                "example": {
-                  "timestamp": "2025-04-25T22:30:00Z",
-                  "quantitative": {
-                    "total_tasks": 20,
-                    "completed_tasks": 15,
-                    "completion_rate_percent": 75.0,
-                    "average_cycle_time_days": 2.1,
-                    "patch_success_rate_percent": null
-                  },
-                  "qualitative": {
-                    "average_thought_quality_score": 4.2,
-                    "recall_usage_percent": 65.0,
-                    "novelty_rate_percent": 80.0
-                  },
-                  "reasoning_summary": "Summary text of project-level AI thinking themes."
+          },
+          "responses": {
+            "200": {
+              "description": "Updated memory.yaml structure",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "message": { "type": "string" },
+                      "memory_index": { "type": "object" }
+                    }
+                  }
                 }
               }
             }
           }
         }
-      }
-    },
-    "/project/init_project": {
-      "post": {
-        "operationId": "initProject",
-        "summary": "Initialize a new project in the given repo",
-        "tags": ["Project"],
-        "x-gpt-action": {
-          "name": "Initialize Project"
-        },
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": ["repo_name", "project_name", "project_description"],
-                "properties": {
-                  "repo_name": { "type": "string" },
-                  "project_name": { "type": "string" },
-                  "project_description": { "type": "string" }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful project initialization",
+      },
+      "/memory/validate-files": {
+        "post": {
+          "operationId": "validateMemoryFileExists",
+          "summary": "Validate that given file paths exist in memory.yaml and/or GitHub",
+          "tags": ["Memory"],
+          "x-gpt-action": {
+            "name": "Validate Memory Files"
+          },
+          "requestBody": {
+            "required": true,
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "message": { "type": "string" },
-                    "project_path": { "type": "string" }
+                    "files": {
+                      "type": "array",
+                      "items": { "type": "string" },
+                      "example": ["docs/project_goals.md", "outputs/summary_report.md"]
+                    }
                   }
                 }
               }
             }
           },
-          "400": {
-            "description": "Framework folder missing"
+          "responses": {
+            "200": {
+              "description": "Validation results",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "validated_files": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "file_path": { "type": "string" },
+                            "exists_in_memory": { "type": "boolean" },
+                            "exists_in_github": { "type": "boolean" }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/memory/search": {
+        "get": {
+          "operationId": "searchMemory",
+          "summary": "Search memory.yaml for keyword matches",
+          "tags": ["Memory"],
+          "x-gpt-action": {
+            "name": "Search Memory by Keyword"
+          },
+          "parameters": [
+            {
+              "name": "keyword",
+              "in": "query",
+              "required": true,
+              "schema": { "type": "string" }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Matching memory entries",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "matches": {
+                        "type": "array",
+                        "items": { "type": "object" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/actions/list": {
+        "get": {
+          "operationId": "listAvailableActions",
+          "summary": "List available tools and capabilities",
+          "description": "Returns a grouped list of actions that the GPT can perform.",
+          "tags": ["Utilities"],
+          "x-gpt-action": {
+            "name": "List Available Actions"
+          },
+          "responses": {
+            "200": {
+              "description": "List of available actions grouped by category",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "actions": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "category": { "type": "string" },
+                            "actions": {
+                              "type": "array",
+                              "items": { "type": "string" }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/metrics/summary": {
+        "get": {
+          "operationId": "getMetricsSummary",
+          "summary": "Fetch the current project delivery and reasoning metrics summary",
+          "tags": ["Metrics"],
+          "x-gpt-action": {
+            "name": "Get Delivery Metrics Summary"
+          },
+          "responses": {
+            "200": {
+              "description": "Metrics summary retrieved successfully",
+              "content": {
+                "application/json": {
+                  "example": {
+                    "timestamp": "2025-04-25T22:30:00Z",
+                    "quantitative": {
+                      "total_tasks": 20,
+                      "completed_tasks": 15,
+                      "completion_rate_percent": 75.0,
+                      "average_cycle_time_days": 2.1,
+                      "patch_success_rate_percent": null
+                    },
+                    "qualitative": {
+                      "average_thought_quality_score": 4.2,
+                      "recall_usage_percent": 65.0,
+                      "novelty_rate_percent": 80.0
+                    },
+                    "reasoning_summary": "Summary text of project-level AI thinking themes."
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/project/init_project": {
+        "post": {
+          "operationId": "initProject",
+          "summary": "Initialize a new project in the given repo",
+          "tags": ["Project"],
+          "x-gpt-action": {
+            "name": "Initialize Project"
+          },
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["repo_name", "project_name", "project_description"],
+                  "properties": {
+                    "repo_name": { "type": "string" },
+                    "project_name": { "type": "string" },
+                    "project_description": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Successful project initialization",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "message": { "type": "string" },
+                      "project_path": { "type": "string" }
+                    }
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "Framework folder missing"
+            }
           }
         }
       }
     }
   }
-}
