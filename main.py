@@ -24,9 +24,6 @@ import os
 import time
 from github import Github, GithubException
 from openai import OpenAI
-from langchain.chat_models import ChatOpenAI
-from langchain.agents import initialize_agent, Tool
-from langchain.schema import SystemMessage
 from dotenv import load_dotenv
 
 # ---- (2) Global Variables ----

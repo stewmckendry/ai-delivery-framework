@@ -7,4 +7,3 @@ PyYAML
 requests
 openai
 PyGithub
-langchain
