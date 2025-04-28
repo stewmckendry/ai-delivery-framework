@@ -40,7 +40,7 @@ MEMORY_FILE_PATH = "memory.yaml"
 REASONING_FOLDER_PATH = ".logs/reasoning/"
 
 g = Github(GITHUB_TOKEN)
-repo = g.get_repo(GITHUB_REPO + "/" + GITHUB_REPO)
+repo = g.get_repo(GITHUB_OWNER + "/" + GITHUB_REPO)
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 openai = OpenAI(api_key=OPENAI_API_KEY)
