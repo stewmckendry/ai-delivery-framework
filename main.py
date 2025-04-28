@@ -1030,18 +1030,30 @@ def init_project(
 
 # ---- OpenAPI JSON Schema ----
 
-# Override OpenAPI schema
-def custom_openapi():
-    if app.openapi_schema:
-        return app.openapi_schema
+# --- Load openapi.json once at startup ---
+try:
     dir_path = os.path.dirname(os.path.realpath(__file__))
     file_path = os.path.join(dir_path, "openapi.json")
     with open(file_path, "r") as f:
         openapi_schema = json.load(f)
+    # Minimal validation: check if it has required fields
+    if "openapi" not in openapi_schema or "paths" not in openapi_schema:
+        raise ValueError("Invalid OpenAPI schema: missing 'openapi' or 'paths'")
     app.openapi_schema = openapi_schema
-    return app.openapi_schema
+    print("✅ Successfully loaded openapi.json at startup.")
+except Exception as e:
+    print(f"❌ Failed to load openapi.json: {e}")
+    openapi_schema = None
+    app.openapi_schema = None
+
+# --- Override app.openapi ---
+def custom_openapi():
+    if app.openapi_schema:
+        return app.openapi_schema
+    raise RuntimeError("OpenAPI schema is not loaded properly.")
 
 app.openapi = custom_openapi
+
 
 @app.get("/actions/list")
 def list_available_actions():
