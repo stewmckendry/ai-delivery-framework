@@ -840,6 +840,7 @@ mkdir -p framework
 
 # Touch basic placeholder files if necessary
 touch project/outputs/.gitkeep
+
 # Clone the new repo
 git clone https://github.com/stewmckendry/nhl-predictor.git
 
@@ -978,5 +979,38 @@ cd nhl-predictor
 - ✅ GPT custom action added (if via GPT)
 
 🎯 **You’re ready to fire `/project/init_project`!**
+
+
+# 📚 Full Correct Assumptions
+
+| Item | Status |
+| :--- | :--- |
+| A new repo is created per delivery project | ✅ Yes |
+| Each repo is initialized at the start using `/project/init_project` | ✅ Yes |
+| `/project/init_project` sets up baseline files and structure | ✅ Yes |
+| After init, GPT Pods and Human Lead start Phase 1 tasks immediately | ✅ Yes |
+| `framework/` folder copied in so each project is semi-standalone but shares standard tooling | ✅ Yes |
+| No `/project/NHL Predictor/` needed — all project files live at root level | ✅ Yes |
+
+---
+
+# 🧠 Why This Model is Great
+
+| Benefit | Impact |
+| :--- | :--- |
+| Clean scaling | 1 repo = 1 project = 1 AI-native lifecycle |
+| Easy handoff | Each project repo is self-contained |
+| Easy archiving or audits later | Just freeze repo snapshot |
+| Easy upgrades | Framework patches can be merged if needed |
+
+✅ It's clean, simple, and scales even as the number of delivery projects grows.
+
+---
+
+# 📋 Therefore Final Answer
+
+✅ **Yes**, you’re supposed to run `/project/init_project` at the start of every delivery project.  
+✅ **Yes**, each project lives in its own GitHub repo.  
+✅ **Yes**, the outputs (`task.yaml`, `memory.yaml`, `outputs/`, etc.) should be at the **repo root** — no `/project/NHL Predictor/` nesting.
 
 

@@ -257,12 +257,10 @@ def copy_framework_baseline(source_repo, destination_repo, source_path, dest_pat
         else:
             file_content_bytes = source_repo.get_contents(item.path).decoded_content
             try:
-                # Try to decode as text (utf-8)
                 file_content = file_content_bytes.decode('utf-8')
-                destination_path = f"{dest_path}/{item.name}" if dest_path else item.name
+                destination_path = f"framework/{dest_path}/{item.name}" if dest_path else f"framework/{item.name}"
                 destination_repo.create_file(destination_path, f"Copied {item.name} from framework", file_content)
             except UnicodeDecodeError:
-                # It's binary — skip it safely
                 print(f"⚠️ Skipping binary file during copy: {item.path}")
 
 
