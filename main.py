@@ -256,14 +256,16 @@ def create_project_structure(github_repo, project_path: str):
     for folder in folders:
         github_repo.create_file(folder + ".keep", "Initialize folder", "", branch="main")
 
-def copy_framework_baseline(github_repo, framework_path: str, project_path: str):
-    contents = github_repo.get_contents(framework_path)
-    for content_file in contents:
-        if content_file.type == "file":
-            file_data = github_repo.get_contents(content_file.path).decoded_content.decode()
-            dest_path = f"{project_path}/framework/{content_file.name}"
-            github_repo.create_file(dest_path, f"Copy framework file {content_file.name}", file_data, branch="main")
-
+def copy_framework_baseline(source_repo, destination_repo, source_path, dest_path):
+    contents = source_repo.get_contents(source_path)
+    for item in contents:
+        if item.type == "dir":
+            # Recursively copy subfolders
+            copy_framework_baseline(source_repo, destination_repo, item.path, f"{dest_path}/{item.name}")
+        else:
+            file_content = source_repo.get_contents(item.path).decoded_content.decode()
+            destination_repo.create_file(f"{dest_path}/{item.name}", f"Copied {item.name} from framework", file_content)
+            
 def create_initial_files(github_repo, project_path: str, project_description: str):
     task_template = """tasks:
   1.1_capture_project_goals:
@@ -994,39 +996,32 @@ def get_metrics_summary():
 # ---- Project Initialization ----
 
 @app.post("/project/init_project")
-def init_project(
-    repo_name: str = Body(...),
-    project_name: str = Body(...),
-    project_description: str = Body(...)
-):
-    from github import Github
-
-    # Authenticate
+async def init_project(project_name: str = Body(...), repo_name: str = Body(...), project_description: str = Body(...)):
     github_client = Github(GITHUB_TOKEN)
-    github_repo = github_client.get_repo(f"stewmckendry/{repo_name}")
+
+    framework_repo = github_client.get_repo(f"stewmckendry/{GITHUB_REPO}")  # <-- source framework
+    project_repo = github_client.get_repo(f"stewmckendry/{repo_name}")              # <-- destination project
 
     framework_path = "framework"
     project_path = f"project/{project_name}"
 
-    # Validate framework folder exists
+    # Validate framework folder exists in source repo
     try:
-        github_repo.get_contents(framework_path)
+        framework_repo.get_contents(framework_path)
     except Exception:
-        raise HTTPException(status_code=400, detail="Framework folder missing — cannot initialize project.")
+        raise HTTPException(status_code=400, detail="Framework folder missing in source repo.")
 
-    # Create project structure
-    create_project_structure(github_repo, project_path)
+    # Create project structure inside destination repo
+    create_project_structure(project_repo, project_path)
 
-    # Copy framework baseline
-    copy_framework_baseline(github_repo, framework_path, project_path)
+    # Copy framework baseline from source to destination
+    copy_framework_baseline(framework_repo, project_repo, framework_path, project_path)
 
-    # Create initial task.yaml, memory.yaml, reasoning files
-    create_initial_files(github_repo, project_path, project_description)
+    # Create starter task.yaml, memory.yaml, and reasoning files
+    create_initial_files(project_repo, project_path, project_description)
 
-    return {
-        "message": f"Initialized project {project_name} in repo {repo_name}.",
-        "project_path": project_path
-    }
+    return {"message": "Project initialization complete."}
+
 
 # ---- OpenAPI JSON Schema ----
 

@@ -823,6 +823,23 @@ Now that the `nhl-predictor` repo is created on GitHub, you should:
 # Navigate to your projects folder
 cd /Users/liammckendry/Projects/
 
+# Create project standard folders
+mkdir -p project/data
+mkdir -p project/notebooks
+mkdir -p project/outputs/project_init
+mkdir -p project/src/client
+mkdir -p project/src/server
+mkdir -p project/src/utils
+mkdir -p project/src/scripts
+mkdir -p project/docs
+mkdir -p project/logs
+mkdir -p project/test
+
+# Also create empty /framework/ folder to be filled later by /project/init_project
+mkdir -p framework
+
+# Touch basic placeholder files if necessary
+touch project/outputs/.gitkeep
 # Clone the new repo
 git clone https://github.com/stewmckendry/nhl-predictor.git
 
@@ -873,4 +890,93 @@ cd nhl-predictor
 - Deeper Discovery phase artifacts
 
 ---
+
+# 🛠️ FAQs About `/project/init_project`
+
+---
+
+## 1. Which Repo Does `/project/init_project` Affect?
+
+✅ **Answer**: It creates files/folders inside the `nhl-predictor` repo.
+
+- Even though the FastAPI app (`main.py`) lives in the `ai-delivery-framework` repo, it is programmed to operate on the project repo based on the `repo_name` or `project_path` you pass.
+- Think of `ai-delivery-framework` as the **"central brain"** managing multiple projects.
+
+---
+
+## 2. Where Should `main.py` and `openapi.json` Live?
+
+✅ **Answer**: They stay in the `ai-delivery-framework` repo.
+
+- `ai-delivery-framework` is your **core platform**.
+- It holds all:
+  - FastAPI routes
+  - Framework templates
+  - System prompts
+  - Future tools
+- Project repos like `nhl-predictor/` stay **very clean and lightweight** — only project-specific files, **no FastAPI app**, **no OpenAPI spec** inside them.
+
+---
+
+## 3. How Do You Call `/project/init_project`?
+
+✅ **Answer**: You call `/project/init_project` from a **Custom GPT** (like DeliveryPod) or manually.
+
+- **Update your GPT’s** `openapi.json` schema to include the `/project/init_project` route if not already done.
+- Alternatively, **manually** call it using:
+  - `curl`
+  - Postman
+  - Swagger UI (e.g., [http://localhost:8000/docs](http://localhost:8000/docs) if running FastAPI locally)
+
+---
+
+## 4. Starter Prompt for GPT to Initiate the Project
+
+✅ **Here’s a clean starter prompt:**
+
+### 🚀 Starter Prompt for DeliveryPod
+
+> 🎯 **POD MISSION: Initialize a New Project Repository**  
+> We are kicking off a new AI-Native Delivery project.
+> 
+> **Project Name**: NHL Predictor  
+> **Repository Name**: nhl-predictor  
+> **Project Description**: Proof of concept NHL playoff outcome predictor.
+>
+> **🛠️ Instructions:**
+> - Call the `/project/init_project` endpoint.
+> - Pass the fields:
+>   - `repo_name = 'nhl-predictor'`
+>   - `project_name = 'NHL Predictor'`
+>   - `project_description = 'Proof of concept NHL playoff outcome predictor.'`
+> - After initialization, confirm:
+>   - `/framework/` folder has been copied.
+>   - `/project/` folders (`outputs`, `scripts`, etc.) exist.
+>   - `task.yaml` and `memory.yaml` are present.
+>   - `prompt_used.txt` and `reasoning_trace.md` are created under `/project/outputs/project_init/`.
+
+🚀 **Goal**: Setup a fully initialized project workspace ready for AI-native delivery.
+
+---
+
+# 📋 Recap of Confirmations
+
+| Topic | Answer |
+| :--- | :--- |
+| Which repo gets init? | `nhl-predictor` |
+| Where does `main.py` live? | `ai-delivery-framework` |
+| Where is `openapi.json` updated? | `ai-delivery-framework` |
+| Who calls init? | DeliveryPod GPT or manual API test |
+| Is starter prompt ready? | ✅ Yes — see above |
+
+---
+
+# 🚀 Final Prep Before Running `/project/init_project`
+
+- ✅ `openapi.json` updated
+- ✅ FastAPI server running (if manual)
+- ✅ GPT custom action added (if via GPT)
+
+🎯 **You’re ready to fire `/project/init_project`!**
+
 

@@ -767,10 +767,10 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": ["repo_name", "project_name", "project_description"],
+                  "required": ["project_name", "repo_name", "project_description"],
                   "properties": {
-                    "repo_name": { "type": "string" },
                     "project_name": { "type": "string" },
+                    "repo_name": { "type": "string" },
                     "project_description": { "type": "string" }
                   }
                 }

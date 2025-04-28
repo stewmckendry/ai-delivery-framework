@@ -17,6 +17,24 @@ else
   gh repo create $USER/$NEW_REPO_NAME --public --confirm
 fi
 
+# Create project standard folders
+mkdir -p project/data
+mkdir -p project/notebooks
+mkdir -p project/outputs/project_init
+mkdir -p project/src/client
+mkdir -p project/src/server
+mkdir -p project/src/utils
+mkdir -p project/src/scripts
+mkdir -p project/docs
+mkdir -p project/logs
+mkdir -p project/test
+
+# Also create empty /framework/ folder to be filled later by /project/init_project
+mkdir -p framework
+
+# Touch basic placeholder files if necessary
+touch project/outputs/.gitkeep
+
 # Clone locally if needed
 echo "\nTo clone locally:"
 echo "git clone https://github.com/$USER/$NEW_REPO_NAME.git"
