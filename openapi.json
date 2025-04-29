@@ -123,31 +123,21 @@
           }
         }
       },
-      "/tasks/update_metadata/{task_id}": {
+      "/tasks/update_metadata": {
         "patch": {
           "operationId": "updateTaskMetadata",
           "summary": "Update metadata fields for a task",
           "tags": ["Tasks"],
-          "x-gpt-action": {
-            "name": "Update Task Metadata"
-          },
-          "parameters": [
-            {
-              "name": "task_id",
-              "in": "path",
-              "required": true,
-              "schema": {
-                "type": "string"
-              }
-            }
-          ],
           "requestBody": {
             "required": true,
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
+                  "required": ["repo_name", "task_id"],
                   "properties": {
+                    "repo_name": { "type": "string" },
+                    "task_id": { "type": "string" },
                     "description": { "type": "string" },
                     "prompt": { "type": "string" },
                     "inputs": { "type": "array", "items": { "type": "string" } },
@@ -169,16 +159,13 @@
                     "properties": {
                       "message": { "type": "string" },
                       "task_id": { "type": "string" },
-                      "updated_task_metadata": { "type": "object" },
-                      "updated_tasks": { "type": "object" }
+                      "updated_task_metadata": { "type": "object" }
                     }
                   }
                 }
               }
             },
-            "404": {
-              "description": "Task not found"
-            }
+            "404": { "description": "Task not found" }
           }
         }
       },
@@ -244,20 +231,17 @@
           "operationId": "cloneTask",
           "summary": "Clone an existing task and generate a new task ID and metadata",
           "tags": ["Tasks"],
-          "x-gpt-action": {
-            "name": "Clone Existing Task"
-          },
           "requestBody": {
             "required": true,
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": ["original_task_id", "descriptor"],
+                  "required": ["repo_name", "original_task_id", "descriptor"],
                   "properties": {
+                    "repo_name": { "type": "string" },
                     "original_task_id": { "type": "string" },
-                    "descriptor": { "type": "string" },
-                    "overrides": { "type": "object" }
+                    "descriptor": { "type": "string" }
                   }
                 }
               }
@@ -273,10 +257,7 @@
                     "properties": {
                       "message": { "type": "string" },
                       "new_task_id": { "type": "string" },
-                      "new_task_metadata": { "type": "object" },
-                      "updated_tasks": { "type": "object" },
-                      "original_prompt_path": { "type": "string" },
-                      "original_prompt_content": { "type": "string" }
+                      "cloned_task_metadata": { "type": "object" }
                     }
                   }
                 }
@@ -821,34 +802,22 @@
           }
         }
       },
-      "/tasks/append_chain_of_thought/{task_id}": {
+      "/tasks/append_chain_of_thought": {
         "post": {
           "operationId": "appendChainOfThought",
           "summary": "Append a message to a task's chain_of_thought.yaml file",
           "tags": ["Tasks"],
-          "x-gpt-action": {
-            "name": "Append Chain of Thought"
-          },
-          "parameters": [
-            {
-              "name": "task_id",
-              "in": "path",
-              "required": true,
-              "schema": {
-                "type": "string"
-              }
-            }
-          ],
           "requestBody": {
             "required": true,
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": ["message", "repo_name"],
+                  "required": ["repo_name", "task_id", "message"],
                   "properties": {
-                    "message": { "type": "string" },
-                    "repo_name": { "type": "string" }
+                    "repo_name": { "type": "string" },
+                    "task_id": { "type": "string" },
+                    "message": { "type": "string" }
                   }
                 }
               }
@@ -862,7 +831,8 @@
                   "schema": {
                     "type": "object",
                     "properties": {
-                      "message": { "type": "string" }
+                      "message": { "type": "string" },
+                      "appended_thought": { "type": "object" }
                     }
                   }
                 }
@@ -981,21 +951,31 @@
       "/tasks/complete": {
         "post": {
           "operationId": "completeTask",
-          "summary": "Mark task complete and generate reasoning trace",
+          "summary": "Mark task complete, capture reasoning trace, and commit outputs",
           "tags": ["Tasks"],
-          "x-gpt-action": {
-            "name": "Complete Task"
-          },
           "requestBody": {
             "required": true,
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": ["task_id", "repo_name"],
+                  "required": ["repo_name", "task_id"],
                   "properties": {
+                    "repo_name": { "type": "string" },
                     "task_id": { "type": "string" },
-                    "repo_name": { "type": "string" }
+                    "outputs": {
+                      "type": "array",
+                      "description": "Optional: array of output files to commit.",
+                      "items": {
+                        "type": "object",
+                        "required": ["path", "content"],
+                        "properties": {
+                          "path": { "type": "string" },
+                          "content": { "type": "string" },
+                          "type": { "type": "string" }
+                        }
+                      }
+                    }
                   }
                 }
               }
@@ -1003,7 +983,7 @@
           },
           "responses": {
             "200": {
-              "description": "Task completed and reasoning trace generated",
+              "description": "Task completed, outputs and reasoning trace committed",
               "content": {
                 "application/json": {
                   "schema": {
@@ -1014,9 +994,6 @@
                   }
                 }
               }
-            },
-            "500": {
-              "description": "Internal server error"
             }
           }
         }

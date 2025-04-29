@@ -1798,5 +1798,402 @@ After any important task transition (like activate, start, complete), we want a 
 - Makes Batch 2 full and **production-ready** for the NHL PoC.
 - Ensures clean, auditable delivery flows.
 
+---
+
+# ✅ Batch 3 Overview: What We're Changing
+
+---
+
+## 🛠 Extending from Discovery ➝ Development
+
+We are now enabling **in-progress work capture** and **midstream visibility**, including:
+
+- **Mid-task commits** (not just at completion)
+- **Design + interim deliverables** captured and versioned
+- **Fallback logic** for missing data (e.g., missing prompts)
+- **Live updates** to:
+  - `chain_of_thought.yaml`
+  - `reasoning_trace.md`
+  - `CHANGELOG.md`
+
+---
+
+## 🎯 Outcomes (The "Why")
+
+| Goal | Benefit |
+| :--- | :--- |
+| Traceability of partial outputs | Track work in real-time during development |
+| Reduced friction | Tasks continue even if metadata is incomplete |
+| Audit-readiness | Changelog and reasoning traces evolve live |
+| Higher reusability | Cloned tasks include full historical capture |
+
+---
+
+## 📥 Inputs I’ll Need From You
+
+- ✅ Confirm repo for patching: **`ai-delivery-framework`**
+- ✅ Confirm PoC test repo: **`nhl-predictor`**
+- 📄 Latest versions of:
+  - `task.yaml`
+  - `memory.yaml`
+  - `CHANGELOG.md` (if exists)
+  - `framework/tools/github_ops.py` (or wherever `auto_commit()` is defined)
+  - All existing routes in `/tasks/` (I'll pull full files)
+
+- 🤖 **Prompt scaffolding format** (for fallback generation)
+
+---
+
+## 📌 Assumptions to Validate
+
+- `auto_commit()` is **idempotent and safe** to call multiple times
+- Task metadata is **uniquely identified** and JSON-friendly
+- Designs and interim outputs will follow **naming conventions** like `design_*.md`
+- Changelog entries can be **temporary or timestamped**
+- No **circular dependency** risk when writing reasoning traces or changelogs mid-task
+
+---
+
+## ❓ Open Questions
+
+| Question | Notes |
+| :--- | :--- |
+| Should `append_reasoning_trace` be its own route or embedded in `/complete` or `/auto_commit`? | Consider based on whether trace needs to be built incrementally |
+| What counts as a “design” or “interim deliverable”? | Is it anything in `/docs/`, or should we implement a tagging mechanism? |
+| Should fallback prompt generation use a **default template**, or look for a local scaffold file? | Could default to inline or pull from `task_templates/fallback_prompt_template.md` |
+| Should changelog entries be **structured JSON** or plain markdown snippets? | Structured is more parseable, markdown is more human-readable |
+
+---
+
+# ✅ Scope of Batch 3: Development Phase Support
+
+We’ll implement tooling to support **traceable, safe, and audit-ready** delivery work mid-task.
+
+---
+
+## 🔹 Feature Set
+
+| Step | Feature | Outcome |
+| :--- | :--- | :--- |
+| 3.1 | Auto-commit on `update_metadata` | Captures metadata changes (e.g., outputs, prompt path) |
+| 3.2 | Auto-commit on `clone` | Saves new task definition immediately |
+| 3.3 | Save chain of thought mid-task | Incrementally builds up task history |
+| 3.4 | Add reasoning trace at completion | Captures final rationale |
+| 3.5 | Auto-update `changelog.md` | Ensures traceability per task |
+| 3.6 | Fallback prompt generation | Handles missing prompt cases using `task.yaml` context |
+| 3.7 | Auto-commit generated outputs | Pushes files listed in `task.yaml > outputs` |
+| 3.8 | Ensure full delivery traceability | Final audit trail from prompt → outputs → git |
+
+---
+
+## 🛠️ Technical Implementation Plan
+
+We’ll ship Batch 3 in **two sub-batches** for testing clarity.
+
+### 📦 Sub-Batch 3A: Mid-task Support & Traceability
+
+- Hook into `/tasks/update_metadata` → triggers auto-commit of `task.yaml`
+- Hook into `/tasks/clone` → commits new `task.yaml` clone immediately
+- Hook into `/tasks/append_chain_of_thought/{task_id}` → appends to YAML and commits
+
+**Files Modified**:
+- `main.py`
+- Supporting scripts (e.g., `auto_commit` wrapper, YAML ops)
+
+---
+
+### 📦 Sub-Batch 3B: Completion & Changelog Capture
+
+- Hook into `/tasks/complete`:
+  - Writes `reasoning_trace.md`
+  - Auto-commits it
+- Hook into `/tasks/auto_commit`:
+  - Commits task-defined outputs
+  - Calls `update_changelog`
+- Add fallback prompt generator:
+  - Auto-synthesizes from description, inputs, project context
+- Scaffold `CHANGELOG.md` (structured YAML format):
+```yaml
+- task_id: 1.1_capture_project_goals
+  timestamp: 2025-04-26T23:06:52Z
+  change: "Completed task and generated project goals"
+```
+
+---
+
+## 📥 Required Inputs
+
+✅ All provided:
+- `task.yaml`
+- `memory.yaml`
+- `main.py`
+- `openapi.json`
+
+---
+
+## 📌 Final Assumptions & Confirmations
+
+- ✅ Interim deliverables don’t need versioning — only final outputs matter
+- ✅ `reasoning_trace.md` is auto-added at task complete
+- ✅ `changelog.md` will be structured YAML
+- ✅ Fallback prompt is auto-synthesized from task metadata
+
+---
+
+## ✅ Next Step: Testing Scope
+
+Once patch lands, resume test from:
+→ `1.1_capture_project_goals` in `nhl-predictor`
+
+**Test that**:
+- `task.yaml` updates are auto-committed
+- `chain_of_thought.yaml` grows correctly
+- `reasoning_trace.md` is generated + committed
+- `project_goals.md` is pushed to GitHub
+- `CHANGELOG.md` entry is created
+
+---
+
+# ✅ Updated Proposal: Structured `reasoning_trace.yaml`
+
+---
+
+## 📂 File Path
+
+```
+/project/outputs/{task_id}/reasoning_trace.yaml
+```
+
+---
+
+## 📄 YAML Format (Based on Template)
+
+```yaml
+task_id: 1.1_capture_project_goals
+
+thoughts:
+  - thought: "Used existing project goals file as context to summarize vision"
+    tags: ["recall_used"]
+  - thought: "Reframed goals to align with measurable outcomes"
+    tags: ["novel_insight"]
+
+alternatives:
+  - "Could have used competitive benchmarks"
+  - "Could have added goals from external stakeholders"
+
+improvement_opportunities:
+  - "Involve human review earlier in summarization"
+
+scoring:
+  thought_quality: 4
+  recall_used: true
+  novel_insight: true
+
+summary: "Prompt understanding was strong; future prompts could explore goals diversity."
+```
+
+---
+
+## 🧩 Benefits
+
+| Benefit | Description |
+| :--- | :--- |
+| **Traceability** | Each task has one consistent format |
+| **Analytics-ready** | YAML is structured for dashboards, scorecards, ML |
+| **Extensible** | Add fields like `confidence_scores`, `contributors`, `cross_links`, etc. later |
+
+---
+
+## 🛠️ Action Plan – Batch 3B
+
+- ✅ Implement `reasoning_trace.yaml` generator at `/tasks/complete`
+- ✅ Ensure no `.md` file is created — YAML only
+- ✅ Match all fields to this format
+- ✅ Use fallback defaults if a section is missing
+
+---
+
+Would you like me to scaffold a **YAML schema validator** or example `reasoning_trace.yaml` generator script for test coverage? 🧪📂
+
+---
+
+# ✅ Scope: Batch 3B – Output & Audit Layer
+
+This batch ensures we can capture final artifacts, trace the rationale, and log changelog entries for every meaningful output push.
+
+---
+
+## 🔹 What We'll Implement
+
+| Step | Feature | Outcome |
+| :--- | :--- | :--- |
+| 3.4 | Auto-generate `reasoning_trace.yaml` | Structured trace of conclusions, rationale, and scores |
+| 3.5 | Write to `CHANGELOG.md` per task | Audit trail of work done and decisions |
+| 3.6 | Fallback prompt generation | Synthesizes prompt using `task.yaml`, project context, and history |
+| 3.7 | Auto-push outputs listed in `task.yaml` | Delivers the actual file artifacts to Git |
+| — | *(Optional)* Refactor `/complete` | Modularize into trace, changelog, and push helpers |
+
+---
+
+## 🛠️ Target Routes to Modify
+
+### `/tasks/complete`
+- 🔹 Generate and save `reasoning_trace.yaml`
+- 🔹 Auto-commit the trace
+- 🔹 Write new entry to `/CHANGELOG.md`
+- 🔹 Commit all outputs listed in `task.yaml`
+
+### `/tasks/auto_commit`
+- 🔹 Extend to:
+  - Scan `task.yaml`
+  - Push all listed `outputs`
+
+### *(Optional)* Fallback Prompt Generator
+- Utility reads:
+  - `task.yaml > description`, `inputs`, `outputs`
+  - Project docs (`/docs/*.md`)
+  - Project name from `memory.yaml`
+
+---
+
+## 🧩 Design Notes
+
+### 🧠 Reasoning Trace Format
+As defined earlier – structured YAML, including:
+```yaml
+thoughts:
+  - thought: "..."
+    tags: ["..."]
+summary: "..."
+scoring:
+  thought_quality: 4
+```
+
+### 📓 Changelog Format
+Append under `/CHANGELOG.md`:
+```yaml
+- task_id: 1.1_capture_project_goals
+  timestamp: 2025-04-26T23:06:52Z
+  change: "Generated project_goals.md based on discussion"
+```
+
+### 🔍 Output Handling
+- Outputs are inferred from `task.yaml > outputs`
+- Files not found = skipped (not error)
+- Push only files that exist
+
+---
+
+## 📥 Inputs Needed
+
+- ✅ None new required
+- ✅ Outputs read from `task.yaml`
+
+---
+
+## ✅ Assumptions
+
+| Assumption | Status |
+| :--- | :--- |
+| Auto-commit of `reasoning_trace.yaml` is enabled | ✅ |
+| CHANGELOG entry added per-task | ✅ |
+| Outputs tracked in `task.yaml > outputs` | ✅ |
+| Outputs skipped if not created | ✅ No error thrown |
+
+---
+
+## 🔍 Testing Plan
+
+Resume task: `1.1_capture_project_goals` in `nhl-predictor`  
+Then call: `POST /tasks/complete`
+
+**Verify**:
+- `reasoning_trace.yaml` created with thoughts, scores, summary
+- `project_goals.md` committed to GitHub (if present)
+- `CHANGELOG.md` has a new structured YAML entry
+
+---
+
+# ✅ changelog.yaml System Design – Batch 3B
+
+---
+
+## 🧩 Rationale: Why Use Structured YAML
+
+| Benefit | Explanation |
+| :--- | :--- |
+| **Machine-readable** | Enables querying, sorting, slicing by tool or time |
+| **System-consistent** | Matches other structured files (`task.yaml`, `memory.yaml`, etc.) |
+| **Metrics-ready** | Powers future dashboards, KPIs, and PR summaries |
+| **Multi-file & multi-purpose** | Supports task-based and system-wide logs (e.g., template edits) |
+
+---
+
+## 🗂️ File Location & Format
+
+**Filename**:  
+```
+/changelog.yaml
+```
+
+**Structure**:
+```yaml
+- timestamp: 2025-04-26T23:06:52Z
+  files:
+    - path: docs/project_goals.md
+      change: "Created project goals from 1.1 task"
+    - path: task.yaml
+      change: "Marked task 1.1 as complete"
+```
+
+---
+
+## 🔧 Proposed Commit Helper: `commit_and_log()`
+
+This function wraps both GitHub file writes **and changelog logging**.
+
+```python
+def commit_and_log(repo, file_path, content, commit_message):
+    # Commit file to GitHub
+    if file_exists(repo, file_path):
+        repo.update_file(file_path, commit_message, content)
+    else:
+        repo.create_file(file_path, commit_message, content)
+
+    # Log to changelog.yaml
+    log_entry = {
+        "timestamp": now_utc_iso(),
+        "files": [{"path": file_path, "change": commit_message}]
+    }
+    append_to_changelog_yaml(repo, log_entry)
+```
+
+- Replaces raw `create_file`/`update_file` in all critical tools
+- Handles multi-file commit scenarios with chaining or batching
+
+---
+
+## 🎯 Implementation Points
+
+| Element | Decision |
+| :--- | :--- |
+| ✅ changelog file type | `changelog.yaml` |
+| ✅ file location | Root of repo (`/changelog.yaml`) |
+| ✅ log granularity | Timestamp-based key, multiple files per entry |
+| ✅ routes using it | `/tasks/complete`, `/tasks/auto_commit`, `/tasks/update_metadata`, etc. |
+| ✅ backward compatibility | Old `.md` files deprecated (not written anymore) |
+
+---
+
+## 🔍 Testing Criteria
+
+- After `complete`, changelog.yaml includes trace of:
+  - task.yaml update
+  - reasoning_trace.yaml write
+  - any outputs committed
+- Timestamps are ISO 8601
+- All messages are human-readable
+- File paths are relative and accurate
+
 
 

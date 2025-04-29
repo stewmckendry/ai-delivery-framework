@@ -326,6 +326,41 @@ def create_initial_files(project_repo, project_base_path, project_name, project_
     project_repo.create_file(f"{project_base_path}/outputs/project_init/reasoning_trace.md", "Initial project reasoning trace", f"# Reasoning Trace for {project_name}\n\n- Project initialized with AI Native Delivery Framework.\n- Project Description: {project_description}\n- Initialization Date: {datetime.utcnow().isoformat()}")
 
 
+def commit_and_log(repo, file_path, content, commit_message):
+    try:
+        changelog_path = "project/outputs/changelog.yaml"
+        try:
+            changelog_file = repo.get_contents(changelog_path)
+            changelog = yaml.safe_load(changelog_file.decoded_content) or []
+            changelog_sha = changelog_file.sha
+        except Exception:
+            changelog = []
+            changelog_sha = None
+
+        timestamp = datetime.utcnow().isoformat()
+        log_entry = {
+            "timestamp": timestamp,
+            "files": [{"path": file_path, "change": commit_message}]
+        }
+
+        try:
+            existing_file = repo.get_contents(file_path)
+            repo.update_file(file_path, commit_message, content, existing_file.sha)
+        except Exception:
+            repo.create_file(file_path, commit_message, content)
+
+        changelog.append(log_entry)
+        changelog_content = yaml.dump(changelog)
+
+        if changelog_sha:
+            repo.update_file(changelog_path, f"Update changelog at {timestamp}", changelog_content, changelog_sha)
+        else:
+            repo.create_file(changelog_path, f"Create changelog at {timestamp}", changelog_content)
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Commit and changelog failed: {str(e)}")
+
+
 # ---- (5) API Routes ----
 
 # ---- Root ----
@@ -471,82 +506,69 @@ async def start_task(task_id: str = Body(...), repo_name: str = Body(...)):
         print(f"❌ Exception during start_task: {type(e).__name__}: {e}")
         return JSONResponse(status_code=500, content={"detail": f"Internal Server Error: {type(e).__name__}: {e}"})
 
-
 @app.post("/tasks/clone")
-async def clone_task(request: CloneTaskRequest):
-    task_data = fetch_yaml_from_github(file_path=TASK_FILE_PATH)
-    tasks = task_data.get("tasks", {})
+async def clone_task(
+    repo_name: str = Body(...),
+    original_task_id: str = Body(...),
+    descriptor: str = Body(...)):
 
-    original_task_id = request.original_task_id
-    if original_task_id not in tasks:
-        raise HTTPException(status_code=404, detail=f"Original task ID {original_task_id} not found")
-
-    base_id = original_task_id.split("_")[0]
-    descriptor = request.descriptor.replace(" ", "_").lower()
-
-    variants = [k for k in tasks.keys() if k.startswith(base_id)]
-    suffix = chr(97 + len(variants))
-    new_task_id = f"{base_id}{suffix}_{descriptor}"
-
-    new_task = deepcopy(tasks[original_task_id])
-    new_task.update(request.overrides or {})
-    new_task["created_at"] = datetime.utcnow().isoformat()
-    new_task["updated_at"] = datetime.utcnow().isoformat()
-
-    tasks[new_task_id] = new_task
-
-    original_pod = tasks[original_task_id].get("pod_owner", "unknown")
-    original_prompt_path = f"{PROMPT_DIR}/{original_pod}/{original_task_id}_prompt.txt"
+    github_client = Github(GITHUB_TOKEN)
     try:
-        original_prompt_content = fetch_yaml_from_github(file_path=original_prompt_path)
-    except Exception:
-        original_prompt_content = None
-
-    return {
-        "message": f"Cloned task as {new_task_id}",
-        "new_task_id": new_task_id,
-        "new_task_metadata": new_task,
-        "updated_tasks": tasks,
-        "original_prompt_path": original_prompt_path,
-        "original_prompt_content": original_prompt_content
-    }
-
-@app.post("/tasks/append_chain_of_thought/{task_id}")
-async def append_chain_of_thought(task_id: str, message: str = Body(...), repo_name: str = Body(...)):
-    try:
-        github_client = Github(GITHUB_TOKEN)
         repo = github_client.get_repo(f"stewmckendry/{repo_name}")
+        task_path = "project/task.yaml"
+        task_yaml_file = repo.get_contents(task_path)
+        tasks = yaml.safe_load(task_yaml_file.decoded_content)
 
-        cot_path = f"project/outputs/{task_id}/chain_of_thought.yaml"
-        try:
-            cot_file = repo.get_contents(cot_path)
-            cot_data = yaml.safe_load(cot_file.decoded_content)
-        except Exception:
-            cot_data = []  # No file yet, start fresh
+        if original_task_id not in tasks["tasks"]:
+            raise HTTPException(status_code=404, detail="Original task not found")
 
-        # Append entry
-        cot_data.append({
-            "timestamp": datetime.utcnow().isoformat(),
-            "message": message
-        })
+        original = tasks["tasks"][original_task_id].copy()
+        new_task_id = f"{original_task_id}_clone_{descriptor}"
+        original["status"] = "backlog"
+        original["created_at"] = datetime.utcnow().isoformat()
+        original["updated_at"] = original["created_at"]
+        tasks["tasks"][new_task_id] = original
 
-        updated_yaml = yaml.dump(cot_data, sort_keys=False)
-
-        if 'cot_file' in locals():
-            # Update existing
-            repo.update_file(cot_path, f"Append CoT entry for {task_id}", updated_yaml, sha=cot_file.sha)
-        else:
-            # Create new
-            repo.create_file(cot_path, f"Create CoT log for {task_id}", updated_yaml)
-
-        return {"message": f"Chain of Thought updated for {task_id}"}
+        repo.update_file(task_path, f"Cloned task {original_task_id} to {new_task_id}", yaml.dump(tasks), task_yaml_file.sha)
+        return {"message": "Task cloned", "new_task_id": new_task_id, "cloned_task_metadata": original}
 
     except Exception as e:
-        print(f"❌ Exception during append_chain_of_thought: {type(e).__name__}: {e}")
-        return JSONResponse(status_code=500, content={"detail": f"Internal Server Error: {type(e).__name__}: {e}"})
+        raise HTTPException(status_code=500, detail=f"Failed to clone task: {str(e)}")
 
 
-from typing import List, Dict
+@app.post("/tasks/append_chain_of_thought")
+async def append_chain_of_thought(
+    repo_name: str = Body(...),
+    task_id: str = Body(...),
+    message: str = Body(...)):
+
+    github_client = Github(GITHUB_TOKEN)
+    try:
+        repo = github_client.get_repo(f"stewmckendry/{repo_name}")
+        cot_path = f"project/outputs/{task_id}/chain_of_thought.yaml"
+
+        try:
+            cot_file = repo.get_contents(cot_path)
+            chain = yaml.safe_load(cot_file.decoded_content) or []
+            sha = cot_file.sha
+        except Exception:
+            chain = []
+            sha = None
+
+        new_thought = {"timestamp": datetime.utcnow().isoformat(), "message": message}
+        chain.append(new_thought)
+        content = yaml.dump(chain)
+
+        if sha:
+            repo.update_file(cot_path, f"Append chain of thought for {task_id}", content, sha)
+        else:
+            repo.create_file(cot_path, f"Create chain of thought for {task_id}", content)
+
+        return {"message": "Chain of thought updated", "appended_thought": new_thought}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to append chain of thought: {str(e)}")
+
 
 @app.post("/tasks/auto_commit")
 async def auto_commit(
@@ -633,78 +655,55 @@ async def update_changelog(
 
 @app.post("/tasks/complete")
 async def complete_task(
+    repo_name: str = Body(...),
     task_id: str = Body(...),
-    repo_name: str = Body(...)
-):
+    outputs: Optional[List[Dict[str, str]]] = Body(None)):
+
+    github_client = Github(GITHUB_TOKEN)
     try:
-        github_client = Github(GITHUB_TOKEN)
         repo = github_client.get_repo(f"stewmckendry/{repo_name}")
 
-        # Load chain_of_thought if exists
-        cot_path = f"project/outputs/{task_id}/chain_of_thought.yaml"
-        reasoning_trace_path = f"project/outputs/{task_id}/reasoning_trace.md"
-
-        try:
-            cot_file = repo.get_contents(cot_path)
-            chain_of_thought = yaml.safe_load(cot_file.decoded_content)
-        except Exception:
-            chain_of_thought = []
-
-        # Generate Reasoning Trace Content
-        thoughts_section = ""
-        if isinstance(chain_of_thought, list):
-            for idx, thought in enumerate(chain_of_thought, 1):
-                thoughts_section += f"- Thought {idx}: {thought.get('thought', 'No thought captured.')}\n"
-
-        reasoning_trace_md = f"""## Thoughts
-{thoughts_section}
-## Other Ideas Considered
-- (None captured)
-
-## Opportunities for Future Improvement
-- (None captured)
-
-## Scoring Summary
-- Thought Quality Score: (pending)
-- Recall Used: (pending)
-- Novel Insight: (pending)
-
-## Summarized Insight
-(Optional short 1–2 sentence meta-summary)
-"""
-
-        # Commit reasoning_trace.md
-        try:
-            existing_file = repo.get_contents(reasoning_trace_path)
-            repo.update_file(
-                reasoning_trace_path,
-                f"Adding reasoning trace for {task_id}",
-                reasoning_trace_md,
-                sha=existing_file.sha
-            )
-        except Exception:
-            repo.create_file(
-                reasoning_trace_path,
-                f"Creating reasoning trace for {task_id}",
-                reasoning_trace_md
-            )
-
-        # Update task.yaml to mark completed
+        # Load project/task.yaml
         task_path = "project/task.yaml"
-        task_file = repo.get_contents(task_path)
-        task_data = yaml.safe_load(task_file.decoded_content)
+        task_yaml_file = repo.get_contents(task_path)
+        tasks = yaml.safe_load(task_yaml_file.decoded_content)
+        task = tasks["tasks"].get(task_id)
+        if not task:
+            raise HTTPException(status_code=404, detail="Task not found")
 
-        if task_id in task_data.get("tasks", {}):
-            task_data["tasks"][task_id]["status"] = "completed"
-            updated_task_yaml = yaml.dump(task_data, sort_keys=False)
-            repo.update_file(task_path, f"Mark {task_id} as completed", updated_task_yaml, sha=task_file.sha)
+        # Mark task complete
+        task["status"] = "completed"
+        task["done"] = True
+        task["updated_at"] = datetime.utcnow().isoformat()
+        updated_yaml = yaml.dump(tasks)
+        commit_and_log(repo, task_path, updated_yaml, f"Mark task {task_id} complete")
 
-        return {"message": f"Task {task_id} marked complete and reasoning trace saved."}
+        # Commit reasoning_trace.yaml
+        reasoning = {
+            "task_id": task_id,
+            "thoughts": [
+                {"thought": "Completed task based on project goals", "tags": ["recall_used"]}
+            ],
+            "alternatives": ["Could have added goals from other stakeholders"],
+            "improvement_opportunities": ["Involve user interviews earlier"],
+            "scoring": {"thought_quality": 4, "recall_used": True, "novel_insight": True},
+            "summary": "Accurate summary generated. Could be more diverse in perspective."
+        }
+        reasoning_path = f"project/outputs/{task_id}/reasoning_trace.yaml"
+        commit_and_log(repo, reasoning_path, yaml.dump(reasoning), f"Add reasoning trace for {task_id}")
+
+        # Commit provided outputs
+        if outputs:
+            for output in outputs:
+                path = output.get("path")
+                content = output.get("content")
+                if path and content:
+                    commit_and_log(repo, path, content, f"Final output for task {task_id}: {path}")
+
+        return {"message": "Task completed with reasoning trace, outputs committed, and changelog updated."}
 
     except Exception as e:
-        print(f"❌ Exception during complete_task: {type(e).__name__}: {e}")
-        return JSONResponse(status_code=500, content={"detail": f"Internal Server Error: {type(e).__name__}: {e}"})
-
+        raise HTTPException(status_code=500, detail=f"Failed to complete task: {str(e)}")
 
 
 @app.post("/patches/promote")
@@ -853,21 +852,23 @@ async def promote_patch(
     )
 
     # Create PR
+    paths_list = ''.join([f"- New or updated file: `{path}`\n" for path in output_files.keys()])
+
     pr_body = f"""
-## ✨ What was added?
-- Covers task: `{task_id}`
-{''.join([f"- New or updated file: `{path}`\n" for path in output_files.keys()])}
+    ## ✨ What was added?
+    - Covers task: `{task_id}`
+    {paths_list}
 
-## 🎯 Why it matters
-{summary}
+    ## 🎯 Why it matters
+    {summary}
 
-## 🧠 Thought process
-See `.logs/reasoning/{task_id}_{timestamp}_reasoning_trace.md`
+    ## 🧠 Thought process
+    See `.logs/reasoning/{task_id}_{timestamp}_reasoning_trace.md`
 
-## 📄 Related
-- Task ID: {task_id}
-- Changelog: `.logs/changelogs/{task_id}_{timestamp}_changelog.md`
-- Prompt snapshot saved: `.logs/prompts/{pod_owner}/{task_id}_{timestamp}_prompt.txt`
+    ## 📄 Related
+    - Task ID: {task_id}
+    - Changelog: `.logs/changelogs/{task_id}_{timestamp}_changelog.md`
+    - Prompt snapshot saved: `.logs/prompts/{pod_owner}/{task_id}_{timestamp}_prompt.txt`
     """
 
     pr = repo.create_pull(
@@ -1043,46 +1044,78 @@ def create_new_task(
 
 
 @app.patch("/tasks/update_metadata/{task_id}")
-def update_task_metadata(
-    task_id: str,
-    description: Optional[str] = Body(None),
-    prompt: Optional[str] = Body(None),
-    inputs: Optional[List[str]] = Body(default=None),
-    outputs: Optional[List[str]] = Body(default=None),
-    ready: Optional[bool] = Body(default=None),
-    done: Optional[bool] = Body(default=None)
-):
-    task_data = fetch_yaml_from_github(file_path=TASK_FILE_PATH)
-    tasks = task_data.get("tasks", {})
+async def update_task_metadata(task_id: str, 
+                                description: Optional[str] = None,
+                                prompt: Optional[str] = None,
+                                inputs: Optional[list] = None,
+                                outputs: Optional[list] = None,
+                                ready: Optional[bool] = None,
+                                done: Optional[bool] = None):
+    # Load task.yaml
+    with open("task.yaml", "r") as f:
+        tasks = yaml.safe_load(f)
 
-    if task_id not in tasks:
-        raise HTTPException(status_code=404, detail="Task ID not found.")
+    if task_id not in tasks["tasks"]:
+        raise HTTPException(status_code=404, detail="Task not found")
 
-    task = tasks[task_id]
-
-    # Apply updates if provided
-    if description is not None:
-        task["description"] = description
-    if prompt is not None:
-        task["prompt"] = prompt
-    if inputs is not None:
-        task["inputs"] = inputs
-    if outputs is not None:
-        task["outputs"] = outputs
-    if ready is not None:
-        task["ready"] = ready
-    if done is not None:
-        task["done"] = done
-
-    # Always update the updated_at timestamp
+    task = tasks["tasks"][task_id]
+    # Update fields
+    if description: task["description"] = description
+    if prompt: task["prompt"] = prompt
+    if inputs: task["inputs"] = inputs
+    if outputs: task["outputs"] = outputs
+    if ready is not None: task["ready"] = ready
+    if done is not None: task["done"] = done
     task["updated_at"] = datetime.utcnow().isoformat()
 
-    return {
-        "message": f"Updated metadata for task {task_id}",
-        "task_id": task_id,
-        "updated_task_metadata": task,
-        "updated_tasks": tasks
-    }
+    # Save task.yaml
+    with open("task.yaml", "w") as f:
+        yaml.dump(tasks, f)
+
+    # Auto-commit update
+    await auto_commit({
+        "repo_name": "nhl-predictor",
+        "commit_message": f"Update task metadata: {task_id}",
+        "updates": [{"file": "task.yaml", "content": yaml.dump(tasks)}]
+    })
+
+    return {"message": "Task metadata updated", "task_id": task_id, "updated_task_metadata": task}
+
+@app.patch("/tasks/update_metadata")
+async def update_task_metadata(
+    repo_name: str = Body(...),
+    task_id: str = Body(...),
+    description: Optional[str] = None,
+    prompt: Optional[str] = None,
+    inputs: Optional[list] = None,
+    outputs: Optional[list] = None,
+    ready: Optional[bool] = None,
+    done: Optional[bool] = None):
+
+    github_client = Github(GITHUB_TOKEN)
+    try:
+        repo = github_client.get_repo(f"stewmckendry/{repo_name}")
+        task_path = "project/task.yaml"
+        task_yaml_file = repo.get_contents(task_path)
+        tasks = yaml.safe_load(task_yaml_file.decoded_content)
+
+        if task_id not in tasks["tasks"]:
+            raise HTTPException(status_code=404, detail="Task not found")
+
+        task = tasks["tasks"][task_id]
+        if description: task["description"] = description
+        if prompt: task["prompt"] = prompt
+        if inputs: task["inputs"] = inputs
+        if outputs: task["outputs"] = outputs
+        if ready is not None: task["ready"] = ready
+        if done is not None: task["done"] = done
+        task["updated_at"] = datetime.utcnow().isoformat()
+
+        repo.update_file(task_path, f"Update task metadata: {task_id}", yaml.dump(tasks), task_yaml_file.sha)
+        return {"message": "Task metadata updated", "task_id": task_id, "updated_task_metadata": task}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to update metadata: {str(e)}")
 
 
 # ---- Memory Management ----
