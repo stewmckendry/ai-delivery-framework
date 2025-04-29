@@ -631,10 +631,10 @@ async def update_changelog(
         return JSONResponse(status_code=500, content={"detail": f"Internal Server Error: {type(e).__name__}: {e}"})
 
 
-@app.post("/tasks/complete/{task_id}")
+@app.post("/tasks/complete")
 async def complete_task(
-    task_id: str,
-    repo_name: str = Body(...),
+    task_id: str = Body(...),
+    repo_name: str = Body(...)
 ):
     try:
         github_client = Github(GITHUB_TOKEN)
