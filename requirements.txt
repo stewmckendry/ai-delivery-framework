@@ -7,3 +7,4 @@ PyYAML
 requests
 openai
 PyGithub
+python-multipart

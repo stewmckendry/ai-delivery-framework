@@ -207,23 +207,55 @@
       },
       "/tasks/activate": {
         "post": {
-          "summary": "Plan a task or tasks",
           "operationId": "activateTask",
+          "summary": "Activate one or more tasks by updating their status to planned",
+          "tags": ["Tasks"],
           "requestBody": {
+            "required": true,
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": ["task_id", "repo_name"],
+                  "required": ["repo_name", "task_id"],
                   "properties": {
-                    "task_id": {"type": ["string", "array"], "items": {"type": "string"}},
-                    "repo_name": {"type": "string"}
+                    "repo_name": { "type": "string" },
+                    "task_id": {
+                      "oneOf": [
+                        { "type": "string" },
+                        { "type": "array", "items": { "type": "string" } }
+                      ]
+                    }
                   }
                 }
               }
             }
           },
-          "responses": {"200": {"description": "OK"}}
+          "responses": {
+            "200": {
+              "description": "Tasks successfully activated",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "message": { "type": "string" },
+                      "planned_tasks": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "task_id": { "type": "string" },
+                            "pod_owner": { "type": "string" },
+                            "metadata": { "type": "object" }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
         }
       },
       "/tasks/clone": {
@@ -258,63 +290,6 @@
                       "message": { "type": "string" },
                       "new_task_id": { "type": "string" },
                       "cloned_task_metadata": { "type": "object" }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "/patches/promote": {
-        "post": {
-          "operationId": "promotePatch",
-          "summary": "Promote a patch by committing output files to a GitHub branch and opening a PR",
-          "tags": ["Patches"],
-          "x-gpt-action": {
-            "name": "Promote Patch"
-          },
-          "requestBody": {
-            "required": true,
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "required": ["task_id", "summary", "output_files", "prompt_path", "reasoning_trace"],
-                  "properties": {
-                    "task_id": { "type": "string" },
-                    "summary": { "type": "string" },
-                    "output_files": {
-                      "type": "object",
-                      "additionalProperties": { "type": "string" },
-                      "description": "Dictionary of {path: content} for files to promote"
-                    },
-                    "prompt_path": { "type": "string" },
-                    "reasoning_trace": { "type": "string" },
-                    "output_folder": {
-                      "type": "string",
-                      "default": "misc",
-                      "description": "Optional output folder name for branch naming"
-                    },
-                    "handoff_notes": {
-                      "type": "string",
-                      "description": "Optional handoff notes to be saved in logs"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "responses": {
-            "200": {
-              "description": "Patch promoted and PR created",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "object",
-                    "properties": {
-                      "pr_url": { "type": "string" },
-                      "branch_name": { "type": "string" }
                     }
                   }
                 }
@@ -837,60 +812,6 @@
                   }
                 }
               }
-            }
-          }
-        }
-      },
-      "/tasks/auto_commit": {
-        "post": {
-          "operationId": "autoCommit",
-          "summary": "Auto-commit one or more updated files to GitHub",
-          "tags": ["Tasks"],
-          "x-gpt-action": {
-            "name": "Auto Commit"
-          },
-          "requestBody": {
-            "required": true,
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "required": ["repo_name", "commit_message", "updates"],
-                  "properties": {
-                    "repo_name": { "type": "string" },
-                    "commit_message": { "type": "string" },
-                    "updates": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "file": { "type": "string" },
-                          "content": { "type": "string" }
-                        },
-                        "required": ["file", "content"]
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "responses": {
-            "200": {
-              "description": "Auto-commit succeeded",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "object",
-                    "properties": {
-                      "message": { "type": "string" }
-                    }
-                  }
-                }
-              }
-            },
-            "500": {
-              "description": "Internal server error"
             }
           }
         }

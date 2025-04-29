@@ -2195,5 +2195,68 @@ def commit_and_log(repo, file_path, content, commit_message):
 - All messages are human-readable
 - File paths are relative and accurate
 
+---
+
+# 🔥 Updated Batch 3C Scope – Commit Layer Refactor
+
+---
+
+## ✅ Refactor Functions to Use `commit_and_log()`
+
+| Function | Line | Action |
+| :--- | :--- | :--- |
+| `update_task_metadata` | 1114 | ✅ Already planned |
+| `clone_task` | 532 | ✅ Already planned |
+| `append_chain_of_thought` | 563/565 | ✅ Already planned |
+| `activate_task` | 456 | 🆕 **Add to plan** |
+| `start_task` | 480 | 🆕 **Add to plan** |
+
+---
+
+## ✅ Bonus Optimization
+
+- **Introduce** a `get_repo(repo_name)` helper:
+  - Simplifies repo access everywhere.
+  - Centralizes repo fetch logic for consistency.
+
+---
+
+## 🧹 Deprecation Plan: Legacy Tools
+
+| Tool | Status | Action |
+| :--- | :--- | :--- |
+| `auto_commit` | LEGACY | Comment out with `# LEGACY: Replaced by commit_and_log()` |
+| `promote_patch` | LEGACY | Comment out with `# LEGACY: Replaced by commit_and_log()` |
+| `create_or_update_file` (inside promote_patch) | LEGACY | Comment out with `# LEGACY: Replaced by commit_and_log()` |
+
+⚡ **Notes**:
+- **Don't delete yet** — just mark and comment.
+- Full removal will occur in **Batch 6: System Hardening** after E2E testing is completed.
+
+---
+
+## 📋 Final Confirmed Scope of Batch 3C
+
+| Action | Details |
+| :--- | :--- |
+| Refactor `update_task_metadata` | ✅ Use `commit_and_log` |
+| Refactor `clone_task` | ✅ Use `commit_and_log` |
+| Refactor `append_chain_of_thought` | ✅ Use `commit_and_log` |
+| Refactor `activate_task` | 🆕 Use `commit_and_log` |
+| Refactor `start_task` | 🆕 Use `commit_and_log` |
+| Introduce `get_repo()` helper | 🆕 |
+| Deprecate `auto_commit` | 🆕 LEGACY tag |
+| Deprecate `promote_patch` | 🆕 LEGACY tag |
+| Deprecate `create_or_update_file` | 🆕 LEGACY tag |
+
+---
+
+# ✨ End Result After Batch 3C
+
+- Unified Git write logic via `commit_and_log`
+- Clear, centralized repo access via `get_repo`
+- Legacy patchwork safely deprecated but recoverable
+- Traceable, consistent Git history across all Pod actions
+
 
 
