@@ -984,7 +984,11 @@
           "summary": "Mark task complete and generate reasoning trace",
           "tags": ["Tasks"],
           "x-gpt-action": {
-            "name": "Complete Task"
+            "name": "Complete Task",
+            "input_parameters": {
+              "task_id": "path",
+              "repo_name": "body"
+            }
           },
           "parameters": [
             {
