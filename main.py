@@ -401,7 +401,8 @@ async def activate_task(task_id: Union[str, List[str]] = Body(...), repo_name: s
     github_client = Github(GITHUB_TOKEN)
     repo = github_client.get_repo(f"stewmckendry/{repo_name}")
 
-    task_yaml_file = repo.get_contents("task.yaml")
+    task_path = "project/task.yaml"
+    task_yaml_file = repo.get_contents(task_path)
     task_yaml = yaml.safe_load(task_yaml_file.decoded_content)
 
     # Support activating single task or multiple tasks
@@ -417,7 +418,7 @@ async def activate_task(task_id: Union[str, List[str]] = Body(...), repo_name: s
         task_yaml["tasks"][t_id]["status"] = "planned"
 
     # Commit updated task.yaml
-    repo.update_file("task.yaml", f"Planned tasks {task_ids}", yaml.dump(task_yaml), task_yaml_file.sha)
+    repo.update_file(task_path, f"Planned tasks {task_ids}", yaml.dump(task_yaml), task_yaml_file.sha)
 
     return {"message": f"Tasks {task_ids} successfully planned."}
 

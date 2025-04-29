@@ -1721,5 +1721,82 @@ Instead, we use `auto_commit` **only for special cases** like:
 - ✅ **Batch 2E** will prepare `auto_commit` for the right, minimal real-world uses.
 - ✅ Normal task flows **won’t need to manually call `auto_commit`**.
 
+---
+
+# 🔥 Batch 2F: Changelog Auto-Update
+
+---
+
+## 🛠 Step-by-Step Actions
+
+| Step | Action |
+| :--- | :--- |
+| 2F.1 | Implement `/tasks/update_changelog/{task_id}` route |
+| 2F.2 | Auto-generate clean `CHANGELOG.md` entry |
+| 2F.3 | Auto-commit `CHANGELOG.md` updates |
+| 2F.4 | Wire changelog update inside activate, start, complete flows (later batches) |
+
+---
+
+## 🎯 Quick Plan for Batch 2F
+
+**Goal**:  
+After any important task transition (like activate, start, complete), we want a clean entry automatically logged into `CHANGELOG.md` inside `/project/outputs/`.
+
+---
+
+## ✅ Patch Contents
+
+- Add `/tasks/update_changelog/{task_id}` route.
+- Given `task_id` + `changelog_message` → append an entry to `CHANGELOG.md`.
+- Commit the updated `CHANGELOG.md` using the new `/tasks/auto_commit`.
+- Update OpenAPI JSON schema with the new route/tool.
+
+---
+
+## ⚡ Inputs Needed (for Patch 2F)
+
+- **Nothing special needed!**
+- We will:
+  - Follow the same repo structure.
+  - Use the same GitHub token from last batch.
+- `CHANGELOG.md` will be located at:
+  ```
+  /project/outputs/CHANGELOG.md
+  ```
+
+---
+
+# 📋 Batch 2F: Add Reasoning Trace Generation
+
+---
+
+## 🛠 Scope of Batch 2F
+
+| Step | Action |
+| :--- | :--- |
+| 2F.1 | New route: `/tasks/complete/{task_id}` to trigger task completion |
+| 2F.2 | Upon complete:<br>→ Read `/outputs/{task_id}/chain_of_thought.yaml`<br>→ Auto-format and generate `reasoning_trace.md` based on your template<br>→ Save `reasoning_trace.md` to `/outputs/{task_id}/reasoning_trace.md`<br>→ Auto-commit `reasoning_trace.md` via `/tasks/auto_commit` |
+| 2F.3 | Minor: Update `task.yaml` to mark the task `status = completed` |
+
+---
+
+## 📝 Notes
+
+- We will **reformat** chain of thought ideas into the `## Thoughts` section of the `reasoning_trace.md`.
+- We will **stub** other sections if not provided (ensuring the template is always complete).
+- We can **later enrich** the reasoning trace if the Pod or Human Lead provides:
+  - Scoring
+  - Extra analysis
+- **Auto-track** full reasoning **end-to-end** for every completed task.
+
+---
+
+## ✅ Benefits
+
+- Very lightweight to add now.
+- Makes Batch 2 full and **production-ready** for the NHL PoC.
+- Ensures clean, auditable delivery flows.
+
 
 
