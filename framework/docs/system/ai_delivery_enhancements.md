@@ -405,17 +405,22 @@ The implementation will proceed in **batches**, aligned with the AI-native SDLC 
 | 5.6 | Publish final NHL Predictor PoC app and system audit trail |
 
 
-## 🔹 Batch 6: Final System Polish and Hardening
+# 🔹 Batch 6: Final System Polish and Hardening (Updated)
 
 | Step | Action |
-|:-----|:------|
+| :--- | :--- |
 | 6.1 | Define rollback strategy for failed batch deployments |
 | 6.2 | Integrate metrics instrumentation into reasoning traces |
 | 6.3 | Create short Human Lead onboarding guide for new flows |
 | 6.4 | Explore multi-Pod orchestration options (stretch goal) |
-| 6.5 | Auto-capture initialization Chain of Thought during init_project |
-| 6.6 | Auto-link project context into memory.yaml (`project_init_trace`) |
-| 6.7 | Enrich project initialization reasoning_trace.md to full format |
+| 6.5 | Auto-capture initialization Chain of Thought during `init_project` |
+| 6.6 | Auto-link project context into `memory.yaml` (`project_init_trace`) |
+| 6.7 | Enrich project initialization `reasoning_trace.md` to full format |
+| 6.8 | Enhance `init_project` to save actual prompt used (full trace) |
+| 6.9 | Auto-append changelog entry during `init_project` |
+| 6.10 | Improve GitHub failsafes and retries during project init |
+
+
 
 ---
 
@@ -1012,5 +1017,709 @@ cd nhl-predictor
 ✅ **Yes**, you’re supposed to run `/project/init_project` at the start of every delivery project.  
 ✅ **Yes**, each project lives in its own GitHub repo.  
 ✅ **Yes**, the outputs (`task.yaml`, `memory.yaml`, `outputs/`, etc.) should be at the **repo root** — no `/project/NHL Predictor/` nesting.
+
+
+# 📋 1. What Went Wrong and How We Fixed It: `/project/init_project`
+
+| Issue | Root Cause | Fix |
+| :--- | :--- | :--- |
+| ClientResponseError from GPT | API domain changed from `ai-concussion-agent` to `ai-delivery-framework`, but Custom GPT still cached old schema | Updated OpenAPI, refreshed schema fully, deleted/re-added action |
+| 500 Internal Server Error | GitHub repo permissions missing or PATH misalignment | Validated PAT permissions, confirmed repo access |
+| UnicodeDecodeError on copying files | Tried decoding binary files as UTF-8 text | Added `try-except` block to skip binaries during copy |
+| GitHub "path cannot start with slash" 422 error | File paths incorrectly prefixed with `/` | Cleaned path concatenation (no leading slashes) |
+| Framework copied into `framework/framework` | Wrong `framework_dest_path` set | Reset `framework_dest_path = ""` |
+| GitHub "sha not supplied" error | Tried creating a file that already existed without providing `sha` for update | Clean repo or pre-check existence logic |
+| GPT Timeout Error | Copying large framework baseline took longer than GPT tool call timeout | Made copy an async background task (`BackgroundTasks`) so GPT could finish call immediately |
+| Files landing in wrong root | Wrong `project_path` logic | Split clean paths: `/framework/` for baseline, `/project/` for init files |
+
+✅ **Result**: Smooth, fast, async Project Initialization working!
+
+---
+
+# 📋 2. Add Enhancements to Batch Backlog (Batch 6)
+
+### 🔹 Failsafe Enhancements
+- Add existence check: if framework already copied, skip to avoid `sha` issues.
+- Add retry mechanism on GitHub API errors.
+
+### 🔹 Prompt Storage Enhancements
+- Save the actual `init_project` starter prompt (like a system trace) in `/outputs/project_init/prompt_used.txt`.
+
+### 🔹 Changelog Enhancements
+- Automatically append an entry to `CHANGELOG.md` during `init_project`.
+
+Example entry:
+```
+## 2025-04-29
+- Initialized project NHL Predictor
+- Repo: nhl-predictor
+- Framework copied from ai-delivery-framework
+```
+
+---
+
+# 🛠 Updated Batch Backlog (With Enhancements)
+
+## 🔹 Batch 1: Project Initialization Phase ✅ (Completed!)
+
+| Step | Action |
+| :--- | :--- |
+| 1.1 | Implement `/project/init_project` route and logic |
+| 1.2 | Create `scripts/structure_repo.py` to scaffold repo |
+| 1.3 | Capture and auto-commit initial prompt and reasoning |
+| 1.4 | Initialize `memory.yaml` links for project context |
+| 1.5 | Update system prompt for project init process |
+
+---
+
+## 🔹 Batch 2: Discovery Phase (Early Task Execution) 🚀 (Next!)
+
+| Step | Action |
+| :--- | :--- |
+| 2.1 | Implement `/tasks/activate` smart prompt fallback |
+| 2.2 | Implement auto-capture of `prompt_used.txt` |
+| 2.3 | Implement auto-capture of `reasoning_trace.md` |
+| 2.4 | Implement `/tasks/append_chain_of_thought/{task_id}` |
+| 2.5 | Implement `/tasks/auto_commit/{task_id}` functionality |
+| 2.6 | Wire auto-commit into `activate/create/clone` routes |
+| 2.7 | Begin wiring changelog updates into these tool handlers |
+
+
+# 📦 Batch 2 Kickoff: Discovery Phase (Early Task Execution)
+
+---
+
+## 🧠 1. Overview: Changes + Outcomes
+
+| Area | Change | Outcome |
+| :--- | :--- | :--- |
+| Task Activation | Implement `/tasks/activate` smart prompt fallback if missing | Human Lead doesn't have to manually draft prompts |
+| Prompt Capture | Auto-save `prompt_used.txt` when activating a task | Full traceability of instructions |
+| Reasoning Trace | Auto-create `reasoning_trace.md` when task is activated | End-to-end reasoning captured automatically |
+| Chain of Thought | Implement `/tasks/append_chain_of_thought/{task_id}` | Capture iterative feedback cycles automatically |
+| Auto-Commit | Implement `/tasks/auto_commit/{task_id}` | No manual commits after minor task steps |
+| Smart Wiring | Wire all of the above into `/tasks/activate` flow | Frictionless task startup |
+| Changelog Updates | Begin changelog entries during activation | Full audit trail from Day 1 |
+
+✅ **Batch 2 Outcome**:  
+Pods can activate tasks smoothly, with automatic prompt capture, reasoning trace, chain of thought, commits, and changelog entries — no manual ops needed.
+
+---
+
+## 🗂 2. Inputs + Files Needed
+
+| Needed | Status |
+| :--- | :--- |
+| `main.py` (latest, post-batch-1) | ✅ You already have it |
+| `openapi.json` (latest) | ✅ You already have it |
+| `/tasks/activate` route code | ✅ Exists (we will patch/enhance it) |
+| GitHub repo access (`ai-delivery-framework` + `nhl-predictor`) | ✅ Confirmed |
+| Existing `scripts/auto_commit.py` helper | 🚧 If missing, I'll patch it during this batch |
+
+---
+
+## 🧩 3. Assumptions
+
+| Assumption | Status |
+| :--- | :--- |
+| GitHub token (`GITHUB_TOKEN`) already active for `ai-delivery-framework` and `nhl-predictor` repos | ✅ |
+| Directory structure for new project already set up (`/project`, `/outputs`, etc.) | ✅ |
+| `memory.yaml` and `task.yaml` initialized per project already | ✅ |
+
+---
+
+## 🛠 4. Error Handling Improvements
+
+| Idea | Plan |
+| :--- | :--- |
+| Improve exception logging | Add `try/except` blocks with error class + message tracing |
+| Retry logic for transient GitHub API issues | Defer to Batch 6 unless simple to implement |
+| Custom 422 handling (GitHub `sha` errors) | Defer to Batch 6 (major patch) |
+
+✅ **Result**: Faster debugging when something goes wrong.
+
+---
+
+## 🗣 5. Heaviness of Chat
+
+💬 You are absolutely correct:  
+This conversation is huge — easily ~30,000+ tokens.  
+At some point, it risks slowdowns, context loss, or errors.
+
+### Recommended Action:
+
+✅ After Batch 2, **start a fresh thread**.  
+✅ I’ll prep a full **handoff briefing pack** to load into the new chat:
+- Current System Status
+- What We've Built
+- Current Batch
+- Key Files + Repo Setup
+- Key Pending Batches
+
+(Just say: "**yes prep briefing pack**" if you want me to start!)
+
+---
+
+# 📣 Ready for Step 4: Print Patches?
+
+If yes, I’ll immediately:
+
+- Draft `/tasks/activate` enhancements (prompt fallback, auto-capture prompt, reasoning)
+- Draft `/tasks/append_chain_of_thought/{task_id}` route
+- Draft `/tasks/auto_commit/{task_id}` route
+- Draft auto-changelog entry stubs
+- Patch `openapi.json`
+- Print everything here cleanly for you to apply
+
+
+# 🔥 Clarifying the End-to-End Delivery Flow (for Discovery Phase)
+
+---
+
+## 🛠 Step-by-Step Flow
+
+| Step | Action |
+| :--- | :--- |
+| 1 | Delivery Lead uses `/tasks/activate` to select and activate a task |
+| 2 | Custom GPT (DeliveryPod) fetches prompt tied to the task |
+| 3 | Custom GPT (DevPod/ResearchPod) processes the prompt and generates output |
+| 4 | While doing this, chain of thought (CoT) is captured inline |
+| 5 | After completion:<br>→ Save prompt used to `/project/outputs/{task_id}/prompt_used.txt`<br>→ Save reasoning trace to `/project/outputs/{task_id}/reasoning_trace.md`<br>→ Save outputs to `/project/outputs/{task_id}/...` |
+| 6 | Auto-commit those files to GitHub (`chatgpt/auto/{task_id}` branch) |
+| 7 | (Optionally) Create a promote patch when ready for PR review |
+| 8 | Update `task.yaml` (set `status = done`) and optionally update `memory.yaml` if new memory was built |
+
+---
+
+## 🧩 Observations
+
+- **Prompt ➔ Chain of Thought ➔ Reasoning Trace** linkage is **core** and must happen **automatically after every task**.
+- **Separation of auto-commit vs. human push/PR** is healthy:
+  - Auto-commit (background, fast).
+  - `promote_patch` (manual merge, reviewed).
+- `task.yaml` updates must also happen smoothly and auto-save to prevent drift between state and Git.
+
+---
+
+# 🔥 My Recommendations
+
+### (a) Should we upgrade existing FastAPI tools to auto-commit?
+✅ **Answer: Yes.**
+
+- For key lifecycle events (`activate_task`, `create_new_task`, `clone_task`, `update_metadata`):
+  - Immediately auto-commit the updated `task.yaml` or `memory.yaml`.
+- If we delay to Batch 3 or 4, we risk misalignment.
+
+**Recommendation**:  
+Pull forward partial auto-commit into **Batch 2** scope for `/tasks/activate`.
+
+---
+
+### (b) Should we update `openapi.json` for background_tasks or batch behavior?
+❌ **Answer: No change needed yet.**
+
+- `background_tasks` are a **server-side async optimization**.
+- They are **already invisible** to `openapi.json`.
+- The **response body for `/tasks/activate` remains as-is** — no additional fields needed at this point.
+
+
+# 🔹 Batch 2: Discovery Phase (Early Task Execution)
+
+---
+
+## 🛠 Step-by-Step Plan
+
+| Step | Action | Notes |
+| :--- | :--- | :--- |
+| 2.1 | Implement `/tasks/activate` smart prompt fallback | If prompt file missing, auto-draft it dynamically |
+| 2.2 | Implement auto-capture of `prompt_used.txt` | Save the fetched or generated prompt immediately when task starts |
+| 2.3 | Implement auto-capture of `reasoning_trace.md` | Begin logging final reasoning once task completed |
+| 2.4 | Implement `/tasks/append_chain_of_thought/{task_id}` | Allow structured logs of interim Pod thoughts |
+| 2.5 | Implement `/tasks/auto_commit/{task_id}` functionality | Enable minor Git commits directly from task work |
+| 2.6 | Wire auto-commit into activate/create/clone routes | So all normal task progress is saved automatically |
+| 2.7 | Begin wiring changelog updates into these tool handlers | Especially on activation, auto-commit, and reasoning save |
+| 2.8 | Patch starter `task.yaml` to point to correct prompt locations | `task_templates/{phase}/{task_id}/prompt_template.md` |
+| 2.9 | Create minimal `starter_prompt_generator.py` | If no prompt is found, auto-generate a draft from task description |
+| 2.10 | Split task lifecycle into `activate_task` (planning) vs `start_task` (execution) | DeliveryPod activates, Pod picks up separately |
+| 2.11 | Implement `/tasks/start` route | When Pod actually begins work; fetch prompt + init context |
+| 2.12 | Implement intelligent task-to-task transition system | Auto-handoff: when one task is done, next is activated or proposed |
+| 2.13 | Implement early detection if chat/session memory is getting full | Warn or scaffold graceful transition to new chat |
+| 2.14 | Wire Pod handoffs to check for pending handoff notes and chain of thought | Continue work seamlessly if a Pod is taking over mid-task |
+
+## 🛠 E2E Flow: Way of Working
+
+╔═════════════════════════════════════╗
+║          1. DeliveryPod Plans        ║
+╠═════════════════════════════════════╣
+║ /tasks/activate                      ║
+║ - Marks task as "planned"            ║
+║ - Links planned prompt if available  ║
+║ - (No actual start yet)              ║
+╚═════════════════════════════════════╝
+             ↓
+
+╔═════════════════════════════════════╗
+║         2. Execution Pod Begins      ║
+╠═════════════════════════════════════╣
+║ /tasks/start                         ║
+║ - Pod pulls next planned task        ║
+║ - Auto-fetches prompt (or drafts)    ║
+║ - Captures prompt_used.txt           ║
+║ - Initializes reasoning trace        ║
+║ - Auto-commits                        ║
+╚═════════════════════════════════════╝
+             ↓
+
+╔═════════════════════════════════════╗
+║        3. Pod Works on Task          ║
+╠═════════════════════════════════════╣
+║ Normal work cycle: deliverables,     ║
+║ chain_of_thought updates, interim    ║
+║ auto-commits                         ║
+╚═════════════════════════════════════╝
+             ↓
+
+╔═════════════════════════════════════╗
+║      4. Pod Finishes Task            ║
+╠═════════════════════════════════════╣
+║ /tasks/complete                      ║
+║ - Marks task "done"                  ║
+║ - Final reasoning_trace.md update    ║
+║ - Update task.yaml, memory.yaml      ║
+║ - Auto-commit completion             ║
+╚═════════════════════════════════════╝
+             ↓
+
+╔═════════════════════════════════════╗
+║        5. System Suggests Next       ║
+╠═════════════════════════════════════╣
+║ If next task is clear:               ║
+║ - Auto-activate next task            ║
+║ Else:                                ║
+║ - Wait for DeliveryPod direction     ║
+╚═════════════════════════════════════╝
+             ↓
+
+╔═════════════════════════════════════╗
+║       6. Handling Handoffs           ║
+╠═════════════════════════════════════╣
+║ On Pod transition, system checks:    ║
+║ - Handoff notes                      ║
+║ - Chain of Thought                   ║
+║ - Open tasks                         ║
+╚═════════════════════════════════════╝
+
+
+# 🔥 Proposed Patch Breakdown for Batch 2
+
+To stay iterative and testable, I recommend breaking Batch 2 into **three smaller sub-batches**:
+
+---
+
+## 🛠 Sub-Batch 2A: Core Activation ➔ Start Split
+
+| Scope | Reason |
+| :--- | :--- |
+| Core activation (`/tasks/activate`) and start (`/tasks/start`) split | Establish two clean phases: planning (Delivery Lead) vs execution (Pod) |
+
+---
+
+## 🛠 Sub-Batch 2B: Chain of Thought, Reasoning, Auto-Commit
+
+| Scope | Reason |
+| :--- | :--- |
+| - Auto-capture of Chain of Thought<br>- Reasoning Trace generation<br>- Auto-commit working outputs | Capture full working context properly and maintain Git history automatically |
+
+---
+
+## 🛠 Sub-Batch 2C: Intelligent Transitions + Session Scaling
+
+| Scope | Reason |
+| :--- | :--- |
+| - Intelligent task-to-task transitions<br>- Early detection of memory/chat saturation<br>- Pod handoff checks and continuity | Ensure long projects are seamless and minimize manual intervention across Pods or sessions |
+
+---
+
+# ✍️ Detailed Patch Steps for Batch 2
+
+---
+
+## 🔹 Sub-Batch 2A: Task Planning vs Execution (Foundation)
+
+| Step | Action |
+| :--- | :--- |
+| 2.1 | Update `/tasks/activate` to only plan (not start) |
+| 2.2 | Implement `/tasks/start` endpoint |
+| 2.3 | Implement prompt auto-fetch or draft fallback |
+| 2.4 | Auto-save `prompt_used.txt` on start |
+| 2.5 | Auto-commit activation and start separately |
+
+✅ **Outcome**: Real-world **plan ➔ execute** lifecycle established.
+
+---
+
+## 🔹 Sub-Batch 2B: Context and Audit Capture (Middle)
+
+| Step | Action |
+| :--- | :--- |
+| 2.6 | Implement `/tasks/append_chain_of_thought/{task_id}` |
+| 2.7 | Implement `reasoning_trace.md` initial capture |
+| 2.8 | Add lightweight `/tasks/auto_commit/{task_id}` endpoint |
+| 2.9 | Wire in `CHANGELOG.md` updates during commits |
+
+✅ **Outcome**: Full **traceability**, **auditability**, and **fast commits** enabled.
+
+---
+
+## 🔹 Sub-Batch 2C: Task-to-Task Flow and Scaling (Advanced)
+
+| Step | Action |
+| :--- | :--- |
+| 2.10 | Implement task-to-task transitions after completion |
+| 2.11 | Implement Pod handoff logic with `handoff.md` notes |
+| 2.12 | Add auto-detect for chat session nearing memory limit |
+| 2.13 | Scaffold new chat/session gracefully if needed |
+
+✅ **Outcome**: Long, multi-task, multi-Pod projects **scale elegantly** without disruption.
+
+
+# (1) Repo Name Management (FastAPI vs Custom GPTs)
+
+✅ **Problem**:  
+- `REPO_NAME` variable is missing in `main.py`.  
+- Hardcoding it inside FastAPI doesn't scale to multi-projects.
+
+✅ **Best Practice Solution**:
+- Pass `repo_name` dynamically on every tool call.
+- Custom GPTs (DeliveryPod, DevPod, etc.) must include `"repo_name": "nhl-predictor"` in each POST body.
+- FastAPI reads `repo_name` from request and connects to the correct repo dynamically.
+
+✅ **Action for Us**:
+- Patch `/tasks/activate`, `/tasks/start/{task_id}`, and any future tools to accept `repo_name` in request body — **not rely on a global variable**.
+
+✅ *(We'll queue this into Batch 2B — small and surgical patch.)*
+
+---
+
+# (3) Activate Multiple Tasks at Once
+
+✅ **Super Useful for**:
+- Parallel Pods
+- Planning sprint packs
+- Pre-staging discovery tasks
+
+✅ **Action for Us**:
+- Patch `/tasks/activate` to accept **single or list of `task_ids`**.
+- Batch them as "planned" in one update + commit.
+
+✅ *(Add to Batch 2B.)*
+
+---
+
+# (4) Updating `task.yaml` and Prompt Paths
+
+✅ **Immediate Action**:
+- Manual fix for `NHL-Predictor` PoC task.yaml prompt paths.
+- Example format:
+  ```
+  prompt: framework/task_templates/Phase1_discovery/1.1_capture_project_goals/prompt_template.md
+  ```
+
+✅ **Later Action**:
+- Batch 6: Add repo-hardening scripts to automate during `/project/init_project`.
+
+---
+
+# (5) Prompt Auto-Generation on Task Start
+
+✅ **Clarification**:
+- Explicitly **queue auto-generate missing prompts** into **Batch 2C**: Smart Start Enhancements.
+
+---
+
+# (6) Return Input Files on Task Start
+
+✅ **Agreed**: DeliveryPod or DevPod needs:
+- Prompt (task context)
+- Input files
+
+✅ **Action for Us**:
+- Patch `/tasks/start/{task_id}` to also return:
+
+```json
+{
+  "message": "Task started successfully.",
+  "prompt_content": "...",
+  "inputs": ["input1.md", "input2.json", ...]
+}
+```
+
+✅ *(Queue into Batch 2B.)*
+
+---
+
+# (7) Write Human Lead Guide (Sprint Guide)
+
+✅ **Agree 100%**.
+
+| Chapter | Topic |
+| :--- | :--- |
+| 1 | How to Start a New Project (`init_project`) |
+| 2 | How to Plan Tasks |
+| 3 | How to Activate/Start Tasks |
+| 4 | How to Manage Task Outputs |
+| 5 | How to Promote Patches |
+| 6 | How to Handoff Pods |
+| 7 | How to Recover from Errors |
+
+✅ **Action for Us**:
+- Queue into **Batch 6** under "Human Documentation Deliverables".
+
+---
+
+# ✨ Updated Sub-Batch 2B Plan (Based on Today)
+
+| Step | Patch | Purpose |
+| :--- | :--- | :--- |
+| 2B.1 | Update `/tasks/activate` to accept `repo_name` | Dynamically route project actions |
+| 2B.2 | Update `/tasks/start/{task_id}` to accept `repo_name` | Dynamically fetch the correct project |
+| 2B.3 | Patch OpenAPI schema for both | Keep tools aligned with the server changes |
+| 2B.4 | Allow `/tasks/activate` to plan multiple tasks | Batch planning for faster multi-task startups |
+| 2B.5 | Enhance `/tasks/start` to return prompt + inputs | Provide full task context to Pods immediately |
+
+---
+
+# 📋 Quick Summary of New or Updated Routes
+
+| Route | Purpose |
+| :--- | :--- |
+| `/tasks/start` (updated) | Start task, mark as `in_progress`, return prompt + input files |
+| `/tasks/append_chain_of_thought/{task_id}` (new) | Append messages to a task’s growing Chain of Thought (CoT) file |
+
+---
+
+# 🛠️ Purpose of `auto_commit`
+
+In our AI-native delivery system, work progresses fast (GPT Pods + Human Leads interacting).  
+We want small, logical checkpoints — **without** the Human having to:
+
+- Create manual patches,
+- Push manually every time,
+- Or batch little edits awkwardly.
+
+✅ `auto_commit` allows the system (via GPT Pods) to **lightweight commit important changes** on the fly.
+
+---
+
+# ⚙️ When Do We Call `auto_commit`?
+
+We trigger `auto_commit` automatically inside tools when logical work happens — examples:
+
+| Event | Example Trigger | Action |
+| :--- | :--- | :--- |
+| Task activated | `/tasks/activate` | Commit updated `task.yaml` (planned status) |
+| Task started | `/tasks/start` | Commit updated `task.yaml` (in_progress status) |
+| Prompt drafted/missing fallback | `/tasks/activate` | Commit generated `prompt_used.txt` |
+| Chain of Thought appended | `/tasks/append_chain_of_thought` | Commit updated `chain_of_thought.yaml` |
+| Task completed | *(future batch)* | Commit `done: true` updates |
+
+✅ Always:
+- Small commits.
+- Context-rich commit messages.
+- Only files affected (e.g., commit `task.yaml`, not unrelated files).
+
+---
+
+# 📋 What Files Does `auto_commit` Handle?
+
+Only a **defined, controlled list** of updated files, such as:
+
+- `task.yaml`
+- `memory.yaml` (if relevant)
+- `outputs/` files (`prompt_used.txt`, `reasoning_trace.md`, `chain_of_thought.yaml`)
+- `logs/` or `changelogs/` files
+
+The GPT tool sending the request **specifies**:
+- Which files to commit
+- A simple, clear commit message
+
+---
+
+# 🔗 Relationship to Promote Patch
+
+| Auto-Commit | Promote Patch |
+| :--- | :--- |
+| Purpose | Micro, quick saves | Formal bundle of work |
+| When | Frequent (after work units) | End of a logical milestone (discovery complete, dev complete, etc.) |
+| Human Review? | Not needed immediately | Yes, via PR if desired |
+| Git Branch | Direct to main (or light feature branch) | Patch zip or PR branch |
+
+---
+
+# 📈 How This Improves System
+
+| Before | After |
+| :--- | :--- |
+| GPTs needed Human to push every small update | GPTs self-persist work |
+| Risk of loss if chat disconnects | Traceable commits immediately |
+| Human burden to patch constantly | Only big batches need human review |
+| No easy task-to-task savepoints | Automatic checkpoints at every stage |
+
+---
+
+# 🔥 Final Quick Summary
+
+- `auto_commit` = lightweight "checkpoint saves" during Pod execution.
+- Human Lead **doesn't have to think about it**.
+- System evolves **live, traceable, and recoverable**.
+- **Promote Patch** becomes **rarer, cleaner, strategic**.
+
+# 🛠️ Example Scenario: Discovery Phase Task 1.1
+
+---
+
+## 🎯 Goal
+
+DeliveryPod activates and works on `1.1_capture_project_goals`.
+
+---
+
+## 🛤️ Step-by-Step with Auto-Commit Actions
+
+| Step | Action | Files Touched | Auto-Commit? | Commit Message |
+| :--- | :--- | :--- | :--- | :--- |
+| 1 | Activate task 1.1 | `task.yaml` | ✅ | Activate task 1.1_capture_project_goals |
+| 2 | Draft prompt fallback (no prompt found) | `/project/outputs/1.1_capture_project_goals/prompt_used.txt` | ✅ | Draft prompt for task 1.1_capture_project_goals |
+| 3 | Start task (Pod begins work) | `task.yaml` (set `in_progress`) | ✅ | Mark task 1.1_capture_project_goals as in_progress |
+| 4 | Chain of Thought entry ("Plan created for capturing project goals") | `/project/outputs/1.1_capture_project_goals/chain_of_thought.yaml` | ✅ | Append CoT for task 1.1_capture_project_goals |
+| 5 | Chain of Thought entry ("First draft of goals summary generated") | `/project/outputs/1.1_capture_project_goals/chain_of_thought.yaml` | ✅ | Append CoT for task 1.1_capture_project_goals |
+| 6 | Task complete (future batch) | `task.yaml` (mark `done: true`), update `memory.yaml` | ✅ | Mark task 1.1_capture_project_goals as done |
+| 7 | (Later) Promote patch milestone | Full outputs zipped | ✅ | Strategic PR (if needed) |
+
+---
+
+## 📸 Git History After Just One Task
+
+```bash
+git log --oneline
+```
+```
+abcd123 Activate task 1.1_capture_project_goals
+bcde234 Draft prompt for task 1.1_capture_project_goals
+cdef345 Mark task 1.1_capture_project_goals as in_progress
+defg456 Append CoT for task 1.1_capture_project_goals
+efgh567 Append CoT for task 1.1_capture_project_goals
+fghi678 Mark task 1.1_capture_project_goals as done
+...
+(next tasks activate/start similarly)
+```
+
+✅ Very small, very understandable commits.  
+✅ You can trace the entire story without ever leaving Git.  
+✅ Easy rollback or cherry-pick if needed.
+
+---
+
+## 🎯 Visual Lifecycle Mini Diagram
+
+```
+Human Lead ➔ GPT DeliveryPod
+   |
+   V
+[ Activate task 1.1 ] ➔ auto_commit (task.yaml updated)
+   |
+   V
+[ Draft/fetch prompt ] ➔ auto_commit (prompt_used.txt)
+   |
+   V
+[ Start task ] ➔ auto_commit (status: in_progress)
+   |
+   V
+[ Pod thinks ] ➔ append_chain_of_thought ➔ auto_commit (CoT.yaml grows)
+   |
+   V
+[ Pod finishes task ] ➔ auto_commit (status: done)
+   |
+   V
+[ (Optional) Human promotes patch bundle ]
+```
+
+---
+
+# ✨ Why This Is So Powerful
+
+| Old World | New World |
+| :--- | :--- |
+| GPT writes to disk but forgets to push | GPTs self-push on important moments |
+| Human stress checking every microstep | Human sees clean Git history |
+| No trace of reasoning | Reasoning fully captured in repo |
+| Risky session timeouts | Safe checkpoints every few minutes |
+
+---
+
+# 🚀 TL;DR
+
+✅ Auto-commits make AI-native SDLC **industrial-grade**.  
+✅ Work feels **light to Humans**, while being **ultra-traceable and recoverable underneath**.
+
+---
+
+# 🔥 What's Happening Today in FastAPI Routes?
+
+When we patched `/tasks/activate`, `/tasks/start`, `/tasks/append_chain_of_thought`, etc.,  
+those routes now **directly call GitHub** (via PyGitHub) to create/update files:
+
+| Event | Action |
+| :--- | :--- |
+| Activating a task | Update `task.yaml` (set `status = activated`) |
+| Drafting a prompt | Create `prompt_used.txt` |
+| Starting a task | Update `task.yaml` (set `status = in_progress`) |
+| Appending to Chain of Thought | Update `chain_of_thought.yaml` |
+
+👉 **Those API routes are already committing to GitHub directly at the time of file update.**  
+No extra push or staging step is needed anymore.
+
+✅ It’s immediate.  
+✅ It’s traceable.  
+✅ It’s atomic per action.
+
+---
+
+# 🛠️ Then... What Is `auto_commit` Tool For?
+
+Originally, `auto_commit` was conceptualized as a separate tool because older flows (months ago)  
+were working with **local file edits**, then required a **manual commit** afterwards.
+
+BUT now that we made every route **Git-native**,  
+✅ `auto_commit` becomes almost **unnecessary for the normal flow**.
+
+Instead, we use `auto_commit` **only for special cases** like:
+
+| When Needed | Why |
+| :--- | :--- |
+| Saving auxiliary or bulk state changes | If GPT writes reasoning summaries, draft code, doc expansions |
+| Emergency checkpointing | If Pods want to commit their "thought state" or drafts mid-task |
+| Special batches | When promoting patches, batch-updating many files at once |
+
+---
+
+# 🧠 What This Means
+
+| Situation | Git Write Done Automatically? | Need `auto_commit`? |
+| :--- | :--- | :--- |
+| `/tasks/activate`, `/tasks/start`, `/tasks/append_chain_of_thought` | ✅ Yes (direct API writes to GitHub) | ❌ No |
+| Pod writes big deliverable (code draft, report) mid-task | ❌ Local creation, not instant commit | ✅ Yes |
+| At task "save point" manually by DeliveryPod | ❌ | ✅ Yes |
+| Patch promotion of multi-task deliverables | ❌ | ✅ Yes (batch) |
+
+---
+
+# 🚀 TL;DR
+
+- Core routes already **auto-push** = you’re safe.
+- `auto_commit` becomes an **auxiliary tool** for **ad-hoc commits** or **bigger flows like promote_patch**.
+- ✅ **Batch 2E** will prepare `auto_commit` for the right, minimal real-world uses.
+- ✅ Normal task flows **won’t need to manually call `auto_commit`**.
+
 
 

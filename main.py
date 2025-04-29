@@ -7,7 +7,7 @@ from fastapi.responses import JSONResponse, FileResponse
 from fastapi.openapi.utils import get_openapi
 from fastapi import BackgroundTasks
 from pydantic import BaseModel
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Union
 from pathlib import Path
 from datetime import datetime
 from copy import deepcopy
@@ -397,39 +397,78 @@ def list_tasks(
     return {"tasks": filtered_tasks}
 
 @app.post("/tasks/activate")
-async def activate_task(request: ActivateTaskRequest):
+async def activate_task(task_id: Union[str, List[str]] = Body(...), repo_name: str = Body(...)):
+    github_client = Github(GITHUB_TOKEN)
+    repo = github_client.get_repo(f"stewmckendry/{repo_name}")
+
+    task_yaml_file = repo.get_contents("task.yaml")
+    task_yaml = yaml.safe_load(task_yaml_file.decoded_content)
+
+    # Support activating single task or multiple tasks
+    if isinstance(task_id, str):
+        task_ids = [task_id]
+    else:
+        task_ids = task_id
+
+    # Update tasks to "planned"
+    for t_id in task_ids:
+        if t_id not in task_yaml.get("tasks", {}):
+            raise HTTPException(status_code=400, detail=f"Task {t_id} not found in task.yaml.")
+        task_yaml["tasks"][t_id]["status"] = "planned"
+
+    # Commit updated task.yaml
+    repo.update_file("task.yaml", f"Planned tasks {task_ids}", yaml.dump(task_yaml), task_yaml_file.sha)
+
+    return {"message": f"Tasks {task_ids} successfully planned."}
+
+
+@app.post("/tasks/start")
+async def start_task(task_id: str = Body(...), repo_name: str = Body(...)):
     try:
-        task_data = fetch_yaml_from_github(file_path=TASK_FILE_PATH)
+        github_client = Github(GITHUB_TOKEN)
+        repo = github_client.get_repo(f"stewmckendry/{repo_name}")
+
+        # Fetch task.yaml
+        task_file = repo.get_contents("task.yaml")
+        task_data = yaml.safe_load(task_file.decoded_content)
+
+        if task_id not in task_data.get("tasks", {}):
+            raise HTTPException(status_code=404, detail=f"Task ID {task_id} not found.")
+
+        task = task_data["tasks"][task_id]
+
+        # Update task status to in_progress
+        task["status"] = "in_progress"
+        updated_task_yaml = yaml.dump(task_data, sort_keys=False)
+        repo.update_file(
+            path="task.yaml",
+            message=f"Mark task {task_id} as in_progress",
+            content=updated_task_yaml,
+            sha=task_file.sha
+        )
+
+        # Fetch prompt
+        prompt_path = task.get("prompt")
+        input_files = task.get("inputs", [])
+
+        prompt_content = ""
+        if prompt_path:
+            try:
+                prompt_file = repo.get_contents(prompt_path)
+                prompt_content = prompt_file.decoded_content.decode()
+            except Exception:
+                prompt_content = "Prompt file missing."
+
+        return {
+            "message": f"Task {task_id} started successfully.",
+            "prompt_content": prompt_content,
+            "inputs": input_files
+        }
+
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error fetching task.yaml: {e}")
-    
-    tasks = task_data.get("tasks", {})
-    task_id = request.task_id
+        print(f"❌ Exception during start_task: {type(e).__name__}: {e}")
+        return JSONResponse(status_code=500, content={"detail": f"Internal Server Error: {type(e).__name__}: {e}"})
 
-    if task_id not in tasks:
-        raise HTTPException(status_code=404, detail=f"Task ID {task_id} not found")
-
-    tasks[task_id]["status"] = "in_progress"
-    tasks[task_id]["updated_at"] = datetime.utcnow().isoformat()
-
-    pod = tasks[task_id].get("pod_owner", "unknown")
-    prompt_path = f"{PROMPT_DIR}/{pod}/{task_id}_prompt.txt"
-
-    try:
-        prompt_content = fetch_yaml_from_github(file_path=prompt_path)
-    except Exception as e:
-        prompt_content = None
-
-    if prompt_content is None:
-        prompt_content = "Prompt file not found. Please auto-generate it."
-
-    return {
-        "task": tasks[task_id],
-        "all_tasks": tasks,
-        "status": "in_progress",
-        "prompt_path": prompt_path,
-        "prompt_content": prompt_content
-    }
 
 @app.post("/tasks/clone")
 async def clone_task(request: CloneTaskRequest):
@@ -469,6 +508,201 @@ async def clone_task(request: CloneTaskRequest):
         "original_prompt_path": original_prompt_path,
         "original_prompt_content": original_prompt_content
     }
+
+@app.post("/tasks/append_chain_of_thought/{task_id}")
+async def append_chain_of_thought(task_id: str, message: str = Body(...), repo_name: str = Body(...)):
+    try:
+        github_client = Github(GITHUB_TOKEN)
+        repo = github_client.get_repo(f"stewmckendry/{repo_name}")
+
+        cot_path = f"project/outputs/{task_id}/chain_of_thought.yaml"
+        try:
+            cot_file = repo.get_contents(cot_path)
+            cot_data = yaml.safe_load(cot_file.decoded_content)
+        except Exception:
+            cot_data = []  # No file yet, start fresh
+
+        # Append entry
+        cot_data.append({
+            "timestamp": datetime.utcnow().isoformat(),
+            "message": message
+        })
+
+        updated_yaml = yaml.dump(cot_data, sort_keys=False)
+
+        if 'cot_file' in locals():
+            # Update existing
+            repo.update_file(cot_path, f"Append CoT entry for {task_id}", updated_yaml, sha=cot_file.sha)
+        else:
+            # Create new
+            repo.create_file(cot_path, f"Create CoT log for {task_id}", updated_yaml)
+
+        return {"message": f"Chain of Thought updated for {task_id}"}
+
+    except Exception as e:
+        print(f"❌ Exception during append_chain_of_thought: {type(e).__name__}: {e}")
+        return JSONResponse(status_code=500, content={"detail": f"Internal Server Error: {type(e).__name__}: {e}"})
+
+
+from typing import List, Dict
+
+@app.post("/tasks/auto_commit")
+async def auto_commit(
+    repo_name: str = Body(...),
+    commit_message: str = Body(...),
+    updates: List[Dict[str, str]] = Body(...)
+):
+    try:
+        github_client = Github(GITHUB_TOKEN)
+        repo = github_client.get_repo(f"stewmckendry/{repo_name}")
+
+        for update in updates:
+            file_path = update["file"]
+            content = update["content"]
+            try:
+                existing_file = repo.get_contents(file_path)
+                repo.update_file(
+                    path=file_path,
+                    message=commit_message,
+                    content=content,
+                    sha=existing_file.sha
+                )
+            except Exception:
+                repo.create_file(
+                    path=file_path,
+                    message=commit_message,
+                    content=content
+                )
+
+        # Update the auto-commit marker
+        marker_path = ".logs/last_autocommit_marker.txt"
+        try:
+            marker_file = repo.get_contents(marker_path)
+            new_marker_content = f"Last auto-commit at {datetime.utcnow().isoformat()}"
+            repo.update_file(marker_path, "Update auto-commit marker", new_marker_content, sha=marker_file.sha)
+        except Exception:
+            new_marker_content = f"First auto-commit at {datetime.utcnow().isoformat()}"
+            repo.create_file(marker_path, "Create auto-commit marker", new_marker_content)
+
+        return {"message": f"Auto-commit done for {repo_name} with message: {commit_message}"}
+
+    except Exception as e:
+        print(f"❌ Exception during auto_commit: {type(e).__name__}: {e}")
+        return JSONResponse(status_code=500, content={"detail": f"Internal Server Error: {type(e).__name__}: {e}"})
+
+@app.post("/tasks/update_changelog/{task_id}")
+async def update_changelog(
+    task_id: str,
+    repo_name: str = Body(...),
+    changelog_message: str = Body(...)
+):
+    try:
+        github_client = Github(GITHUB_TOKEN)
+        repo = github_client.get_repo(f"stewmckendry/{repo_name}")
+
+        changelog_path = "project/outputs/CHANGELOG.md"
+
+        try:
+            existing_changelog = repo.get_contents(changelog_path)
+            old_content = existing_changelog.decoded_content.decode()
+            new_entry = f"\n## Task {task_id}\n- {changelog_message}\n- Timestamp: {datetime.utcnow().isoformat()}\n"
+            new_content = old_content + new_entry
+            repo.update_file(
+                changelog_path,
+                f"Update CHANGELOG for task {task_id}",
+                new_content,
+                sha=existing_changelog.sha
+            )
+        except Exception:
+            # Create new if doesn't exist
+            new_content = f"# Project Changelog\n\n## Task {task_id}\n- {changelog_message}\n- Timestamp: {datetime.utcnow().isoformat()}\n"
+            repo.create_file(
+                changelog_path,
+                f"Create initial CHANGELOG with task {task_id}",
+                new_content
+            )
+
+        return {"message": f"Changelog updated for task {task_id}."}
+
+    except Exception as e:
+        print(f"\u274c Exception during update_changelog: {type(e).__name__}: {e}")
+        return JSONResponse(status_code=500, content={"detail": f"Internal Server Error: {type(e).__name__}: {e}"})
+
+
+@app.post("/tasks/complete/{task_id}")
+async def complete_task(
+    task_id: str,
+    repo_name: str = Body(...),
+):
+    try:
+        github_client = Github(GITHUB_TOKEN)
+        repo = github_client.get_repo(f"stewmckendry/{repo_name}")
+
+        # Load chain_of_thought if exists
+        cot_path = f"project/outputs/{task_id}/chain_of_thought.yaml"
+        reasoning_trace_path = f"project/outputs/{task_id}/reasoning_trace.md"
+
+        try:
+            cot_file = repo.get_contents(cot_path)
+            chain_of_thought = yaml.safe_load(cot_file.decoded_content)
+        except Exception:
+            chain_of_thought = []
+
+        # Generate Reasoning Trace Content
+        thoughts_section = ""
+        if isinstance(chain_of_thought, list):
+            for idx, thought in enumerate(chain_of_thought, 1):
+                thoughts_section += f"- Thought {idx}: {thought.get('thought', 'No thought captured.')}\n"
+
+        reasoning_trace_md = f"""## Thoughts
+{thoughts_section}
+## Other Ideas Considered
+- (None captured)
+
+## Opportunities for Future Improvement
+- (None captured)
+
+## Scoring Summary
+- Thought Quality Score: (pending)
+- Recall Used: (pending)
+- Novel Insight: (pending)
+
+## Summarized Insight
+(Optional short 1–2 sentence meta-summary)
+"""
+
+        # Commit reasoning_trace.md
+        try:
+            existing_file = repo.get_contents(reasoning_trace_path)
+            repo.update_file(
+                reasoning_trace_path,
+                f"Adding reasoning trace for {task_id}",
+                reasoning_trace_md,
+                sha=existing_file.sha
+            )
+        except Exception:
+            repo.create_file(
+                reasoning_trace_path,
+                f"Creating reasoning trace for {task_id}",
+                reasoning_trace_md
+            )
+
+        # Update task.yaml to mark completed
+        task_file = repo.get_contents("task.yaml")
+        task_data = yaml.safe_load(task_file.decoded_content)
+
+        if task_id in task_data.get("tasks", {}):
+            task_data["tasks"][task_id]["status"] = "completed"
+            updated_task_yaml = yaml.dump(task_data, sort_keys=False)
+            repo.update_file("task.yaml", f"Mark {task_id} as completed", updated_task_yaml, sha=task_file.sha)
+
+        return {"message": f"Task {task_id} marked complete and reasoning trace saved."}
+
+    except Exception as e:
+        print(f"❌ Exception during complete_task: {type(e).__name__}: {e}")
+        return JSONResponse(status_code=500, content={"detail": f"Internal Server Error: {type(e).__name__}: {e}"})
+
+
 
 @app.post("/patches/promote")
 async def promote_patch(

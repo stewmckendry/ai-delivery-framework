@@ -220,45 +220,23 @@
       },
       "/tasks/activate": {
         "post": {
+          "summary": "Plan a task or tasks",
           "operationId": "activateTask",
-          "summary": "Activate a task and retrieve updated metadata and prompt",
-          "tags": ["Tasks"],
-          "x-gpt-action": {
-            "name": "Activate Task"
-          },
           "requestBody": {
-            "required": true,
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": ["task_id"],
+                  "required": ["task_id", "repo_name"],
                   "properties": {
-                    "task_id": { "type": "string" }
+                    "task_id": {"type": ["string", "array"], "items": {"type": "string"}},
+                    "repo_name": {"type": "string"}
                   }
                 }
               }
             }
           },
-          "responses": {
-            "200": {
-              "description": "Successful activation and prompt retrieval",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "object",
-                    "properties": {
-                      "task": { "type": "object" },
-                      "all_tasks": { "type": "object" },
-                      "status": { "type": "string" },
-                      "prompt_path": { "type": "string" },
-                      "prompt_content": { "type": "string" }
-                    }
-                  }
-                }
-              }
-            }
-          }
+          "responses": {"200": {"description": "OK"}}
         }
       },
       "/tasks/clone": {
@@ -794,6 +772,258 @@
             },
             "400": {
               "description": "Framework folder missing"
+            }
+          }
+        }
+      },
+      "/tasks/start": {
+        "post": {
+          "operationId": "startTask",
+          "summary": "Start a task, mark as in_progress, and retrieve prompt + inputs",
+          "tags": ["Tasks"],
+          "x-gpt-action": {
+            "name": "Start Task"
+          },
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["task_id", "repo_name"],
+                  "properties": {
+                    "task_id": { "type": "string" },
+                    "repo_name": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Successful task start",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "message": { "type": "string" },
+                      "prompt_content": { "type": "string" },
+                      "inputs": {
+                        "type": "array",
+                        "items": { "type": "string" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/tasks/append_chain_of_thought/{task_id}": {
+        "post": {
+          "operationId": "appendChainOfThought",
+          "summary": "Append a message to a task's chain_of_thought.yaml file",
+          "tags": ["Tasks"],
+          "x-gpt-action": {
+            "name": "Append Chain of Thought"
+          },
+          "parameters": [
+            {
+              "name": "task_id",
+              "in": "path",
+              "required": true,
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["message", "repo_name"],
+                  "properties": {
+                    "message": { "type": "string" },
+                    "repo_name": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Successfully appended chain of thought",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "message": { "type": "string" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/tasks/auto_commit": {
+        "post": {
+          "operationId": "autoCommit",
+          "summary": "Auto-commit one or more updated files to GitHub",
+          "tags": ["Tasks"],
+          "x-gpt-action": {
+            "name": "Auto Commit"
+          },
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["repo_name", "commit_message", "updates"],
+                  "properties": {
+                    "repo_name": { "type": "string" },
+                    "commit_message": { "type": "string" },
+                    "updates": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "file": { "type": "string" },
+                          "content": { "type": "string" }
+                        },
+                        "required": ["file", "content"]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Auto-commit succeeded",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "message": { "type": "string" }
+                    }
+                  }
+                }
+              }
+            },
+            "500": {
+              "description": "Internal server error"
+            }
+          }
+        }
+      },
+      "/tasks/update_changelog/{task_id}": {
+        "post": {
+          "operationId": "updateChangelog",
+          "summary": "Update project CHANGELOG with a new task entry",
+          "tags": ["Tasks"],
+          "x-gpt-action": {
+            "name": "Update Changelog"
+          },
+          "parameters": [
+            {
+              "name": "task_id",
+              "in": "path",
+              "required": true,
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["repo_name", "changelog_message"],
+                  "properties": {
+                    "repo_name": { "type": "string" },
+                    "changelog_message": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Changelog updated",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "message": { "type": "string" }
+                    }
+                  }
+                }
+              }
+            },
+            "500": {
+              "description": "Internal server error"
+            }
+          }
+        }
+      },
+      "/tasks/complete/{task_id}": {
+        "post": {
+          "operationId": "completeTask",
+          "summary": "Mark task complete and generate reasoning trace",
+          "tags": ["Tasks"],
+          "x-gpt-action": {
+            "name": "Complete Task"
+          },
+          "parameters": [
+            {
+              "name": "task_id",
+              "in": "path",
+              "required": true,
+              "schema": { "type": "string" }
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["repo_name"],
+                  "properties": {
+                    "repo_name": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Task completed and reasoning trace generated",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "message": { "type": "string" }
+                    }
+                  }
+                }
+              }
+            },
+            "500": {
+              "description": "Internal server error"
             }
           }
         }
