@@ -430,7 +430,8 @@ async def start_task(task_id: str = Body(...), repo_name: str = Body(...)):
         repo = github_client.get_repo(f"stewmckendry/{repo_name}")
 
         # Fetch task.yaml
-        task_file = repo.get_contents("task.yaml")
+        task_path = "project/task.yaml"
+        task_file = repo.get_contents(task_path)
         task_data = yaml.safe_load(task_file.decoded_content)
 
         if task_id not in task_data.get("tasks", {}):
@@ -442,7 +443,7 @@ async def start_task(task_id: str = Body(...), repo_name: str = Body(...)):
         task["status"] = "in_progress"
         updated_task_yaml = yaml.dump(task_data, sort_keys=False)
         repo.update_file(
-            path="task.yaml",
+            path=task_path,
             message=f"Mark task {task_id} as in_progress",
             content=updated_task_yaml,
             sha=task_file.sha
@@ -689,13 +690,14 @@ async def complete_task(
             )
 
         # Update task.yaml to mark completed
-        task_file = repo.get_contents("task.yaml")
+        task_path = "project/task.yaml"
+        task_file = repo.get_contents(task_path)
         task_data = yaml.safe_load(task_file.decoded_content)
 
         if task_id in task_data.get("tasks", {}):
             task_data["tasks"][task_id]["status"] = "completed"
             updated_task_yaml = yaml.dump(task_data, sort_keys=False)
-            repo.update_file("task.yaml", f"Mark {task_id} as completed", updated_task_yaml, sha=task_file.sha)
+            repo.update_file(task_path, f"Mark {task_id} as completed", updated_task_yaml, sha=task_file.sha)
 
         return {"message": f"Task {task_id} marked complete and reasoning trace saved."}
 
@@ -719,7 +721,8 @@ async def promote_patch(
     timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
 
     # Fetch task.yaml to get category and pod_owner
-    task_file = repo.get_contents("task.yaml", ref=GITHUB_BRANCH)
+    task_path = "project/task.yaml"
+    task_file = repo.get_contents(task_path, ref=GITHUB_BRANCH)
     task_data = yaml.safe_load(base64.b64decode(task_file.content))
 
     task_meta = task_data.get("tasks", {}).get(task_id)
@@ -807,7 +810,8 @@ async def promote_patch(
         )
 
     # Update memory.yaml
-    memory_file = repo.get_contents("memory.yaml", ref=branch_name)
+    memory_path = "project/memory.yaml"
+    memory_file = repo.get_contents(memory_path, ref=branch_name)
     memory_data = yaml.safe_load(base64.b64decode(memory_file.content))
 
     def smart_merge_memory(memory, key, file_path, description, tags):
@@ -841,7 +845,7 @@ async def promote_patch(
 
     new_memory_yaml = yaml.safe_dump(memory_data, sort_keys=False)
     repo.update_file(
-        path="memory.yaml",
+        path=memory_path,
         message=f"[Auto] Update memory.yaml for task {task_id}",
         content=new_memory_yaml,
         sha=memory_file.sha,
