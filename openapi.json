@@ -706,13 +706,27 @@
         }
       },
       "/metrics/summary": {
-        "get": {
+        "post": {
           "operationId": "getMetricsSummary",
           "summary": "Fetch the current project delivery and reasoning metrics summary",
           "tags": ["Metrics"],
           "x-gpt-action": {
             "name": "Get Delivery Metrics Summary",
-            "instructions": "Retrieve a summary of the current project delivery and reasoning metrics."
+            "instructions": "Retrieve a summary of delivery and reasoning metrics. Includes completion %, cycle time, and AI thinking insights."
+          },
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["repo_name"],
+                  "properties": {
+                    "repo_name": { "type": "string" }
+                  }
+                }
+              }
+            }
           },
           "responses": {
             "200": {
@@ -720,7 +734,7 @@
               "content": {
                 "application/json": {
                   "example": {
-                    "timestamp": "2025-04-25T22:30:00Z",
+                    "timestamp": "2025-04-30T12:00:00Z",
                     "quantitative": {
                       "total_tasks": 20,
                       "completed_tasks": 15,
@@ -733,7 +747,51 @@
                       "recall_usage_percent": 65.0,
                       "novelty_rate_percent": 80.0
                     },
-                    "reasoning_summary": "Summary text of project-level AI thinking themes."
+                    "reasoning_summary": "Summary of the project’s AI thinking patterns and insights."
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/metrics/export": {
+        "post": {
+          "operationId": "exportReasoningMetrics",
+          "summary": "Export raw reasoning_trace.yaml logs across tasks",
+          "tags": ["Metrics"],
+          "x-gpt-action": {
+            "name": "Export Reasoning Logs",
+            "instructions": "Export full reasoning_trace logs for all completed tasks in the project."
+          },
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["repo_name"],
+                  "properties": {
+                    "repo_name": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Consolidated raw reasoning logs",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "entries": {
+                        "type": "array",
+                        "items": { "type": "object" }
+                      },
+                      "count": { "type": "integer" }
+                    }
                   }
                 }
               }
@@ -962,7 +1020,43 @@
                         }
                       }
                     },
-                    "reasoning_trace": { "type": "object" },
+                    "reasoning_trace": {
+                      "type": "object",
+                      "description": "Structured reasoning trace from the GPT pod for this task",
+                      "properties": {
+                        "task_id": { "type": "string" },
+                        "thoughts": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "thought": { "type": "string" },
+                              "tags": {
+                                "type": "array",
+                                "items": { "type": "string" }
+                              }
+                            }
+                          }
+                        },
+                        "scoring": {
+                          "type": "object",
+                          "properties": {
+                            "thought_quality": { "type": "integer", "minimum": 1, "maximum": 5 },
+                            "recall_used": { "type": "boolean" },
+                            "novel_insight": { "type": "boolean" }
+                          }
+                        },
+                        "summary": { "type": "string" },
+                        "improvement_opportunities": {
+                          "type": "array",
+                          "items": { "type": "string" }
+                        },
+                        "alternatives": {
+                          "type": "array",
+                          "items": { "type": "string" }
+                        }
+                      }
+                    },
                     "handoff_note": { "type": "object" }
                   },
                   "example": {
@@ -975,9 +1069,30 @@
                       }
                     ],
                     "reasoning_trace": {
-                      "thoughts": [{"message": "Work complete"}],
-                      "scoring": {},
-                      "improvement_opportunities": []
+                      "task_id": "2.2",
+                      "thoughts": [
+                        {
+                          "thought": "Used prior implementation spec to generate updated plan.",
+                          "tags": ["recall_used", "planning"]
+                        },
+                        {
+                          "thought": "Added validation step to reduce future QA workload.",
+                          "tags": ["novel_insight", "efficiency"]
+                        }
+                      ],
+                      "scoring": {
+                        "thought_quality": 4,
+                        "recall_used": true,
+                        "novel_insight": true
+                      },
+                      "summary": "Clear reasoning with useful reuse and small innovation.",
+                      "improvement_opportunities": [
+                        "Could reference QA criteria directly",
+                        "Explain tradeoffs of alternate approaches"
+                      ],
+                      "alternatives": [
+                        "Could have used fixed schedule instead of retriggering after updates"
+                      ]
                     },
                     "handoff_note": {
                       "timestamp": "2025-04-30T12:00:00Z",
