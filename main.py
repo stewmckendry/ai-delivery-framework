@@ -35,11 +35,11 @@ GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
 GITHUB_API = "https://api.github.com"
 GITHUB_REPO = "ai-delivery-framework"
 GITHUB_OWNER = "stewmckendry"
-TASK_FILE_PATH = "task.yaml"
 GITHUB_BRANCH = "main"
 PROMPT_DIR = "prompts/used"
-MEMORY_FILE_PATH = "memory.yaml"
-REASONING_FOLDER_PATH = ".logs/reasoning/"
+MEMORY_FILE_PATH = "project/memory.yaml"
+TASK_FILE_PATH = "project/task.yaml"
+REASONING_FOLDER_PATH = "project/outputs/"
 
 g = Github(GITHUB_TOKEN)
 repo = g.get_repo(GITHUB_OWNER + "/" + GITHUB_REPO)
@@ -115,28 +115,32 @@ def fetch_task_yaml_from_github():
     except GithubException as e:
         raise HTTPException(status_code=404, detail=f"Failed to fetch task.yaml: {str(e)}")
 
-def fetch_yaml_from_github(file_path: str):
+def fetch_yaml_from_github(repo_name: str, path: str):
     try:
-        file = repo.get_contents(file_path, ref=GITHUB_BRANCH)
-        decoded = base64.b64decode(file.content).decode("utf-8")
-        return yaml.safe_load(decoded)
-    except GithubException as e:
-        raise HTTPException(status_code=404, detail=f"Failed to fetch {file_path}: {str(e)}")
+        repo = get_repo(repo_name)
+        file = repo.get_contents(path)
+        return yaml.safe_load(file.decoded_content)
+    except Exception as e:
+        print(f"Error fetching YAML from {path}: {e}")
+        return {}
 
-def fetch_file_content_from_github(file_path: str):
+def fetch_file_content_from_github(repo_name: str, path: str):
     try:
-        file = repo.get_contents(file_path, ref=GITHUB_BRANCH)
-        return base64.b64decode(file.content).decode("utf-8")
-    except GithubException as e:
-        raise HTTPException(status_code=404, detail=f"Failed to fetch {file_path}: {str(e)}")
-
-def list_files_from_github(path):
+        repo = get_repo(repo_name)
+        return repo.get_contents(path).decoded_content.decode("utf-8")
+    except Exception as e:
+        print(f"Error fetching file content from {path}: {e}")
+        return ""
+    
+def list_files_from_github(repo_name: str, path: str):
     try:
-        contents = repo.get_contents(path, ref=GITHUB_BRANCH)
+        repo = get_repo(repo_name)
+        contents = repo.get_contents(path)
         return [file.path for file in contents]
-    except GithubException as e:
-        raise HTTPException(status_code=404, detail=f"Failed to list files at {path}: {str(e)}")
-
+    except Exception as e:
+        print(f"Error listing files from {path}: {e}")
+        return []
+    
 def get_next_base_id(tasks, phase):
     phase_index = {
         "Phase1_discovery": "1.",
@@ -196,9 +200,8 @@ Respond with a YAML object with fields: description, tags (list), and pod_owner.
             "pod_owner": ""
         }
 
-
-def generate_metrics_summary():
-    task_data = fetch_yaml_from_github(TASK_FILE_PATH)
+def generate_metrics_summary(repo_name: str = "nhl-predictor"):
+    task_data = fetch_yaml_from_github(repo_name, TASK_FILE_PATH)
     tasks = task_data.get("tasks", {})
     total_tasks = len(tasks)
     completed_tasks = sum(1 for t in tasks.values() if t.get("done", False))
@@ -209,30 +212,32 @@ def generate_metrics_summary():
         if t.get("done") and t.get("created_at") and t.get("updated_at"):
             created = datetime.fromisoformat(t["created_at"])
             updated = datetime.fromisoformat(t["updated_at"])
-            cycle_times.append((updated - created).total_seconds() / (3600 * 24))  # days
+            cycle_times.append((updated - created).total_seconds() / (3600 * 24))
 
     avg_cycle_time = sum(cycle_times) / len(cycle_times) if cycle_times else None
 
-    # Reasoning logs
+    # Reasoning traces from YAML
     scores = []
     recalls = 0
     novelties = 0
     total_logs = 0
 
-    reasoning_files = list_files_from_github(REASONING_FOLDER_PATH)
-    for file in reasoning_files:
-        filename = file["name"]
-        if filename.endswith(".md") and not filename.endswith("_summary.md"):
-            contents = fetch_file_content_from_github(REASONING_FOLDER_PATH + filename)
-            if "Thought Quality Score:" in contents:
-                score_line = contents.split("Thought Quality Score:")[1].splitlines()[0]
-                score = int(score_line.strip())
-                scores.append(score)
-            if "[recall_used]" in contents or "Recall Used: yes" in contents:
-                recalls += 1
-            if "[novel_insight]" in contents or "Novel Insight: yes" in contents:
-                novelties += 1
-            total_logs += 1
+    trace_paths = list_files_from_github(repo_name, REASONING_FOLDER_PATH)
+    for path in trace_paths:
+        if path.endswith("reasoning_trace.yaml"):
+            try:
+                trace = fetch_yaml_from_github(repo_name, path)
+                
+                score = trace.get("scoring", {}).get("thought_quality")
+                if score is not None:
+                    scores.append(score)
+                if trace.get("scoring", {}).get("recall_used"):
+                    recalls += 1
+                if trace.get("scoring", {}).get("novel_insight"):
+                    novelties += 1
+                total_logs += 1
+            except Exception:
+                continue
 
     return {
         "timestamp": datetime.utcnow().isoformat(),
@@ -241,7 +246,7 @@ def generate_metrics_summary():
             "completed_tasks": completed_tasks,
             "completion_rate_percent": (completed_tasks / total_tasks * 100) if total_tasks else 0,
             "average_cycle_time_days": avg_cycle_time,
-            "patch_success_rate_percent": None  # Future
+            "patch_success_rate_percent": None
         },
         "qualitative": {
             "average_thought_quality_score": (sum(scores) / len(scores)) if scores else None,
@@ -249,6 +254,47 @@ def generate_metrics_summary():
             "novelty_rate_percent": (novelties / total_logs * 100) if total_logs else 0
         }
     }
+
+def generate_project_reasoning_summary(repo_name: str = "nhl-predictor"):
+    trace_paths = list_files_from_github(repo_name, REASONING_FOLDER_PATH)
+    all_thoughts = []  # Includes thoughts, alternatives, improvements
+
+    for path in trace_paths:
+        if path.endswith("reasoning_trace.yaml"):
+            try:
+                trace = fetch_yaml_from_github(repo_name, path)
+                for t in trace.get("thoughts", []):
+                    all_thoughts.append(t.get("thought", ""))
+                all_thoughts.extend(trace.get("alternatives", []))
+                all_thoughts.extend(trace.get("improvement_opportunities", []))
+            except Exception:
+                continue
+
+    merged_thoughts = "\n".join(all_thoughts[:100])
+
+    prompt = f"""
+You are summarizing the collective reasoning across multiple AI tasks.
+
+Here are the collected reasoning thoughts:
+
+{merged_thoughts}
+
+Please summarize:
+- Main reasoning themes across tasks
+- Key insights discovered
+- Common patterns of memory reuse (recall)
+- Novel ideas that emerged
+- General quality of the AI reasoning
+
+Keep your summary under 250 words.
+"""
+    response = openai.chat.completions.create(
+        model="gpt-3.5-turbo",
+        messages=[{"role": "user", "content": prompt}],
+        temperature=0.5
+    )
+    return response.choices[0].message.content.strip()
+
 
 def generate_project_reasoning_summary():
     reasoning_files = list_files_from_github(REASONING_FOLDER_PATH)
@@ -1326,6 +1372,29 @@ def search_memory(repo_name: str = Body(...), keyword: str = Body(...)):
 # ---- Metrics ----
 
 @app.get("/metrics/summary")
+def get_metrics_summary(repo_name: str = Query(...)):
+    summary = generate_metrics_summary(repo_name)
+    reasoning_summary = generate_project_reasoning_summary(repo_name)
+    summary["reasoning_summary"] = reasoning_summary
+
+    # Write to metrics report file
+    timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+    metrics_path = f"project/outputs/reports/metrics_report_{timestamp}.yaml"
+    metrics_content = yaml.dump(summary, sort_keys=False)
+
+    commit_and_log(
+        get_repo(repo_name),
+        metrics_path,
+        metrics_content,
+        "Log project metrics report",
+        task_id="metrics_summary",
+        committed_by="MetricsBot"
+    )
+
+    return summary
+
+
+@app.get("/metrics/summary")
 def get_metrics_summary():
     """
     Return project-level delivery and reasoning metrics summary.
@@ -1334,6 +1403,22 @@ def get_metrics_summary():
     reasoning_summary = generate_project_reasoning_summary()
     summary["reasoning_summary"] = reasoning_summary
     return summary
+
+@app.get("/metrics/export")
+def export_metrics(repo_name: str = Query(...)):
+    trace_paths = list_files_from_github(repo_name, REASONING_FOLDER_PATH)
+    exported = []
+
+    for path in trace_paths:
+        if path.endswith("reasoning_trace.yaml"):
+            try:
+                trace = fetch_yaml_from_github(repo_name, path)
+                exported.append({"task_id": trace.get("task_id", path.split("/")[-2]), **trace})
+            except Exception:
+                continue
+
+    return {"entries": exported, "count": len(exported)}
+
 
 # ---- Project Initialization ----
 
