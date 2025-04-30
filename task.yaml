@@ -6,7 +6,7 @@ tasks:
     pod_owner: DeliveryPod
     status: backlog
     prompt: prompts/delivery/update_task_metadata.txt
-    outputs:
+    template_outputs:
     - task.yaml
     ready: true
     done: false
@@ -26,7 +26,7 @@ tasks:
     prompt: prompts/cross/activate_task.txt
     inputs:
     - task.yaml
-    outputs:
+    template_outputs:
     - task.yaml
     - prompts/used/DeliveryPod/0.3_activate_task_prompt.txt
     feedback_file: .logs/feedback/0.3_activate_task.md
@@ -44,7 +44,7 @@ tasks:
     status: backlog
     prompt: prompts/tools/clone_task.txt
     inputs: []
-    outputs:
+    template_outputs:
     - task.yaml
     feedback_file: .logs/feedback/0.3_clone_task.md
     ready: true
@@ -61,7 +61,7 @@ tasks:
     pod_owner: DeliveryPod
     status: backlog
     prompt: prompts/delivery/create_new_task_prompt.txt
-    outputs:
+    template_outputs:
     - task.yaml
     ready: true
     done: false
@@ -77,7 +77,7 @@ tasks:
     pod_owner: DevPod
     status: backlog
     prompt: prompts/delivery/index_memory_prompt.txt
-    outputs:
+    template_outputs:
     - memory.yaml
     ready: true
     done: false
@@ -93,7 +93,7 @@ tasks:
     pod_owner: DevPod
     status: backlog
     prompt: prompts/delivery/add_to_memory_prompt.txt
-    outputs:
+    template_outputs:
     - memory.yaml
     ready: true
     done: false
@@ -112,7 +112,7 @@ tasks:
     prompt: prompts/dev/capture_project_goals.txt
     inputs:
     - docs/project_goals.md
-    outputs:
+    template_outputs:
     - docs/project_goals.md
     feedback_file: .logs/feedback/1.1_capture_project_goals.md
     ready: true
@@ -134,7 +134,7 @@ tasks:
     - docs/personas/user_roles.md
     - docs/journeys/app_walkthrough.md
     - docs/workflows/delivery_flow.md
-    outputs:
+    template_outputs:
     - docs/personas/user_roles.md
     - docs/journeys/app_walkthrough.md
     - docs/workflows/delivery_flow.md
@@ -158,7 +158,7 @@ tasks:
     - docs/project_goals.md
     - docs/personas/user_roles.md
     - docs/journeys/app_walkthrough.md
-    outputs:
+    template_outputs:
     - docs/features/feature_*.md
     feedback_file: .logs/feedback/1.3_break_into_features.md
     ready: true
@@ -178,7 +178,7 @@ tasks:
     prompt: prompts/qa/write_acceptance_criteria.txt
     inputs:
     - docs/features/feature_*.md
-    outputs:
+    template_outputs:
     - docs/qa/acceptance_matrix.md
     - docs/features/feature_*.md
     feedback_file: .logs/feedback/1.4_write_acceptance_criteria.md
@@ -200,7 +200,7 @@ tasks:
     inputs:
     - docs/project_goals.md
     - docs/features/feature_*.md
-    outputs:
+    template_outputs:
     - docs/research/spikes/spike_*.md
     feedback_file: .logs/feedback/1.5_research_spikes.md
     ready: true
@@ -221,7 +221,7 @@ tasks:
     - docs/project_goals.md
     - docs/features/feature_*.md
     - docs/research/spikes/spike_*.md
-    outputs:
+    template_outputs:
     - docs/architecture/solution_overview.md
     - docs/architecture/standards.md
     feedback_file: .logs/feedback/1.6_define_architecture_and_standards.md
@@ -241,7 +241,7 @@ tasks:
     prompt: prompts/human/summarize_feedback.txt
     inputs:
     - .logs/feedback/*.md
-    outputs:
+    template_outputs:
     - .logs/feedback/1.7_feedback_summary.md
     feedback_file: .logs/feedback/1.7_feedback_summary.md
     ready: true
@@ -260,7 +260,7 @@ tasks:
     prompt: prompts/dev/2.1_design_feature_and_tech_spec.txt
     inputs:
     - docs/features/feature_list.md
-    outputs:
+    template_outputs:
     - docs/specs/spec_<feature_id>.md
     feedback_file: .logs/feedback/2.1_design_feature_and_tech_spec.md
     ready: true
@@ -283,7 +283,7 @@ tasks:
     - docs/specs/spec_<feature_id>.md
     - standards.md
     - solution_overview.md
-    outputs:
+    template_outputs:
     - src/feature_<feature_id>/**/*
     - tests/feature_<feature_id>/**/*
     - docs/specs/spec_<feature_id>.md
@@ -309,7 +309,7 @@ tasks:
     - src/feature_<feature_id>/**/*
     - tests/feature_<feature_id>/**/*
     - docs/qa/acceptance_matrix.md
-    outputs:
+    template_outputs:
     - test/feature_<feature_id>/qa_test_plan.md
     - test/feature_<feature_id>/qa_test_cases.md
     - test/feature_<feature_id>/qa_test_results.md
@@ -333,7 +333,7 @@ tasks:
     inputs:
     - test/feature_<feature_id>/qa_test_results.md
     - docs/specs/spec_<feature_id>.md
-    outputs:
+    template_outputs:
     - src/feature_<feature_id>/**/*
     - tests/feature_<feature_id>/**/*
     - docs/specs/spec_<feature_id>.md
@@ -359,7 +359,7 @@ tasks:
     - src/feature_<feature_id>/**/*
     - tests/feature_<feature_id>/**/*
     - docs/qa/acceptance_matrix.md
-    outputs:
+    template_outputs:
     - test/feature_<feature_id>/qa_test_results.md
     - docs/qa/acceptance_matrix.md
     feedback_file: .logs/feedback/2.4b_retest_after_fixes.md
@@ -382,7 +382,7 @@ tasks:
     - .logs/feedback/2.x_*.md
     - docs/specs/spec_<feature_id>.md
     - docs/qa/acceptance_matrix.md
-    outputs:
+    template_outputs:
     - docs/research/spikes/<topic>.md
     feedback_file: .logs/feedback/2.5_research_assist.md
     ready: true
@@ -404,7 +404,7 @@ tasks:
     inputs:
     - .logs/feedback/2.*.md
     - metrics/metrics.yaml
-    outputs:
+    template_outputs:
     - docs/rituals/retrospective.md
     - metrics/velocity.md
     - metrics/burndown.md
@@ -428,7 +428,7 @@ tasks:
     inputs:
     - docs/specs/spec_<feature_id>.md
     - .patches/patch_<timestamp>.diff
-    outputs:
+    template_outputs:
     - docs/deployment/deployment_guide.md
     feedback_file: .logs/feedback/2.8_prepare_deployment_guide.md
     ready: true
@@ -450,7 +450,7 @@ tasks:
     - docs/features/feature_list.md
     - docs/qa/acceptance_matrix.md
     - docs/specs/spec_*.md
-    outputs:
+    template_outputs:
     - test/e2e/e2e_test_plan.md
     feedback_file: .logs/feedback/3.1_define_e2e_test_plan.md
     ready: true
@@ -470,7 +470,7 @@ tasks:
     prompt: prompts/qa/3.2_execute_e2e_scenarios.txt
     inputs:
     - test/e2e/e2e_test_plan.md
-    outputs:
+    template_outputs:
     - test/e2e/e2e_test_results.md
     feedback_file: .logs/feedback/3.2_execute_e2e_scenarios.md
     ready: true
@@ -490,7 +490,7 @@ tasks:
     prompt: prompts/dev/3.3_fix_bugs_e2e.txt
     inputs:
     - test/e2e/e2e_test_results.md
-    outputs:
+    template_outputs:
     - src/**/*
     - tests/**/*
     - docs/specs/spec_*.md
@@ -513,7 +513,7 @@ tasks:
     prompt: prompts/wow/3.4_coordinate_e2e_demo.txt
     inputs:
     - test/e2e/e2e_test_results.md
-    outputs:
+    template_outputs:
     - docs/reviews/e2e_review_notes.md
     feedback_file: .logs/feedback/3.4_coordinate_e2e_demo.md
     ready: true
@@ -534,7 +534,7 @@ tasks:
     inputs:
     - test/e2e/e2e_test_results.md
     - metrics/metrics.yaml
-    outputs:
+    template_outputs:
     - metrics/final_quality_summary.md
     feedback_file: .logs/feedback/3.5_finalize_quality_metrics.md
     ready: true
@@ -554,7 +554,7 @@ tasks:
     prompt: prompts/delivery/4.1_create_cutover_plan.txt
     inputs:
     - docs/deployment/deployment_guide.md
-    outputs:
+    template_outputs:
     - docs/release/cutover_checklist.md
     feedback_file: .logs/feedback/4.1_create_cutover_plan.md
     ready: true
@@ -574,7 +574,7 @@ tasks:
     prompt: prompts/qa/4.2_final_smoke_tests.txt
     inputs:
     - test/e2e/e2e_test_plan.md
-    outputs:
+    template_outputs:
     - test/smoke/smoke_test_results.md
     feedback_file: .logs/feedback/4.2_final_smoke_tests.md
     ready: true
@@ -594,7 +594,7 @@ tasks:
     prompt: prompts/dev/4.3_go_live_deployment.txt
     inputs:
     - docs/release/cutover_checklist.md
-    outputs:
+    template_outputs:
     - .logs/deployments/go_live_log.md
     feedback_file: .logs/feedback/4.3_go_live_deployment.md
     ready: true
@@ -614,7 +614,7 @@ tasks:
     prompt: prompts/human/4.4_announce_go_live.txt
     inputs:
     - .logs/deployments/go_live_log.md
-    outputs:
+    template_outputs:
     - docs/release/release_announcement.md
     feedback_file: .logs/feedback/4.4_announce_go_live.md
     ready: true
@@ -634,7 +634,7 @@ tasks:
     prompt: prompts/wow/4.5_go_live_retro.txt
     inputs:
     - .logs/deployments/go_live_log.md
-    outputs:
+    template_outputs:
     - docs/rituals/go_live_retro.md
     feedback_file: .logs/feedback/4.5_go_live_retro.md
     ready: true
