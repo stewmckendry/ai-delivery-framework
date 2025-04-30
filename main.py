@@ -162,6 +162,41 @@ def get_pod_owner(repo, task_id: str, fallback: str = "unknown") -> str:
     except Exception:
         return fallback
 
+def describe_file_for_memory(path, content):
+    try:
+        prompt = f"""
+You are helping index files in an AI-native delivery repository.
+Given the following file content from `{path}`, generate:
+1. A short description of what this file contains
+2. A list of 2–4 relevant tags (e.g. 'prompt', 'flow', 'model', 'config')
+3. The pod likely to own or use this file (choose between DevPod, QAPod, ResearchPod, DeliveryPod, or leave blank)
+
+File content:
+---
+{content[:3000]}
+---
+
+Respond with a YAML object with fields: description, tags (list), and pod_owner.
+"""
+        response = openai.chat.completions.create(
+            model="gpt-4o",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.3
+        )
+        parsed = yaml.safe_load(response.choices[0].message.content)
+        return {
+            "description": parsed.get("description", f"Generated summary for {path}"),
+            "tags": parsed.get("tags", ["auto"]),
+            "pod_owner": parsed.get("pod_owner", "")
+        }
+    except Exception:
+        return {
+            "description": f"Fallback summary for {path}",
+            "tags": ["auto"],
+            "pod_owner": ""
+        }
+
+
 def generate_metrics_summary():
     task_data = fetch_yaml_from_github(TASK_FILE_PATH)
     tasks = task_data.get("tasks", {})
@@ -1108,7 +1143,13 @@ async def index_memory(repo_name: str = Body(...), base_paths: Optional[List[str
     try:
         repo = get_repo(repo_name)
         memory_path = "project/memory.yaml"
-        memory = []
+        try:
+            memory_file = repo.get_contents(memory_path)
+            memory = yaml.safe_load(memory_file.decoded_content) or []
+        except Exception:
+            memory = []
+
+        memory_paths = set(entry.get("path") for entry in memory)
         base_paths = base_paths or []
 
         def recurse_files(path):
@@ -1116,15 +1157,17 @@ async def index_memory(repo_name: str = Body(...), base_paths: Optional[List[str
             if not isinstance(entries, list):
                 entries = [entries]
             for entry in entries:
-                if entry.type == "file":
+                if entry.type == "file" and entry.path not in memory_paths:
+                    content = repo.get_contents(entry.path).decoded_content.decode("utf-8")
+                    meta = describe_file_for_memory(entry.path, content)
                     memory.append({
                         "path": entry.path,
                         "raw_url": entry.download_url,
                         "file_type": entry.name.split(".")[-1] if "." in entry.name else "unknown",
-                        "description": "",
-                        "tags": [],
+                        "description": meta["description"],
+                        "tags": meta["tags"],
                         "last_updated": datetime.utcnow().date().isoformat(),
-                        "pod_owner": ""
+                        "pod_owner": meta["pod_owner"]
                     })
                 elif entry.type == "dir":
                     recurse_files(entry.path)
@@ -1135,7 +1178,7 @@ async def index_memory(repo_name: str = Body(...), base_paths: Optional[List[str
             except Exception:
                 continue
 
-        memory_content = yaml.dump(memory)
+        memory_content = yaml.dump(memory, sort_keys=False)
         commit_and_log(repo, memory_path, memory_content, f"Indexed {len(memory)} memory entries", task_id="memory_index", committed_by="memory_indexer")
 
         return {"message": f"Memory indexed with {len(memory)} entries."}
@@ -1183,16 +1226,43 @@ async def add_to_memory(repo_name: str = Body(...), files: List[dict] = Body(...
         except Exception:
             memory = []
 
-        memory.extend(files)
-        memory_content = yaml.dump(memory)
-        repo.update_file(memory_path, f"Add {len(files)} entries to memory", memory_content, memory_file.sha)
+        new_entries = []
+        for f in files:
+            path = f["path"]
+            try:
+                file_content = repo.get_contents(path).decoded_content.decode("utf-8")
+                meta = describe_file_for_memory(path, file_content)
+                new_entries.append({
+                    "path": path,
+                    "raw_url": f"https://raw.githubusercontent.com/{GITHUB_USERNAME}/{repo.name}/main/{path}",
+                    "file_type": path.split(".")[-1] if "." in path else "unknown",
+                    "description": meta["description"],
+                    "tags": meta["tags"],
+                    "last_updated": datetime.utcnow().date().isoformat(),
+                    "pod_owner": meta["pod_owner"]
+                })
+            except Exception:
+                continue
 
-        return {"message": "New memory entries added", "memory_index": files}
+        memory.extend(new_entries)
+        memory_content = yaml.dump(memory, sort_keys=False)
+
+        commit_and_log(
+            repo,
+            file_path=memory_path,
+            content=memory_content,
+            commit_message=f"Add {len(new_entries)} entries to memory",
+            task_id="memory_add",
+            committed_by="memory_indexer"
+        )
+
+        return {"message": "New memory entries added", "memory_index": new_entries}
     except Exception as e:
         return JSONResponse(status_code=500, content={"detail": str(e)})
+        
 
 @app.post("/memory/validate-files")
-def validate_memory_file_exists(repo_name: str = Body(...), files: List[str] = Body(...)):
+def validate_memory_file_exists(repo_name: str = Body(...), files: List[str] = Body(...)):    
     try:
         repo = get_repo(repo_name)
         try:

@@ -33,7 +33,8 @@
         "summary": "Fetch file from GitHub repo (optionally by branch or ref)",
         "tags": ["GitHub Files"],
         "x-gpt-action": {
-          "name": "Fetch Single GitHub File"
+          "name": "Fetch Single GitHub File",
+          "instructions": "Use this to fetch a single file from a GitHub repo. Specify the repo name and file path."
         },
         "requestBody": {
           "required": true,
@@ -80,7 +81,8 @@
         "summary": "Fetch multiple GitHub files via body input",
         "tags": ["GitHub Files"],
         "x-gpt-action": {
-          "name": "Fetch Multiple GitHub Files"
+          "name": "Fetch Multiple GitHub Files",
+          "instructions": "Provide a list of file paths to fetch from the GitHub repo."
         },
         "requestBody": {
           "required": true,
@@ -133,6 +135,10 @@
           "operationId": "updateTaskMetadata",
           "summary": "Update metadata fields for a task",
           "tags": ["Tasks"],
+          "x-gpt-action": {
+            "name": "Update Task Metadata",
+            "instructions": "Use this to update specific metadata fields for a task."
+          },
           "requestBody": {
             "required": true,
             "content": {
@@ -180,7 +186,8 @@
           "summary": "List tasks from GitHub task.yaml",
           "tags": ["Tasks"],
           "x-gpt-action": {
-            "name": "List All Tasks"
+            "name": "List All Tasks",
+            "instructions": "Fetch all tasks from the task.yaml file in the GitHub repo."
           },
           "parameters": [
             { "name": "status", "in": "query", "required": false, "schema": { "type": "string" } },
@@ -215,6 +222,10 @@
           "operationId": "activateTask",
           "summary": "Activate one or more tasks by updating their status to planned",
           "tags": ["Tasks"],
+          "x-gpt-action": {
+            "name": "Activate Tasks",
+            "instructions": "Use this to activate tasks by updating their status to 'planned'."
+          },
           "requestBody": {
             "required": true,
             "content": {
@@ -268,6 +279,10 @@
           "operationId": "cloneTask",
           "summary": "Clone an existing task and generate a new task ID and metadata",
           "tags": ["Tasks"],
+          "x-gpt-action": {
+            "name": "Clone Task",
+            "instructions": "Use this to clone an existing task and generate a new task ID."
+          },
           "requestBody": {
             "required": true,
             "content": {
@@ -309,7 +324,8 @@
           "summary": "Return full metadata for a task",
           "tags": ["Tasks"],
           "x-gpt-action": {
-            "name": "Get Task Details"
+            "name": "Get Task Details",
+            "instructions": "Call this to get the full metadata for a specific task."
           },
           "parameters": [
             {
@@ -346,7 +362,8 @@
           "summary": "Create a new custom task from scratch",
           "tags": ["Tasks"],
           "x-gpt-action": {
-            "name": "Create New Task"
+            "name": "Create New Task",
+            "instructions": "Use this to create a new task with custom metadata."
           },
           "requestBody": {
             "required": true,
@@ -391,10 +408,11 @@
       "/memory/index": {
         "post": {
           "operationId": "indexMemory",
-          "summary": "Index files into memory.yaml",
+          "summary": "Index files into memory.yaml and auto-generate metadata",
           "tags": ["Memory"],
           "x-gpt-action": {
-            "name": "Index Memory Files"
+            "name": "Index Memory Files",
+            "instructions": "Call this to scan base_paths for new files and add them to memory.yaml with GPT-generated descriptions and tags."
           },
           "requestBody": {
             "required": true,
@@ -407,7 +425,8 @@
                     "repo_name": { "type": "string" },
                     "base_paths": {
                       "type": "array",
-                      "items": { "type": "string" }
+                      "items": { "type": "string" },
+                      "description": "Optional list of base folders to scan for files"
                     }
                   }
                 }
@@ -437,7 +456,8 @@
           "summary": "Detect missing files in memory.yaml compared to GitHub repo",
           "tags": ["Memory"],
           "x-gpt-action": {
-            "name": "Diff Memory Files"
+            "name": "Diff Memory Files",
+            "instructions": "Use this to find files that are in memory.yaml but not in the GitHub repo."
           },
           "requestBody": {
             "required": true,
@@ -481,10 +501,11 @@
       "/memory/add": {
         "post": {
           "operationId": "addToMemory",
-          "summary": "Add new files to memory.yaml",
+          "summary": "Add files to memory.yaml with auto-generated metadata",
           "tags": ["Memory"],
           "x-gpt-action": {
-            "name": "Add Files to Memory"
+            "name": "Add Files to Memory",
+            "instructions": "Provide a list of file paths. The system will auto-generate descriptions, tags, and pod owner using GPT."
           },
           "requestBody": {
             "required": true,
@@ -502,12 +523,19 @@
                         "required": ["path"],
                         "properties": {
                           "path": { "type": "string" },
-                          "description": { "type": "string" },
+                          "description": {
+                            "type": "string",
+                            "description": "(Optional) Will be overwritten by GPT"
+                          },
                           "tags": {
                             "type": "array",
-                            "items": { "type": "string" }
+                            "items": { "type": "string" },
+                            "description": "(Optional) Will be overwritten by GPT"
                           },
-                          "pod_owner": { "type": "string" }
+                          "pod_owner": {
+                            "type": "string",
+                            "description": "(Optional) Will be overwritten by GPT"
+                          }
                         }
                       }
                     }
@@ -543,7 +571,8 @@
           "summary": "Validate that files exist in memory.yaml and GitHub",
           "tags": ["Memory"],
           "x-gpt-action": {
-            "name": "Validate Memory Files"
+            "name": "Validate Memory Files",
+            "instructions": "Use this to check if files exist in memory.yaml and GitHub."
           },
           "requestBody": {
             "required": true,
@@ -593,10 +622,11 @@
       "/memory/search": {
         "post": {
           "operationId": "searchMemory",
-          "summary": "Search memory.yaml for keyword matches",
+          "summary": "Search memory.yaml for keyword matches in path, description, or tags",
           "tags": ["Memory"],
           "x-gpt-action": {
-            "name": "Search Memory by Keyword"
+            "name": "Search Memory by Keyword",
+            "instructions": "Use this to find relevant memory files based on a keyword or phrase."
           },
           "requestBody": {
             "required": true,
@@ -607,7 +637,10 @@
                   "required": ["repo_name", "keyword"],
                   "properties": {
                     "repo_name": { "type": "string" },
-                    "keyword": { "type": "string" }
+                    "keyword": {
+                      "type": "string",
+                      "description": "Keyword to search within memory entry path, tags, and description"
+                    }
                   }
                 }
               }
@@ -640,7 +673,8 @@
           "description": "Returns a grouped list of actions that the GPT can perform.",
           "tags": ["Utilities"],
           "x-gpt-action": {
-            "name": "List Available Actions"
+            "name": "List Available Actions",
+            "instructions": "Retrieve a list of actions categorized by their functionality."
           },
           "responses": {
             "200": {
@@ -677,7 +711,8 @@
           "summary": "Fetch the current project delivery and reasoning metrics summary",
           "tags": ["Metrics"],
           "x-gpt-action": {
-            "name": "Get Delivery Metrics Summary"
+            "name": "Get Delivery Metrics Summary",
+            "instructions": "Retrieve a summary of the current project delivery and reasoning metrics."
           },
           "responses": {
             "200": {
@@ -712,7 +747,8 @@
           "summary": "Initialize a new project in the given repo",
           "tags": ["Project"],
           "x-gpt-action": {
-            "name": "Initialize Project"
+            "name": "Initialize Project",
+            "instructions": "Use this to set up a new project in the specified GitHub repository."
           },
           "requestBody": {
             "required": true,
@@ -757,7 +793,8 @@
           "summary": "Start a task and mark it in progress",
           "tags": ["Tasks"],
           "x-gpt-action": {
-            "name": "Start Task"
+            "name": "Start Task",
+            "instructions": "Use this to mark a task as in progress and update its status."
           },
           "requestBody": {
             "required": true,
@@ -803,6 +840,10 @@
           "operationId": "appendChainOfThought",
           "summary": "Append a message to a task's chain_of_thought.yaml file",
           "tags": ["Tasks"],
+          "x-gpt-action": {
+            "name": "Append to Chain of Thought",
+            "instructions": "Use this to append a message to a task's chain_of_thought.yaml file."
+          },
           "requestBody": {
             "required": true,
             "content": {
@@ -843,7 +884,8 @@
           "summary": "Update project CHANGELOG with a new task entry",
           "tags": ["Tasks"],
           "x-gpt-action": {
-            "name": "Update Changelog"
+            "name": "Update Changelog",
+            "instructions": "Use this to add a new entry to the project's CHANGELOG file."
           },
           "parameters": [
             {
@@ -895,6 +937,10 @@
           "summary": "Mark task complete and log outputs, trace, and handoff",
           "operationId": "completeTask",
           "tags": ["Tasks"],
+          "x-gpt-action": {
+            "name": "Complete Task",
+            "instructions": "Use this to mark a task as complete and log outputs, trace, and handoff."
+          },
           "requestBody": {
             "required": true,
             "content": {
@@ -972,7 +1018,8 @@
           "summary": "Suggest the next task in the queue for the requesting Pod",
           "tags": ["Tasks"],
           "x-gpt-action": {
-            "name": "Get Next Task"
+            "name": "Get Next Task",
+            "instructions": "Use this to retrieve the next task assigned to the requesting Pod."
           },
           "requestBody": {
             "required": true,
@@ -1013,7 +1060,8 @@
           "summary": "Reopen a completed task and mark as in progress",
           "tags": ["Tasks"],
           "x-gpt-action": {
-            "name": "Reopen Task"
+            "name": "Reopen Task",
+            "instructions": "Use this to reopen a task that was previously marked as complete."
           },
           "requestBody": {
             "required": true,
@@ -1053,6 +1101,10 @@
           "summary": "Append a handoff note to a task",
           "operationId": "appendHandoffNote",
           "tags": ["Tasks"],
+          "x-gpt-action": {
+            "name": "Append Handoff Note",
+            "instructions": "Use this to append a handoff note to a task's metadata."
+          },
           "requestBody": {
             "required": true,
             "content": {
@@ -1112,6 +1164,10 @@
           "summary": "Retrieve latest handoff note from upstream task",
           "operationId": "fetchHandoffNote",
           "tags": ["Tasks"],
+          "x-gpt-action": {
+            "name": "Fetch Handoff Note",
+            "instructions": "Use this to retrieve the latest handoff note from an upstream task."
+          },
           "requestBody": {
             "required": true,
             "content": {
@@ -1150,6 +1206,10 @@
           "summary": "Auto-generate a handoff note for a completed task",
           "operationId": "autoGenerateHandoff",
           "tags": ["Tasks"],
+          "x-gpt-action": {
+            "name": "Auto-Generate Handoff Note",
+            "instructions": "Use this to auto-generate a handoff note for a completed task."
+          },
           "parameters": [
             {
               "name": "task_id",
@@ -1210,6 +1270,10 @@
           "summary": "Commit and log a single output file for a task",
           "operationId": "commitAndLogOutput",
           "tags": ["Tasks"],
+          "x-gpt-action": {
+            "name": "Commit and Log Output File",
+            "instructions": "Use this to commit and log a single output file for a task."
+          },
           "requestBody": {
             "required": true,
             "content": {
@@ -1259,6 +1323,10 @@
           "summary": "Validate and optionally backfill changelog entries for completed tasks",
           "operationId": "validateChangelog",
           "tags": ["Audit"],
+          "x-gpt-action": {
+            "name": "Validate Changelog Entries",
+            "instructions": "Use this to validate and optionally backfill changelog entries for completed tasks."
+          },
           "requestBody": {
             "required": true,
             "content": {
