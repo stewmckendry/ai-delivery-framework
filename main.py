@@ -365,8 +365,43 @@ def commit_and_log(repo, file_path, content, commit_message):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Commit and changelog failed: {str(e)}")
 
+def generate_handoff_note(task_id: str, repo) -> dict:
+        task_path = "project/task.yaml"
+        cot_path = f"project/outputs/{task_id}/chain_of_thought.yaml"
+        try:
+            task_file = repo.get_contents(task_path)
+            tasks = yaml.safe_load(task_file.decoded_content)
+            task = tasks.get("tasks", {}).get(task_id, {})
+            pod_owner = task.get("pod_owner", "Unknown")
+            description = task.get("description", "")
 
+            # Load all chain of thought messages
+            try:
+                cot_file = repo.get_contents(cot_path)
+                cot_data = yaml.safe_load(cot_file.decoded_content)
+                all_thoughts = [entry.get("message", "") for entry in cot_data.get("thoughts", []) if "message" in entry]
+                notes = "\n".join(all_thoughts[-5:])  # capture last 5 thoughts
+            except:
+                notes = ""
 
+            # Collect output file paths for reference
+            output_paths = task.get("outputs", [])
+            reference_files = output_paths + [f"project/outputs/{task_id}/"]
+
+            return {
+                "timestamp": datetime.utcnow().isoformat(),
+                "from_pod": pod_owner,
+                "to_pod": "<replace with who the next pod is, or ask the human to confirm>",  # GPT or Human must fill in
+                "reason": "Auto-generated handoff on task completion.",
+                "token_count": 0,
+                "next_prompt": f"Follow up based on task: {description}",
+                "reference_files": reference_files,
+                "notes": notes,
+                "ways_of_working": "Continue using async updates and reasoning logs."
+            }
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Error generating handoff note: {str(e)}")
+        
 # ---- (5) API Routes ----
 
 # ---- Root ----
@@ -687,6 +722,16 @@ async def append_handoff_note(
 
     return {"message": "Handoff note appended", "note": new_entry}
 
+@app.post("/tasks/auto_generate_handoff/{task_id}")
+async def auto_generate_handoff(task_id: str, repo_name: str = Body(...)):
+    try:
+        repo = get_repo(repo_name)
+        note = generate_handoff_note(task_id, repo)
+        return {"handoff_note": note}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to auto-generate handoff note: {str(e)}")
+
+
 @app.post("/tasks/fetch_handoff_note")
 async def fetch_handoff_note(
     repo_name: str = Body(...),
@@ -770,17 +815,26 @@ async def complete_task(
         task_data["tasks"][task_id]["status"] = "completed"
         task_data["tasks"][task_id]["done"] = True
         task_data["tasks"][task_id]["updated_at"] = datetime.utcnow().isoformat()
-        commit_and_log(repo, task_path, yaml.dump(task_data), f"Mark task {task_id} as completed")
-
+        
         output_dir = f"project/outputs/{task_id}"
+        output_paths = []
         for item in outputs:
             output_path = item["path"]
             output_content = item["content"]
+            output_paths.append(output_path)
             commit_and_log(repo, output_path, output_content, f"Save output for {task_id}")
+
+        # Update outputs in task.yaml
+        task_data["outputs"] = list(set(task_data.get("outputs", []) + output_paths))
+        commit_and_log(repo, task_path, yaml.dump(task_data), f"Mark task {task_id} as completed and update outputs")
 
         if reasoning_trace:
             trace_path = f"{output_dir}/reasoning_trace.yaml"
             commit_and_log(repo, trace_path, yaml.dump(reasoning_trace), f"Log reasoning trace for {task_id}")
+
+        # Auto-generate handoff if not provided
+        if not handoff_note:
+            handoff_note = generate_handoff_note(task_id, repo)
 
         if handoff_note:
             handoff_path = f"{output_dir}/handoff_notes.yaml"

@@ -1144,6 +1144,66 @@
             }
           }
         }
+      },
+      "/tasks/auto_generate_handoff/{task_id}": {
+        "post": {
+          "summary": "Auto-generate a handoff note for a completed task",
+          "operationId": "autoGenerateHandoff",
+          "tags": ["Tasks"],
+          "parameters": [
+            {
+              "name": "task_id",
+              "in": "path",
+              "required": true,
+              "schema": { "type": "string" }
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["repo_name"],
+                  "properties": {
+                    "repo_name": { "type": "string" }
+                  },
+                  "example": {
+                    "repo_name": "nhl-predictor"
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Handoff note generated",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "handoff_note": { "type": "object" }
+                    }
+                  }
+                }
+              }
+            },
+            "500": {
+              "description": "Server error",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "detail": { "type": "string" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     }
   }

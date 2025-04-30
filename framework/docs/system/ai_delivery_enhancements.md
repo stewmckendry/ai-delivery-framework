@@ -2549,21 +2549,17 @@ GPT Pods can now operate independently and safely within a structured delivery s
 
 ---
 
-## ✅ Updated Batch 5 Scope (Handoff-Enhanced)
+## ✅ Revised Batch 5 Progress & Plan
 
-| Step  | Task                        | Now Includes                                                                                 |
-|-------|-----------------------------|----------------------------------------------------------------------------------------------|
-| 5.1   | `append_handoff_note`       | ✅ Done                                                                                       |
-| 5.2   | Auto-generate handoff note  | 🆕 Optional on task complete or via button/tool                                               |
-| 5.2b  | `fetch_handoff_note` tool   | 🆕 Fetches latest relevant handoff for a given `task_id` using:<br>🔹 `handoff_from` in `task.yaml`<br>🔹 or smart fallback if missing |
-| 5.2c  | Enhance `task.yaml` spec    | 🆕 Add `handoff_from`, `depends_on`, `linked_tasks` support                                   |
-| 5.2d  | Enhance `/tasks/start`      | 🆕 Auto-fetch and return latest handoff if `handoff_from` is present                          |
-| 5.3   | Remove `promote_patch`      | ✅ As planned                                                                                 |
-| 5.4   | Validate `changelog.yaml`   | ✅ As planned                                                                                 |
-| 5.5   | Memory enhancements          | ✅ Delta indexing + descriptions + wiring into flows                                          |
-| 5.6   | Publish NHL Predictor        | ✅ Bundled delivery + audit trail                                                             |
-
----
-
-
+| Step   | Task                         | Status     | Notes                                                                 |
+|--------|------------------------------|------------|-----------------------------------------------------------------------|
+| 5.1    | append_handoff_note          | ✅ Done     | Route, schema, storage logic complete                                 |
+| 5.2    | Auto-generate handoff note   | ⏳ Next     | Will build: shared helper + `/auto_generate_handoff` route            |
+| 5.2b   | fetch_handoff_note tool      | ✅ Done     | Supports `handoff_from` and fallback logic                            |
+| 5.2c   | Enhance `task.yaml` spec     | ✅ Manual   | Updates in progress; no schema enforcement tooling yet                |
+| 5.2d   | Enhance `/tasks/start`       | ✅ Done     | Returns handoff_note, inputs, and prompt_content                      |
+| 5.3    | Remove promote_patch         | ✅ Done     | Code + schema removed, replaced by `commit_and_log`                  |
+| 5.4    | Validate `changelog.yaml`    | ❌ Pending  | Need validation route or script: all tasks → changelog entries        |
+| 5.5    | Memory enhancements          | ❌ Partial  | Delta indexing works, but no metadata tagging or tool integration yet |
+| 5.6    | Publish NHL Predictor        | 🟨 Unclear  | Placeholder for output bundling, audit trail ZIP, public delivery     |
 
