@@ -375,15 +375,22 @@ async def root():
     return {"message": "GitHub File Proxy is running."}
 
 # ---- GitHub File Proxy ----
+
 @app.post("/getFile")
 async def get_file(repo_name: str = Body(...), path: str = Body(...), ref: Optional[str] = Body(None)):
     try:
         repo = get_repo(repo_name)
-        file = repo.get_contents(path, ref)
+        file = repo.get_contents(path, ref or GITHUB_BRANCH)
         content = file.decoded_content.decode()
-        return {"path": file.path, "sha": file.sha, "content": content, "ref": ref or "default"}
+        return {
+            "path": file.path,
+            "sha": file.sha,
+            "content": content,
+            "ref": ref or GITHUB_BRANCH
+        }
     except Exception as e:
         raise HTTPException(status_code=404, detail=str(e))
+
 
 @app.post("/batch-files")
 async def get_batch_files(repo_name: str = Body(...), paths: List[str] = Body(...), ref: Optional[str] = Body(GITHUB_BRANCH)):
