@@ -3,7 +3,7 @@
 # ---- (1) Imports ----
 from fastapi import FastAPI, HTTPException, Request, Body, Query, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, FileResponse
+from fastapi.responses import JSONResponse, FileResponse, PlainTextResponse
 from fastapi.openapi.utils import get_openapi
 from fastapi import BackgroundTasks
 from pydantic import BaseModel
@@ -1529,3 +1529,13 @@ def list_available_actions():
 
     return {"actions": actions_response}
 
+@app.get("/system/guide")
+def get_onboarding_guide(repo_name: str = Query(...)):
+    """Returns the onboarding guide from GitHub using PyGitHub."""
+    try:
+        repo = get_repo(repo_name)
+        guide_file = repo.get_contents("project/docs/onboarding_guide.md")
+        content = guide_file.decoded_content.decode("utf-8")
+        return PlainTextResponse(content, media_type="text/markdown")
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"detail": f"Failed to retrieve guide: {str(e)}"})

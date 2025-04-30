@@ -670,11 +670,11 @@
         "get": {
           "operationId": "listAvailableActions",
           "summary": "List available tools and capabilities",
-          "description": "Returns a grouped list of actions that the GPT can perform.",
+          "description": "Returns a grouped list of actions with names, paths, descriptions, and methods.",
           "tags": ["Utilities"],
           "x-gpt-action": {
             "name": "List Available Actions",
-            "instructions": "Retrieve a list of actions categorized by their functionality."
+            "instructions": "Retrieve a list of actions grouped by functionality, including paths, descriptions, and supported methods."
           },
           "responses": {
             "200": {
@@ -690,9 +690,17 @@
                           "type": "object",
                           "properties": {
                             "category": { "type": "string" },
-                            "actions": {
+                            "tools": {
                               "type": "array",
-                              "items": { "type": "string" }
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "name": { "type": "string" },
+                                  "path": { "type": "string" },
+                                  "method": { "type": "string" },
+                                  "description": { "type": "string" }
+                                }
+                              }
                             }
                           }
                         }
@@ -1545,7 +1553,47 @@
             }
           }
         }
+      },
+      "/system/guide": {
+        "post": {
+          "operationId": "getOnboardingGuide",
+          "summary": "Return the onboarding guide from GitHub",
+          "tags": ["System"],
+          "x-gpt-action": {
+            "name": "Get Onboarding Guide",
+            "instructions": "Use this to retrieve onboarding instructions for the human lead. Helpful if you are unsure about how to start a task, use tools, or interpret logs."
+          },
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["repo_name"],
+                  "properties": {
+                    "repo_name": {
+                      "type": "string",
+                      "description": "GitHub repository name (e.g. 'nhl-predictor')"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Markdown onboarding guide from GitHub",
+              "content": {
+                "text/markdown": {
+                  "schema": {
+                    "type": "string",
+                    "example": "# 🧭 Human Lead Onboarding Guide\\n\\nThis file explains how to use the AI-native delivery system..."
+                  }
+                }
+              }
+            }
+          }
+        }
       }
-
     }
   }
