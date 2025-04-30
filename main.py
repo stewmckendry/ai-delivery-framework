@@ -1439,7 +1439,7 @@ def rollback_commit(
     except Exception as e:
         return JSONResponse(status_code=500, content={"detail": f"Rollback failed: {str(e)}"})
     
-    
+
 # ---- Project Initialization ----
 
 from fastapi import BackgroundTasks
@@ -1494,7 +1494,6 @@ def custom_openapi():
 
 app.openapi = custom_openapi
 
-
 @app.get("/actions/list")
 def list_available_actions():
     with open("openapi.json", "r") as f:
@@ -1504,27 +1503,29 @@ def list_available_actions():
 
     for path, methods in schema.get("paths", {}).items():
         for method, details in methods.items():
-            # Skip non-standard methods just in case
             if method.lower() not in ["get", "post", "put", "patch", "delete"]:
                 continue
 
-            # Use tags if available, otherwise "General"
             tags = details.get("tags", ["General"])
-
             for tag in tags:
                 if tag not in grouped_actions:
                     grouped_actions[tag] = []
 
-                # Prefer x-gpt-action name, otherwise fall back to summary
                 action_name = details.get("x-gpt-action", {}).get("name", details.get("summary", f"{method.upper()} {path}"))
-                grouped_actions[tag].append(action_name)
+                action_description = details.get("description") or details.get("summary", "")
+                grouped_actions[tag].append({
+                    "name": action_name,
+                    "path": path,
+                    "method": method.upper(),
+                    "description": action_description
+                })
 
-    # Now format for response
     actions_response = []
     for tag, actions in grouped_actions.items():
         actions_response.append({
             "category": tag,
-            "actions": actions
+            "tools": actions
         })
 
     return {"actions": actions_response}
+
