@@ -2324,51 +2324,119 @@ def commit_and_log(repo, file_path, content, commit_message, sha_check=None):
 
 # 🧾 UPDATED BATCH BACKLOG
 
-## 🔄 Batch 4: Testing Phase (E2E Task Execution)
+# 🔄 Batch 4: Testing Phase (E2E Task Execution)
 
-| Step | Action |
-|------|--------|
-| 4.1  | Implement `/memory/index` auto-commit |
-| 4.2  | Implement `/memory/add` auto-commit |
-| 4.3  | Add test readiness score to reasoning trace |
-| 4.4  | Expand system prompts for test validation |
-| 4.5  | Test full traceable flows for NHL PoC |
-| 4.6  | 🆕 Add heuristic-based UX checklist during spec |
-| 4.7  | 🆕 Improve prompt fallback and logging |
-| 4.8  | 🆕 Auto-guide Human Lead to next task |
-| 4.9  | 🆕 Search task by name not just ID (fuzzy match) |
-| 4.10 | 🆕 Auto-append GPT thoughts on `/complete` |
+| Step  | Description |
+|-------|-------------|
+| 4.1   | Auto-commit memory index on `/memory/index` |
+| 4.2   | Auto-commit file additions via `/memory/add` |
+| 4.3   | Add readiness scoring and test notes to `reasoning_trace.yaml` |
+| 4.4   | Expand system prompts for test and validation flow behaviors |
+| 4.5   | Run full end-to-end workflow test on NHL Predictor |
+| 4.6   | Add UX checklist generation to spec/design task outputs |
+| 4.7   | Enable natural language prompts (non-technical task and tool input) |
+| 4.8   | Suggest next task based on `pod_owner` and task status after `/complete` |
+| 4.9   | Support task search by fuzzy name match (e.g., close match to `task_id`) |
+| 4.10  | Auto-log GPT reflections and fixes in `chain_of_thought` during `/complete` |
 
-## 🔄 Batch 5: Cutover & Go-Live
+---
 
-| Step | Action |
-|------|--------|
-| 5.1  | `/tasks/append_handoff_note/{task_id}` |
-| 5.2  | Formalize `handoff_note.yaml` |
-| 5.3  | Full PR `promote_patch` builder |
-| 5.4  | Validate `changelog.yaml` across all |
-| 5.5  | Validate `memory.yaml` |
-| 5.6  | Publish final NHL PoC report |
-| 5.7  | 🆕 Warn users about ChatGPT tool lag / UX |
-| 5.8  | 🆕 Add output verification vs. `task.yaml` |
-| 5.9  | 🆕 Safeguard file contents (avoid “See Canvas…” bug) |
+# 🔄 Batch 5: Cutover & Go-Live Phase
 
-## 🔄 Batch 6: System Polish & Hardening
+| Step  | Description |
+|-------|-------------|
+| 5.1   | Add `/tasks/append_handoff_note/{task_id}` to document final GPT handoff |
+| 5.2   | Require structured handoff notes in each task completion |
+| 5.3   | Create batch-based `promote_patch` bundler for PR-ready commits |
+| 5.4   | Validate `changelog.yaml` history matches Git commit trail |
+| 5.5   | Validate `memory.yaml` coherence with all project files and tasks |
+| 5.6   | Finalize and publish NHL Predictor PoC and system audit trail |
+| 5.7   | Add UX warning or fix for tool execution lag and screen jitter |
+| 5.8   | Validate actual output files match what's expected in `task.yaml` |
+| 5.9   | Prevent blank/placeholder file commits (e.g., "See Canvas..." bug) |
 
-| Step | Action |
-|------|--------|
-| 6.1  | Define rollback strategy |
-| 6.2  | Integrate metrics instrumentation |
-| 6.3  | Human Lead onboarding guide |
-| 6.4  | Multi-pod orchestration (stretch) |
-| 6.5  | Auto-chain-of-thought on `init_project` |
-| 6.6  | Link project context in `memory.yaml` |
-| 6.7  | Enrich init `reasoning_trace.yaml` |
-| 6.8  | Log `prompt_used.txt` on task start |
-| 6.9  | Auto-changelog for `init_project` |
-| 6.10 | GitHub failsafe + retry support |
-| 6.11 | 🆕 Add `reopen_task` route |
-| 6.12 | 🆕 Fix `getGitHubFile` or rebuild with PyGitHub |
-| 6.13 | 🆕 Normalize project folder structure |
+---
 
+# 🔄 Batch 6: System Hardening & Polish
+
+| Step  | Description |
+|-------|-------------|
+| 6.1   | Add rollback support for failed deploys or tool steps |
+| 6.2   | Add reasoning trace metrics for quality and insight scoring |
+| 6.3   | Create concise onboarding guide for Human Leads |
+| 6.4   | Prototype multi-pod orchestration model (stretch goal) |
+| 6.5   | Auto-log initial `chain_of_thought` during `init_project` |
+| 6.6   | Capture project context in `memory.yaml` during init |
+| 6.7   | Fully populate `reasoning_trace.yaml` using GPT + Human inputs |
+| 6.8   | Save `prompt_used.txt` automatically when starting each task |
+| 6.9   | Auto-log `changelog` entries for project initialization |
+| 6.10  | Add GitHub commit retry + safety wrapper |
+| 6.11  | Add `/tasks/reopen/{task_id}` to change status + rework outputs |
+| 6.12  | Refactor `getGitHubFile` using PyGitHub + `commit_and_log` logic |
+| 6.13  | Normalize folder structure for source files (clean and organize) |
+
+---
+
+🔄 **Batch 4 Overview: End-to-End Testing Layer**
+
+---
+
+### 🎯 Outcome
+
+This batch ensures the system can:
+- Index and track test data  
+- Capture test readiness + validation metadata  
+- Complete E2E task workflows  
+- Support non-technical users and guide them task-to-task  
+
+---
+
+### 🧱 Changes in Scope
+
+| Step   | Description                                                                 |
+|--------|-----------------------------------------------------------------------------|
+| 4.1    | Auto-commit `memory.yaml` updates via `/memory/index`                      |
+| 4.2    | Auto-commit added files via `/memory/add`                                   |
+| 4.3    | Update `/tasks/complete` to allow test scoring + reasoning trace tagging    |
+| 4.4    | Improve prompts for test validation and output review                       |
+| 4.5    | Run E2E test of NHL PoC with full changelog and trace                       |
+| 4.6    | Inject UX checklist into architecture + design task prompts                 |
+| 4.7    | Accept natural language inputs for task names and tools                     |
+| 4.8    | Suggest next planned task to `pod_owner` after `/complete`                  |
+| 4.9    | Support fuzzy match task search when user enters task names                 |
+| 4.10   | On `/complete`, auto-append GPT thoughts, issues fixed, improvement ideas   |
+
+---
+
+### 📥 Required Inputs From You
+
+To begin patching:
+- ✅ Latest version of `main.py` (we can use existing canvas)  
+- ✅ Latest `openapi.json` (already uploaded unless you want to re-send)  
+- No new files needed unless any routes have changed outside of current scope.
+
+---
+
+### 📌 Assumptions to Confirm
+
+| Assumption                                                           | Confirmation |
+|----------------------------------------------------------------------|--------------|
+| `memory.yaml` is committed under `/project/`                         | ✅ Confirmed  |
+| Task metadata may include scoring or tags                            | ✅ Okay to extend `reasoning_trace.yaml` |
+| You want to capture GPT + Human inputs in test reasoning trace       | ✅ Yes        |
+| Natural language task search and tool routing interpreted by GPT Pod | ✅ Framework enhancement only — not user-facing yet |
+
+---
+
+🧠 **Response to Your Question**  
+**How will we populate `description`, `tags`, `pod_owner` in `/memory/index`?**
+
+We'll defer to the calling Pod (usually a system tool) to supply richer metadata. Potential improvements:
+
+- Auto-fill `description` from file contents or `task.yaml`
+- Allow override via `/memory/add`
+- Link with `task.yaml` inputs/outputs to derive `pod_owner`
+
+📌 We'll add a future batch item for **memory metadata enrichment and task-linking**.
+  
 

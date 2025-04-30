@@ -375,41 +375,36 @@ async def root():
     return {"message": "GitHub File Proxy is running."}
 
 # ---- GitHub File Proxy ----
-@app.get("/repos/{owner}/{repo}/contents/{path:path}")
-async def get_file(owner: str, repo: str, path: str, ref: str = None):
-    branch = ref if ref else GITHUB_BRANCH
+@app.post("/getFile")
+async def get_file(repo_name: str = Body(...), path: str = Body(...), ref: Optional[str] = Body(None)):
     try:
-        file = repo.get_contents(path, ref=branch)
-        return {
-            "path": file.path,
-            "sha": file.sha,
-            "content": base64.b64decode(file.content).decode("utf-8")
-        }
-    except GithubException as e:
-        raise HTTPException(status_code=404, detail=f"Error fetching file: {str(e)}")
+        repo = get_repo(repo_name)
+        file = repo.get_contents(path, ref)
+        content = file.decoded_content.decode()
+        return {"path": file.path, "sha": file.sha, "content": content, "ref": ref or "default"}
+    except Exception as e:
+        raise HTTPException(status_code=404, detail=str(e))
 
 @app.post("/batch-files")
-async def get_batch_files(request: Request):
-    body = await request.json()
-    paths = body.get("paths", [])
-    ref = body.get("ref", GITHUB_BRANCH)
-
-    results = []
-    for path in paths:
-        try:
-            file = repo.get_contents(path, ref=ref)
-            results.append({
-                "path": path,
-                "content": base64.b64decode(file.content).decode("utf-8")
-            })
-        except GithubException as e:
-            results.append({
-                "path": path,
-                "error": str(e)
-            })
-
-    return {"files": results}
-
+async def get_batch_files(repo_name: str = Body(...), paths: List[str] = Body(...), ref: Optional[str] = Body(GITHUB_BRANCH)):
+    try:
+        repo = get_repo(repo_name)
+        results = []
+        for path in paths:
+            try:
+                file = repo.get_contents(path, ref=ref)
+                results.append({
+                    "path": path,
+                    "content": base64.b64decode(file.content).decode("utf-8")
+                })
+            except GithubException as e:
+                results.append({
+                    "path": path,
+                    "error": str(e)
+                })
+        return {"files": results}
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"detail": str(e)})
 
 # ---- Task Management ----
 @app.get("/tasks/list")
@@ -661,53 +656,46 @@ async def update_changelog(
 async def complete_task(
     repo_name: str = Body(...),
     task_id: str = Body(...),
-    outputs: Optional[List[Dict[str, str]]] = Body(None)):
+    outputs: Optional[List[dict]] = Body(None),
+    reasoning_trace: Optional[dict] = Body(None)):
 
-    github_client = Github(GITHUB_TOKEN)
     try:
-        repo = github_client.get_repo(f"stewmckendry/{repo_name}")
-
-        # Load project/task.yaml
+        repo = get_repo(repo_name)
         task_path = "project/task.yaml"
-        task_yaml_file = repo.get_contents(task_path)
-        tasks = yaml.safe_load(task_yaml_file.decoded_content)
-        task = tasks["tasks"].get(task_id)
-        if not task:
-            raise HTTPException(status_code=404, detail="Task not found")
+        task_file = repo.get_contents(task_path)
+        task_data = yaml.safe_load(task_file.decoded_content)
 
-        # Mark task complete
-        task["status"] = "completed"
-        task["done"] = True
-        task["updated_at"] = datetime.utcnow().isoformat()
-        updated_yaml = yaml.dump(tasks)
-        commit_and_log(repo, task_path, updated_yaml, f"Mark task {task_id} complete")
+        if task_id not in task_data.get("tasks", {}):
+            raise HTTPException(status_code=404, detail=f"Task ID {task_id} not found.")
 
-        # Commit reasoning_trace.yaml
-        reasoning = {
-            "task_id": task_id,
-            "thoughts": [
-                {"thought": "Completed task based on project goals", "tags": ["recall_used"]}
-            ],
-            "alternatives": ["Could have added goals from other stakeholders"],
-            "improvement_opportunities": ["Involve user interviews earlier"],
-            "scoring": {"thought_quality": 4, "recall_used": True, "novel_insight": True},
-            "summary": "Accurate summary generated. Could be more diverse in perspective."
-        }
-        reasoning_path = f"project/outputs/{task_id}/reasoning_trace.yaml"
-        commit_and_log(repo, reasoning_path, yaml.dump(reasoning), f"Add reasoning trace for {task_id}")
+        task_data["tasks"][task_id]["status"] = "completed"
+        task_data["tasks"][task_id]["done"] = True
+        task_data["tasks"][task_id]["updated_at"] = datetime.utcnow().isoformat()
+        commit_and_log(repo, task_path, yaml.dump(task_data), f"Mark task {task_id} as completed")
 
-        # Commit provided outputs
         if outputs:
             for output in outputs:
-                path = output.get("path")
                 content = output.get("content")
-                if path and content:
-                    commit_and_log(repo, path, content, f"Final output for task {task_id}: {path}")
+                file_path = output.get("path")
+                commit_msg = f"Submit output for task {task_id}"
+                commit_and_log(repo, file_path, content, commit_msg)
 
-        return {"message": "Task completed with reasoning trace, outputs committed, and changelog updated."}
+        trace_path = f"project/outputs/{task_id}/reasoning_trace.yaml"
+        trace = reasoning_trace or {
+            "thoughts": [
+                {"message": "Task complete", "timestamp": datetime.utcnow().isoformat()}
+            ],
+            "scoring": {},
+            "improvement_opportunities": []
+        }
+        trace_content = yaml.dump(trace)
+        commit_and_log(repo, trace_path, trace_content, f"Save reasoning trace for {task_id}")
+
+        return {"message": f"Task {task_id} completed and outputs committed."}
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to complete task: {str(e)}")
+        return JSONResponse(status_code=500, content={"detail": str(e)})
+
 
 # LEGACY TOOL - TO BE DEPRECATED / REMOVED
 @app.post("/patches/promote")
@@ -1126,165 +1114,146 @@ async def update_task_metadata(
 # ---- Memory Management ----
 
 @app.post("/memory/index")
-def index_memory(
-    base_paths: List[str] = Body(default=[
-        "prompts/",
-        "scripts/",
-        "task_templates/",
-        "main.py",
-        "openapi.json"
-    ])
-):
-    memory = {}
-
-    for path in base_paths:
-        file_list = list_files_from_github(path)
-        for file_info in file_list:
-            file_path = file_info["path"]
-            key = file_path.replace("/", "_").replace(".", "_")
-            memory[key] = {
-                "file_path": file_path,
-                "description": "To be filled manually or later",
-                "tags": ["framework"]
-            }
-
+async def index_memory(repo_name: str = Body(...), base_paths: Optional[List[str]] = None):
     try:
-        existing_memory = fetch_yaml_from_github(file_path=MEMORY_FILE_PATH)
-        existing_memory.update(memory)
-    except Exception:
-        existing_memory = memory
+        repo = get_repo(repo_name)
+        memory_path = "project/memory.yaml"
+        memory = []
+        base_paths = base_paths or []
 
-    return {
-        "message": f"Indexed {len(memory)} files into memory.yaml",
-        "memory_index": existing_memory
-    }
+        for path in base_paths:
+            try:
+                file = repo.get_contents(path)
+                memory.append({
+                    "path": path,
+                    "raw_url": file.download_url,
+                    "file_type": path.split(".")[-1],
+                    "description": "",
+                    "tags": [],
+                    "last_updated": datetime.utcnow().date().isoformat(),
+                    "pod_owner": ""
+                })
+            except:
+                continue
 
+        memory_content = yaml.dump(memory)
+        repo.create_file(memory_path, f"Initial memory index", memory_content)
 
-@app.post("/memory/diff")
-def memory_diff(
-    base_paths: List[str] = Body(default=[
-        "prompts/",
-        "scripts/",
-        "task_templates/",
-        "main.py",
-        "openapi.json"
-    ])
-):
-    """
-    Compare GitHub repo file list with memory.yaml and return missing files
-    """
-    missing_files = []
+        return {"message": f"Memory indexed with {len(memory)} entries."}
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"detail": str(e)})
     
-    # Fetch current memory.yaml
+@app.post("/memory/diff")
+def memory_diff(repo_name: str = Body(...), base_paths: List[str] = Body(default=[])):
     try:
-        memory = fetch_yaml_from_github(file_path=MEMORY_FILE_PATH)
-    except Exception:
-        memory = {}
+        repo = get_repo(repo_name)
+        try:
+            memory_path = "project/memory.yaml"
+            memory_file = repo.get_contents(memory_path)
+            memory = yaml.safe_load(memory_file.decoded_content) or []
+        except Exception:
+            memory = []
 
-    memory_paths = {v["file_path"] for v in memory.values()}
+        memory_paths = {entry["path"] for entry in memory if "path" in entry}
+        missing_files = []
 
-    # Scan GitHub using updated direct GitHub call
-    for path in base_paths:
-        file_list = list_files_from_github(path)
-        for file_info in file_list:
-            file_path = file_info["path"]
-            if file_path not in memory_paths:
-                missing_files.append(file_path)
+        for path in base_paths:
+            try:
+                contents = repo.get_contents(path)
+                if not isinstance(contents, list):
+                    contents = [contents]
+                for item in contents:
+                    if item.path not in memory_paths:
+                        missing_files.append(item.path)
+            except:
+                continue
 
-    return {
-        "message": f"Found {len(missing_files)} missing files",
-        "missing_files": missing_files
-    }
+        return {"message": f"Found {len(missing_files)} missing files", "missing_files": missing_files}
+
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"detail": str(e)})
 
 @app.post("/memory/add")
-def add_to_memory(request: AddToMemoryRequest):
-    """
-    Add new files with metadata to memory.yaml
-    """
+async def add_to_memory(repo_name: str = Body(...), files: List[dict] = Body(...)):
     try:
-        memory = fetch_yaml_from_github(file_path=MEMORY_FILE_PATH)
-    except Exception:
-        memory = {}
+        repo = get_repo(repo_name)
+        memory_path = "project/memory.yaml"
+        try:
+            memory_file = repo.get_contents(memory_path)
+            memory = yaml.safe_load(memory_file.decoded_content) or []
+        except Exception:
+            memory = []
 
-    for file_entry in request.files:
-        key = file_entry.file_path.replace("/", "_").replace(".", "_")
-        memory[key] = {
-            "file_path": file_entry.file_path,
-            "description": file_entry.description,
-            "tags": file_entry.tags
-        }
+        memory.extend(files)
+        memory_content = yaml.dump(memory)
+        repo.update_file(memory_path, f"Add {len(files)} entries to memory", memory_content, memory_file.sha)
 
-    return {
-        "message": f"Added {len(request.files)} files to memory index",
-        "memory_index": memory
-    }
+        return {"message": "New memory entries added", "memory_index": files}
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"detail": str(e)})
 
 @app.post("/memory/validate-files")
-def validate_memory_file_exists(files: List[str] = Body(...)):
-    """
-    Validate if the given files exist in memory.yaml and/or GitHub repo.
-    """
+def validate_memory_file_exists(repo_name: str = Body(...), files: List[str] = Body(...)):
     try:
-        memory = fetch_yaml_from_github(file_path=MEMORY_FILE_PATH)
-    except Exception:
-        memory = {}
-
-    results = []
-
-    for file_path in files:
-        memory_match = any(entry.get("file_path") == file_path for entry in memory.values())
-        github_match = False
-
-        # Try GitHub lookup (optional lightweight HEAD check)
-        github_url = f"https://api.github.com/repos/{GITHUB_OWNER}/{GITHUB_REPO}/contents/{file_path}"
-        headers = {
-            "Authorization": f"Bearer {GITHUB_TOKEN}",
-            "Accept": "application/vnd.github+json"
-        }
+        repo = get_repo(repo_name)
         try:
-            response = requests.head(github_url, headers=headers)
-            github_match = response.status_code == 200
+            memory_path = "project/memory.yaml"
+            memory_file = repo.get_contents(memory_path)
+            memory = yaml.safe_load(memory_file.decoded_content) or []
         except Exception:
+            memory = []
+
+        memory_paths = {entry.get("path") for entry in memory if "path" in entry}
+        results = []
+
+        for file_path in files:
+            memory_match = file_path in memory_paths
             github_match = False
+            try:
+                repo.get_contents(file_path)
+                github_match = True
+            except:
+                github_match = False
 
-        results.append({
-            "file_path": file_path,
-            "exists_in_memory": memory_match,
-            "exists_in_github": github_match
-        })
+            results.append({
+                "file_path": file_path,
+                "exists_in_memory": memory_match,
+                "exists_in_github": github_match
+            })
 
-    return {
-        "validated_files": results
-    }
+        return {"validated_files": results}
 
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"detail": str(e)})
 
 @app.get("/memory/search")
-def search_memory(keyword: str):
-    """
-    Search memory.yaml for files matching keyword in file_path, description, or tags
-    """
+def search_memory(repo_name: str, keyword: str):
     try:
-        memory = fetch_yaml_from_github(file_path=MEMORY_FILE_PATH)
-    except Exception:
-        memory = {}
+        repo = get_repo(repo_name)
+        try:
+            memory_path = "project/memory.yaml"
+            memory_file = repo.get_contents(memory_path)
+            memory = yaml.safe_load(memory_file.decoded_content) or []
+        except Exception:
+            memory = []
 
-    matches = []
+        keyword_lower = keyword.lower()
+        matches = []
 
-    keyword_lower = keyword.lower()
+        for entry in memory:
+            text = " ".join([
+                entry.get("path", ""),
+                entry.get("description", ""),
+                " ".join(entry.get("tags", []))
+            ]).lower()
+            if keyword_lower in text:
+                matches.append(entry)
 
-    for entry in memory.values():
-        combined_text = " ".join([
-            entry.get("file_path", ""),
-            entry.get("description", ""),
-            " ".join(entry.get("tags", []))
-        ]).lower()
+        return {"matches": matches}
 
-        if keyword_lower in combined_text:
-            matches.append(entry)
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"detail": str(e)})
 
-    return {
-        "matches": matches
-    }
 
 # ---- Metrics ----
 
