@@ -1179,19 +1179,28 @@ async def index_memory(repo_name: str = Body(...), base_paths: Optional[List[str
         memory = []
         base_paths = base_paths or []
 
-        for path in base_paths:
+        def recurse_files(path):
+            entries = repo.get_contents(path)
+            if not isinstance(entries, list):
+                entries = [entries]
+            for entry in entries:
+                if entry.type == "file":
+                    memory.append({
+                        "path": entry.path,
+                        "raw_url": entry.download_url,
+                        "file_type": entry.name.split(".")[-1] if "." in entry.name else "unknown",
+                        "description": "",
+                        "tags": [],
+                        "last_updated": datetime.utcnow().date().isoformat(),
+                        "pod_owner": ""
+                    })
+                elif entry.type == "dir":
+                    recurse_files(entry.path)
+
+        for base_path in base_paths:
             try:
-                file = repo.get_contents(path)
-                memory.append({
-                    "path": path,
-                    "raw_url": file.download_url,
-                    "file_type": path.split(".")[-1],
-                    "description": "",
-                    "tags": [],
-                    "last_updated": datetime.utcnow().date().isoformat(),
-                    "pod_owner": ""
-                })
-            except:
+                recurse_files(base_path)
+            except Exception:
                 continue
 
         memory_content = yaml.dump(memory)
@@ -1200,7 +1209,7 @@ async def index_memory(repo_name: str = Body(...), base_paths: Optional[List[str
         return {"message": f"Memory indexed with {len(memory)} entries."}
     except Exception as e:
         return JSONResponse(status_code=500, content={"detail": str(e)})
-    
+        
 @app.post("/memory/diff")
 def memory_diff(repo_name: str = Body(...), base_paths: List[str] = Body(default=[])):
     try:
