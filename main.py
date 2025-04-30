@@ -296,46 +296,6 @@ Keep your summary under 250 words.
     return response.choices[0].message.content.strip()
 
 
-def generate_project_reasoning_summary():
-    reasoning_files = list_files_from_github(REASONING_FOLDER_PATH)
-    all_thoughts = []
-
-    for file in reasoning_files:
-        filename = file["name"]
-        if filename.endswith(".md") and not filename.endswith("_summary.md"):
-            contents = fetch_file_content_from_github(REASONING_FOLDER_PATH + filename)
-            if "## Thoughts" in contents:
-                thoughts_section = contents.split("## Thoughts")[1]
-                all_thoughts.append(thoughts_section)
-
-    merged_thoughts = "\n".join(all_thoughts)
-
-    prompt = f"""
-You are summarizing the collective reasoning across multiple AI tasks.
-
-Here are the collected reasoning thoughts:
-
-{merged_thoughts}
-
-Please summarize:
-- Main reasoning themes across tasks
-- Key insights discovered
-- Common patterns of memory reuse (recall)
-- Novel ideas that emerged
-- General quality of the AI reasoning
-
-Keep your summary under 250 words.
-"""
-
-    response = openai.chat.completions.create(
-        model="gpt-4o",
-        messages=[{"role": "user", "content": prompt}],
-        temperature=0.5
-    )
-
-    project_summary = response.choices[0].message.content.strip()
-    return project_summary
-
 # --- Utility Functions for Project Initialization ---
 
 def run_project_initialization(project_name: str, repo_name: str, project_description: str):
@@ -1393,17 +1353,6 @@ def get_metrics_summary(repo_name: str = Query(...)):
 
     return summary
 
-
-@app.get("/metrics/summary")
-def get_metrics_summary():
-    """
-    Return project-level delivery and reasoning metrics summary.
-    """
-    summary = generate_metrics_summary()
-    reasoning_summary = generate_project_reasoning_summary()
-    summary["reasoning_summary"] = reasoning_summary
-    return summary
-
 @app.get("/metrics/export")
 def export_metrics(repo_name: str = Query(...)):
     trace_paths = list_files_from_github(repo_name, REASONING_FOLDER_PATH)
@@ -1419,7 +1368,78 @@ def export_metrics(repo_name: str = Query(...)):
 
     return {"entries": exported, "count": len(exported)}
 
+# ---- Git Rollback ----
 
+@app.post("/git/rollback_commit")
+def rollback_commit(
+    repo_name: str = Body(...),
+    commit_sha: str = Body(...),
+    paths: Optional[List[str]] = Body(default=None),
+    reason: str = Body(default="Manual rollback")
+):
+    try:
+        repo = get_repo(repo_name)
+        commit = repo.get_commit(sha=commit_sha)
+        files_to_revert = paths or [f.filename for f in commit.files]
+        reverted_files = []
+
+        for path in files_to_revert:
+            history = repo.get_commits(path=path)
+            target_version = None
+            for c in history:
+                if c.sha == commit_sha:
+                    continue  # skip this commit
+                target_version = c
+                break
+
+            if not target_version:
+                continue
+
+            contents = repo.get_contents(path, ref=target_version.sha)
+            commit_and_log(
+                repo,
+                file_path=path,
+                content=contents.decoded_content.decode(),
+                commit_message=f"Rollback {path} to commit {target_version.sha}",
+                task_id="rollback_commit",
+                committed_by="RollbackBot"
+            )
+            reverted_files.append(path)
+
+        # Log the rollback
+        rollback_log_path = "project/.logs/reverted_commits.yaml"
+        try:
+            log_file = repo.get_contents(rollback_log_path)
+            rollback_log = yaml.safe_load(log_file.decoded_content) or []
+        except:
+            rollback_log = []
+
+        rollback_log.append({
+            "timestamp": datetime.utcnow().isoformat(),
+            "commit_sha": commit_sha,
+            "paths": reverted_files,
+            "reason": reason
+        })
+
+        log_content = yaml.dump(rollback_log, sort_keys=False)
+        commit_and_log(
+            repo,
+            file_path=rollback_log_path,
+            content=log_content,
+            commit_message=f"Log rollback of {commit_sha}",
+            task_id="rollback_commit",
+            committed_by="RollbackBot"
+        )
+
+        return {
+            "message": f"Rollback complete for {len(reverted_files)} files.",
+            "reverted_files": reverted_files
+        }
+
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"detail": f"Rollback failed: {str(e)}"})
+    
+    
 # ---- Project Initialization ----
 
 from fastapi import BackgroundTasks

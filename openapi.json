@@ -1488,6 +1488,64 @@
             }
           }
         }
+      },
+      "/git/rollback_commit": {
+        "post": {
+          "operationId": "rollbackCommit",
+          "summary": "Rollback specific files to previous commit",
+          "tags": ["Git"],
+          "x-gpt-action": {
+            "name": "Rollback Commit",
+            "instructions": "Use this to revert files to a previous commit version. Use with caution. Log a reason for rollback."
+          },
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["repo_name", "commit_sha"],
+                  "properties": {
+                    "repo_name": { "type": "string" },
+                    "commit_sha": {
+                      "type": "string",
+                      "description": "The SHA of the commit to rollback from.\n\nHow to find it:\n- Use `git log` locally, or\n- Visit the GitHub repo ➜ Commits tab ➜ Copy the commit hash\n- Or call the `/git/list_commits` tool (if available)"
+                    },
+                    "paths": {
+                      "type": "array",
+                      "items": { "type": "string" },
+                      "description": "Optional list of file paths to revert. If omitted, all files from the commit will be reverted."
+                    },
+                    "reason": {
+                      "type": "string",
+                      "description": "Why the rollback is being performed (e.g., accidental overwrite, failed auto-index, etc.)"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Rollback result",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "message": { "type": "string" },
+                      "reverted_files": {
+                        "type": "array",
+                        "items": { "type": "string" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
       }
+
     }
   }
