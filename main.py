@@ -1293,8 +1293,8 @@ def validate_memory_file_exists(repo_name: str = Body(...), files: List[str] = B
     except Exception as e:
         return JSONResponse(status_code=500, content={"detail": str(e)})
 
-@app.get("/memory/search")
-def search_memory(repo_name: str, keyword: str):
+@app.post("/memory/search")
+def search_memory(repo_name: str = Body(...), keyword: str = Body(...)):
     try:
         repo = get_repo(repo_name)
         try:
@@ -1320,8 +1320,7 @@ def search_memory(repo_name: str, keyword: str):
 
     except Exception as e:
         return JSONResponse(status_code=500, content={"detail": str(e)})
-
-
+    
 # ---- Metrics ----
 
 @app.get("/metrics/summary")
