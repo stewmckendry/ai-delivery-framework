@@ -1195,7 +1195,7 @@ async def index_memory(repo_name: str = Body(...), base_paths: Optional[List[str
                 continue
 
         memory_content = yaml.dump(memory)
-        repo.create_file(memory_path, f"Initial memory index", memory_content)
+        commit_and_log(repo, memory_path, memory_content, f"Indexed {len(memory)} memory entries")
 
         return {"message": f"Memory indexed with {len(memory)} entries."}
     except Exception as e:
