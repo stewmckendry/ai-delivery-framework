@@ -1204,6 +1204,107 @@
             }
           }
         }
+      },
+      "/tasks/commit_and_log_output": {
+        "post": {
+          "summary": "Commit and log a single output file for a task",
+          "operationId": "commitAndLogOutput",
+          "tags": ["Tasks"],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["repo_name", "task_id", "file_path", "content", "message"],
+                  "properties": {
+                    "repo_name": { "type": "string" },
+                    "task_id": { "type": "string" },
+                    "file_path": { "type": "string" },
+                    "content": { "type": "string" },
+                    "message": { "type": "string" },
+                    "committed_by": { "type": "string", "default": "GPTPod" }
+                  },
+                  "example": {
+                    "repo_name": "nhl-predictor",
+                    "task_id": "2.4_build",
+                    "file_path": "project/outputs/2.4_build/spec.yaml",
+                    "content": "output file content here...",
+                    "message": "Add feature spec",
+                    "committed_by": "DevPod"
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Output file committed and logged",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "message": { "type": "string" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/audit/validate_changelog": {
+        "post": {
+          "summary": "Validate and optionally backfill changelog entries for completed tasks",
+          "operationId": "validateChangelog",
+          "tags": ["Audit"],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["repo_name"],
+                  "properties": {
+                    "repo_name": { "type": "string" },
+                    "dry_run": { "type": "boolean", "default": false }
+                  },
+                  "example": {
+                    "repo_name": "nhl-predictor",
+                    "dry_run": true
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Changelog validation result",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "missing_changelog_entries": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "task_id": { "type": "string" },
+                            "path": { "type": "string" }
+                          }
+                        }
+                      },
+                      "total_missing": { "type": "integer" },
+                      "message": { "type": "string" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     }
   }

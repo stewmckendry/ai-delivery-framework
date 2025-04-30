@@ -153,6 +153,15 @@ def get_next_base_id(tasks, phase):
 
     return f"{next_num:.1f}"
 
+def get_pod_owner(repo, task_id: str, fallback: str = "unknown") -> str:
+    """Fetch pod_owner from task.yaml in the GitHub repo."""
+    try:
+        task_file = repo.get_contents("project/task.yaml")
+        task_data = yaml.safe_load(task_file.decoded_content)
+        return task_data.get("tasks", {}).get(task_id, {}).get("pod_owner", fallback)
+    except Exception:
+        return fallback
+
 def generate_metrics_summary():
     task_data = fetch_yaml_from_github(TASK_FILE_PATH)
     tasks = task_data.get("tasks", {})
@@ -331,7 +340,7 @@ def get_repo(repo_name: str):
     return github_client.get_repo(f"stewmckendry/{repo_name}")
 
 
-def commit_and_log(repo, file_path, content, commit_message):
+def commit_and_log(repo, file_path, content, commit_message, task_id: Optional[str] = None, committed_by: Optional[str] = None):
     try:
         changelog_path = "project/outputs/changelog.yaml"
         try:
@@ -345,7 +354,10 @@ def commit_and_log(repo, file_path, content, commit_message):
         timestamp = datetime.utcnow().isoformat()
         log_entry = {
             "timestamp": timestamp,
-            "files": [{"path": file_path, "change": commit_message}]
+            "path": file_path,
+            "task_id": task_id,
+            "committed_by": committed_by,
+            "message": commit_message
         }
 
         try:
@@ -355,7 +367,7 @@ def commit_and_log(repo, file_path, content, commit_message):
             repo.create_file(file_path, commit_message, content)
 
         changelog.append(log_entry)
-        changelog_content = yaml.dump(changelog)
+        changelog_content = yaml.dump(changelog, sort_keys=False)
 
         if changelog_sha:
             repo.update_file(changelog_path, f"Update changelog at {timestamp}", changelog_content, changelog_sha)
@@ -364,7 +376,7 @@ def commit_and_log(repo, file_path, content, commit_message):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Commit and changelog failed: {str(e)}")
-
+    
 def generate_handoff_note(task_id: str, repo) -> dict:
         task_path = "project/task.yaml"
         cot_path = f"project/outputs/{task_id}/chain_of_thought.yaml"
@@ -495,7 +507,8 @@ async def activate_task(task_id: Union[str, List[str]] = Body(...), repo_name: s
             task_data["tasks"][t_id]["status"] = "planned"
             planned_tasks[t_id] = task_data["tasks"][t_id]
 
-        commit_and_log(repo, task_path, yaml.dump(task_data), f"Planned tasks {task_ids}")
+        pod_owner = get_pod_owner(repo, task_id)
+        commit_and_log(repo, task_path, yaml.dump(task_data), f"Planned tasks {task_ids}", task_id=task_id, committed_by=pod_owner)
 
         response = {
             "message": f"Tasks {task_ids} successfully planned.",
@@ -528,7 +541,7 @@ async def start_task(task_id: str = Body(...), repo_name: str = Body(...)):
         task["status"] = "in_progress"
         task["updated_at"] = datetime.utcnow().isoformat()
         updated_task_yaml = yaml.dump(task_data, sort_keys=False)
-        commit_and_log(repo, task_path, updated_task_yaml, f"Start task {task_id}")
+        commit_and_log(repo, task_path, updated_task_yaml, f"Start task {task_id}", task_id=task_id, committed_by=task["pod_owner"])
 
         # Optional: fetch handoff
         handoff_note = None
@@ -577,7 +590,7 @@ async def reopen_task(repo_name: str = Body(...), task_id: str = Body(...), reas
         task_data["tasks"][task_id]["status"] = "in_progress"
         task_data["tasks"][task_id]["updated_at"] = datetime.utcnow().isoformat()
         updated_content = yaml.dump(task_data)
-        commit_and_log(repo, task_path, updated_content, f"Reopen task {task_id}")
+        commit_and_log(repo, task_path, updated_content, f"Reopen task {task_id}", task_id=task_id, committed_by=task_data["tasks"][task_id]["pod_owner"])
 
         # Append to chain of thought
         cot_path = f"project/outputs/{task_id}/chain_of_thought.yaml"
@@ -589,9 +602,9 @@ async def reopen_task(repo_name: str = Body(...), task_id: str = Body(...), reas
             cot_file = repo.get_contents(cot_path)
             cot_data = yaml.safe_load(cot_file.decoded_content) or []
             cot_data.append(cot_message)
-            commit_and_log(repo, cot_path, yaml.dump(cot_data), f"Append COT reopen note for {task_id}")
+            commit_and_log(repo, cot_path, yaml.dump(cot_data), f"Append COT reopen note for {task_id}", task_id=task_id, committed_by=task_data["tasks"][task_id]["pod_owner"])
         except:
-            commit_and_log(repo, cot_path, yaml.dump([cot_message]), f"Initialize COT for {task_id}")
+            commit_and_log(repo, cot_path, yaml.dump([cot_message]), f"Initialize COT for {task_id}", task_id=task_id, committed_by=task_data["tasks"][task_id]["pod_owner"])
 
         return {"message": f"Task {task_id} reopened and note added to chain of thought."}
 
@@ -645,12 +658,58 @@ async def clone_task(
         tasks["tasks"][new_task_id] = original
 
         updated_yaml = yaml.dump(tasks)
-        commit_and_log(repo, task_path, updated_yaml, f"Clone task {original_task_id} as {new_task_id}")
+        pod_owner = get_pod_owner(repo, original_task_id)
+        commit_and_log(repo, task_path, updated_yaml, f"Clone task {original_task_id} as {new_task_id}", task_id=new_task_id, committed_by=pod_owner)
 
         return {"message": "Task cloned", "new_task_id": new_task_id, "cloned_task_metadata": original}
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to clone task: {str(e)}")
+
+@app.post("/tasks/commit_and_log_output")
+async def commit_and_log_output(
+    repo_name: str = Body(...),
+    task_id: str = Body(...),
+    file_path: str = Body(...),
+    content: str = Body(...),
+    message: str = Body(...),
+    committed_by: Optional[str] = Body("GPTPod")
+):
+    try:
+        repo = get_repo(repo_name)
+
+        # Update file and changelog
+        commit_and_log(
+            repo,
+            file_path=file_path,
+            content=content,
+            commit_message=message,
+            task_id=task_id,
+            committed_by=committed_by
+        )
+
+        # Append path to task.yaml[outputs]
+        task_file = repo.get_contents("project/task.yaml")
+        task_data = yaml.safe_load(task_file.decoded_content)
+        task = task_data["tasks"].get(task_id, {})
+        outputs = task.get("outputs", [])
+        if file_path not in outputs:
+            outputs.append(file_path)
+            task["outputs"] = outputs
+            updated_yaml = yaml.dump(task_data, sort_keys=False)
+            commit_and_log(
+                repo,
+                file_path="project/task.yaml",
+                content=updated_yaml,
+                commit_message=f"Append output file to {task_id}",
+                task_id=task_id,
+                committed_by=committed_by
+            )
+
+        return {"message": f"Output file {file_path} committed and logged for task {task_id}."}
+
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"detail": f"Commit failed: {str(e)}"})
 
 
 @app.post("/tasks/append_chain_of_thought")
@@ -673,7 +732,8 @@ async def append_chain_of_thought(
         chain.append(new_thought)
         content = yaml.dump(chain)
 
-        commit_and_log(repo, cot_path, content, f"Append chain of thought for {task_id}")
+        pod_owner = get_pod_owner(repo, task_id)
+        commit_and_log(repo, cot_path, content, f"Append chain of thought for {task_id}", task_id=task_id, committed_by=pod_owner)
 
         return {"message": "Chain of thought updated", "appended_thought": new_thought}
 
@@ -718,7 +778,7 @@ async def append_handoff_note(
     handoff_data.setdefault("handoffs", []).append(new_entry)
     updated_yaml = yaml.dump(handoff_data, sort_keys=False)
 
-    commit_and_log(repo, file_path, updated_yaml, f"Append handoff note to task {task_id}")
+    commit_and_log(repo, file_path, updated_yaml, f"Append handoff note to task {task_id}", task_id=task_id, committed_by=from_pod)
 
     return {"message": "Handoff note appended", "note": new_entry}
 
@@ -754,6 +814,57 @@ async def fetch_handoff_note(
         return {"handoff_from": handoff_from, "handoff_note": latest_note}
     except Exception as e:
         raise HTTPException(status_code=404, detail=str(e))
+
+@app.post("/audit/validate_changelog")
+async def validate_changelog(repo_name: str = Body(...), dry_run: bool = Body(default=False)):
+    try:
+        repo = get_repo(repo_name)
+        task_file = repo.get_contents("project/task.yaml")
+        tasks = yaml.safe_load(task_file.decoded_content).get("tasks", {})
+
+        try:
+            changelog_file = repo.get_contents("project/outputs/changelog.yaml")
+            changelog = yaml.safe_load(changelog_file.decoded_content) or []
+        except Exception:
+            changelog = []
+
+        # Map of output files per task
+        expected_files = {}
+        for tid, data in tasks.items():
+            if data.get("done"):
+                for f in data.get("outputs", []):
+                    expected_files[f] = tid
+
+        # Build set of logged paths
+        logged_paths = set(entry["path"] for entry in changelog)
+
+        # Check for missing changelog entries
+        missing_entries = []
+        for path, tid in expected_files.items():
+            if path not in logged_paths:
+                missing_entries.append({"task_id": tid, "path": path})
+
+        # Commit missing entries using commit_and_log
+        for entry in missing_entries:
+            if dry_run:
+                continue
+            commit_and_log(
+                repo,
+                file_path=entry["path"],
+                content="Backfilled entry placeholder",
+                commit_message="Backfilled by changelog validator",
+                task_id=entry["task_id"],
+                committed_by="validator"
+            )
+
+        return {
+            "missing_changelog_entries": missing_entries,
+            "total_missing": len(missing_entries),
+            "message": "Missing entries committed using commit_and_log."
+        }
+
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"detail": f"Validation error: {str(e)}"})
 
 
 @app.post("/tasks/update_changelog/{task_id}")
@@ -815,6 +926,7 @@ async def complete_task(
         task_data["tasks"][task_id]["status"] = "completed"
         task_data["tasks"][task_id]["done"] = True
         task_data["tasks"][task_id]["updated_at"] = datetime.utcnow().isoformat()
+        pod_owner = get_pod_owner(repo, task_id)   
         
         output_dir = f"project/outputs/{task_id}"
         output_paths = []
@@ -822,15 +934,15 @@ async def complete_task(
             output_path = item["path"]
             output_content = item["content"]
             output_paths.append(output_path)
-            commit_and_log(repo, output_path, output_content, f"Save output for {task_id}")
+            commit_and_log(repo, output_path, output_content, f"Save output for {task_id}", task_id=task_id, committed_by=pod_owner)
 
         # Update outputs in task.yaml
         task_data["outputs"] = list(set(task_data.get("outputs", []) + output_paths))
-        commit_and_log(repo, task_path, yaml.dump(task_data), f"Mark task {task_id} as completed and update outputs")
+        commit_and_log(repo, task_path, yaml.dump(task_data), f"Mark task {task_id} as completed and update outputs", task_id=task_id, committed_by=pod_owner)
 
         if reasoning_trace:
             trace_path = f"{output_dir}/reasoning_trace.yaml"
-            commit_and_log(repo, trace_path, yaml.dump(reasoning_trace), f"Log reasoning trace for {task_id}")
+            commit_and_log(repo, trace_path, yaml.dump(reasoning_trace), f"Log reasoning trace for {task_id}", task_id=task_id, committed_by=pod_owner)
 
         # Auto-generate handoff if not provided
         if not handoff_note:
@@ -845,7 +957,7 @@ async def complete_task(
                 handoff_data = {}
 
             handoff_data.setdefault("handoffs", []).append(handoff_note)
-            commit_and_log(repo, handoff_path, yaml.dump(handoff_data, sort_keys=False), f"Log handoff note for {task_id}")
+            commit_and_log(repo, handoff_path, yaml.dump(handoff_data, sort_keys=False), f"Log handoff note for {task_id}", task_id=task_id, committed_by=pod_owner)
 
         return {"message": f"Task {task_id} completed and outputs committed."}
 
@@ -978,9 +1090,10 @@ async def update_task_metadata(
         if ready is not None: task["ready"] = ready
         if done is not None: task["done"] = done
         task["updated_at"] = datetime.utcnow().isoformat()
+        pod_owner = task.get("pod_owner", "Unknown")
 
         updated_yaml = yaml.dump(tasks)
-        commit_and_log(repo, task_path, updated_yaml, f"Update metadata for {task_id}")
+        commit_and_log(repo, task_path, updated_yaml, f"Update metadata for {task_id}", task_id=task_id, committed_by=pod_owner)
 
         return {"message": "Task metadata updated", "task_id": task_id, "updated_task_metadata": task}
 
@@ -1023,7 +1136,7 @@ async def index_memory(repo_name: str = Body(...), base_paths: Optional[List[str
                 continue
 
         memory_content = yaml.dump(memory)
-        commit_and_log(repo, memory_path, memory_content, f"Indexed {len(memory)} memory entries")
+        commit_and_log(repo, memory_path, memory_content, f"Indexed {len(memory)} memory entries", task_id="memory_index", committed_by="memory_indexer")
 
         return {"message": f"Memory indexed with {len(memory)} entries."}
     except Exception as e:
