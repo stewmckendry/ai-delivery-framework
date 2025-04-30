@@ -2258,5 +2258,117 @@ def commit_and_log(repo, file_path, content, commit_message):
 - Legacy patchwork safely deprecated but recoverable
 - Traceable, consistent Git history across all Pod actions
 
+---
+
+# 🔥 SHA Handling in `commit_and_log`
+
+---
+
+## 📋 Concern Breakdown
+
+| Concern | Situation |
+| :--- | :--- |
+| Should we pass SHA into `commit_and_log`? | Ideally yes, for strict concurrency protection. |
+| Is the risk real? | Only if two GPTs or humans push the *same file* within milliseconds (extremely rare in current scale). |
+| Should we optimize now? | ❗ **No** — Over-optimizing adds unnecessary complexity at this stage. |
+| Future solution? | Plan to add an optional `sha_check` parameter during **Batch 6: System Hardening** if needed. |
+
+---
+
+## ✅ Final Decision
+
+- No SHA passing for now.
+- Keep `commit_and_log()` **frictionless and simple**.
+- Trust sequential task flows for now (pods rarely push same files simultaneously).
+- Future-proof by planning SHA handling as an optional upgrade later.
+
+---
+
+## 📅 Future Enhancement (Batch 6 Target)
+
+Add `sha_check` to `commit_and_log`:
+
+```python
+def commit_and_log(repo, file_path, content, commit_message, sha_check=None):
+    # If sha_check provided, verify SHA before updating
+    # Otherwise proceed normally
+```
+
+---
+
+# ✨ Net Benefit
+
+- Simpler codebase ✅
+- Faster patch cycle ✅
+- Lower cognitive load for devs ✅
+- No real concurrency risk yet ✅
+
+---
+
+# ✅ Batch 3 Backlog Status (as of now)
+
+| Step | Action | Status | Notes |
+| :--- | :--- | :--- | :--- |
+| 3.1 | `/tasks/update_metadata` auto-commit | ✅ Complete | Uses `commit_and_log` |
+| 3.2 | `/tasks/clone` auto-commit | ✅ Complete | Uses `commit_and_log` |
+| 3.3 | Auto-save of `chain_of_thought.yaml` | ✅ Complete | Route refactored |
+| 3.4 | `reasoning_trace.yaml` on task complete | ✅ Complete | Structured YAML format |
+| 3.5 | `changelog.yaml` updates on all commits | ✅ Complete | Centralized via `commit_and_log` |
+| 3.6 | Fallback prompt generator | ❌ Skipped | Not needed for MVP / PoC |
+| 3.7 | Auto-commit outputs on task complete | ✅ Complete | Inputs provided in request |
+| 3.8 | Add `/tasks/append_reasoning_trace` if needed | ❌ Not needed | Fully handled inside `complete` |
+| 3.9 | Refactor all tools to use `commit_and_log` | ✅ Complete | Includes bonus consolidation |
+| 3.10 | Deprecate `auto_commit`, `promote_patch` | ✅ Marked LEGACY | Not in `openapi.json` |
+
+---
+
+# 🧾 UPDATED BATCH BACKLOG
+
+## 🔄 Batch 4: Testing Phase (E2E Task Execution)
+
+| Step | Action |
+|------|--------|
+| 4.1  | Implement `/memory/index` auto-commit |
+| 4.2  | Implement `/memory/add` auto-commit |
+| 4.3  | Add test readiness score to reasoning trace |
+| 4.4  | Expand system prompts for test validation |
+| 4.5  | Test full traceable flows for NHL PoC |
+| 4.6  | 🆕 Add heuristic-based UX checklist during spec |
+| 4.7  | 🆕 Improve prompt fallback and logging |
+| 4.8  | 🆕 Auto-guide Human Lead to next task |
+| 4.9  | 🆕 Search task by name not just ID (fuzzy match) |
+| 4.10 | 🆕 Auto-append GPT thoughts on `/complete` |
+
+## 🔄 Batch 5: Cutover & Go-Live
+
+| Step | Action |
+|------|--------|
+| 5.1  | `/tasks/append_handoff_note/{task_id}` |
+| 5.2  | Formalize `handoff_note.yaml` |
+| 5.3  | Full PR `promote_patch` builder |
+| 5.4  | Validate `changelog.yaml` across all |
+| 5.5  | Validate `memory.yaml` |
+| 5.6  | Publish final NHL PoC report |
+| 5.7  | 🆕 Warn users about ChatGPT tool lag / UX |
+| 5.8  | 🆕 Add output verification vs. `task.yaml` |
+| 5.9  | 🆕 Safeguard file contents (avoid “See Canvas…” bug) |
+
+## 🔄 Batch 6: System Polish & Hardening
+
+| Step | Action |
+|------|--------|
+| 6.1  | Define rollback strategy |
+| 6.2  | Integrate metrics instrumentation |
+| 6.3  | Human Lead onboarding guide |
+| 6.4  | Multi-pod orchestration (stretch) |
+| 6.5  | Auto-chain-of-thought on `init_project` |
+| 6.6  | Link project context in `memory.yaml` |
+| 6.7  | Enrich init `reasoning_trace.yaml` |
+| 6.8  | Log `prompt_used.txt` on task start |
+| 6.9  | Auto-changelog for `init_project` |
+| 6.10 | GitHub failsafe + retry support |
+| 6.11 | 🆕 Add `reopen_task` route |
+| 6.12 | 🆕 Fix `getGitHubFile` or rebuild with PyGitHub |
+| 6.13 | 🆕 Normalize project folder structure |
 
 
