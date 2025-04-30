@@ -493,7 +493,18 @@ async def start_task(task_id: str = Body(...), repo_name: str = Body(...)):
         task["status"] = "in_progress"
         task["updated_at"] = datetime.utcnow().isoformat()
         updated_task_yaml = yaml.dump(task_data, sort_keys=False)
-        repo.update_file(task_path, f"Start task {task_id}", updated_task_yaml, task_file.sha)
+        commit_and_log(repo, task_path, updated_task_yaml, f"Start task {task_id}")
+
+        # Optional: fetch handoff
+        handoff_note = None
+        handoff_from = task.get("handoff_from")
+        if handoff_from:
+            try:
+                handoff_file = repo.get_contents(f"project/outputs/{handoff_from}/handoff_notes.yaml")
+                data = yaml.safe_load(handoff_file.decoded_content)
+                handoff_note = data.get("handoffs", [])[-1] if data.get("handoffs") else None
+            except Exception:
+                handoff_note = None
 
         prompt_path = task.get("prompt")
         input_files = task.get("inputs", [])
@@ -510,6 +521,7 @@ async def start_task(task_id: str = Body(...), repo_name: str = Body(...)):
             "message": f"Task {task_id} started successfully.",
             "prompt_content": prompt_content,
             "inputs": input_files,
+            "handoff_note": handoff_note,
             "next_step": "Call /tasks/append_chain_of_thought to log 2–3 initial thoughts from GPT Pod."
         }
 
@@ -633,6 +645,72 @@ async def append_chain_of_thought(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to append chain of thought: {str(e)}")
 
+
+@app.post("/tasks/append_handoff_note/{task_id}")
+async def append_handoff_note(
+    task_id: str,
+    repo_name: str = Body(...),
+    from_pod: str = Body(...),
+    to_pod: str = Body(...),
+    reason: str = Body(...),
+    token_count: int = Body(...),
+    next_prompt: str = Body(...),
+    reference_files: list[str] = Body(default=[]),
+    notes: str = Body(default=""),
+    ways_of_working: str = Body(default="")
+):
+    repo = get_repo(repo_name)
+    file_path = f"project/outputs/{task_id}/handoff_notes.yaml"
+
+    try:
+        file = repo.get_contents(file_path)
+        handoff_data = yaml.safe_load(file.decoded_content) or {}
+    except Exception:
+        handoff_data = {}
+
+    new_entry = {
+        "timestamp": datetime.utcnow().isoformat(),
+        "from_pod": from_pod,
+        "to_pod": to_pod,
+        "reason": reason,
+        "token_count": token_count,
+        "next_prompt": next_prompt,
+        "reference_files": reference_files,
+        "notes": notes,
+        "ways_of_working": ways_of_working
+    }
+
+    handoff_data.setdefault("handoffs", []).append(new_entry)
+    updated_yaml = yaml.dump(handoff_data, sort_keys=False)
+
+    commit_and_log(repo, file_path, updated_yaml, f"Append handoff note to task {task_id}")
+
+    return {"message": "Handoff note appended", "note": new_entry}
+
+@app.post("/tasks/fetch_handoff_note")
+async def fetch_handoff_note(
+    repo_name: str = Body(...),
+    task_id: str = Body(...)
+):
+    repo = get_repo(repo_name)
+    task_path = "project/task.yaml"
+    try:
+        task_file = repo.get_contents(task_path)
+        tasks = yaml.safe_load(task_file.decoded_content)
+        task = tasks.get("tasks", {}).get(task_id, {})
+        handoff_from = task.get("handoff_from")
+        if not handoff_from:
+            return {"message": "No handoff_from reference in task metadata."}
+
+        handoff_path = f"project/outputs/{handoff_from}/handoff_notes.yaml"
+        file = repo.get_contents(handoff_path)
+        notes_data = yaml.safe_load(file.decoded_content)
+        latest_note = notes_data.get("handoffs", [])[-1] if notes_data.get("handoffs") else None
+        return {"handoff_from": handoff_from, "handoff_note": latest_note}
+    except Exception as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
 # LEGACY TOOL - TO BE DEPRECATED / REMOVED
 @app.post("/tasks/auto_commit")
 async def auto_commit(
@@ -722,7 +800,8 @@ async def complete_task(
     repo_name: str = Body(...),
     task_id: str = Body(...),
     outputs: Optional[List[dict]] = Body(None),
-    reasoning_trace: Optional[dict] = Body(None)):
+    reasoning_trace: Optional[dict] = Body(None),
+    handoff_note: Optional[dict] = Body(default={})):
 
     try:
         repo = get_repo(repo_name)
@@ -738,23 +817,26 @@ async def complete_task(
         task_data["tasks"][task_id]["updated_at"] = datetime.utcnow().isoformat()
         commit_and_log(repo, task_path, yaml.dump(task_data), f"Mark task {task_id} as completed")
 
-        if outputs:
-            for output in outputs:
-                content = output.get("content")
-                file_path = output.get("path")
-                commit_msg = f"Submit output for task {task_id}"
-                commit_and_log(repo, file_path, content, commit_msg)
+        output_dir = f"project/outputs/{task_id}"
+        for item in outputs:
+            output_path = item["path"]
+            output_content = item["content"]
+            commit_and_log(repo, output_path, output_content, f"Save output for {task_id}")
 
-        trace_path = f"project/outputs/{task_id}/reasoning_trace.yaml"
-        trace = reasoning_trace or {
-            "thoughts": [
-                {"message": "Task complete", "timestamp": datetime.utcnow().isoformat()}
-            ],
-            "scoring": {},
-            "improvement_opportunities": []
-        }
-        trace_content = yaml.dump(trace)
-        commit_and_log(repo, trace_path, trace_content, f"Save reasoning trace for {task_id}")
+        if reasoning_trace:
+            trace_path = f"{output_dir}/reasoning_trace.yaml"
+            commit_and_log(repo, trace_path, yaml.dump(reasoning_trace), f"Log reasoning trace for {task_id}")
+
+        if handoff_note:
+            handoff_path = f"{output_dir}/handoff_notes.yaml"
+            try:
+                file = repo.get_contents(handoff_path)
+                handoff_data = yaml.safe_load(file.decoded_content) or {}
+            except:
+                handoff_data = {}
+
+            handoff_data.setdefault("handoffs", []).append(handoff_note)
+            commit_and_log(repo, handoff_path, yaml.dump(handoff_data, sort_keys=False), f"Log handoff note for {task_id}")
 
         return {"message": f"Task {task_id} completed and outputs committed."}
 

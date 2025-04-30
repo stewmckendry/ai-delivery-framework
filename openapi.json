@@ -776,7 +776,7 @@
           },
           "responses": {
             "200": {
-              "description": "Task status updated to in_progress",
+              "description": "Task started",
               "content": {
                 "application/json": {
                   "schema": {
@@ -788,6 +788,7 @@
                         "type": "array",
                         "items": { "type": "string" }
                       },
+                      "handoff_note": { "type": "object" },
                       "next_step": { "type": "string" }
                     }
                   }
@@ -891,8 +892,8 @@
       },
       "/tasks/complete": {
         "post": {
+          "summary": "Mark task complete and log outputs, trace, and handoff",
           "operationId": "completeTask",
-          "summary": "Mark task complete and submit reasoning trace and outputs",
           "tags": ["Tasks"],
           "requestBody": {
             "required": true,
@@ -911,14 +912,37 @@
                         "required": ["path", "content"],
                         "properties": {
                           "path": { "type": "string" },
-                          "content": { "type": "string" },
-                          "type": { "type": "string" }
+                          "content": { "type": "string" }
                         }
                       }
                     },
+                    "reasoning_trace": { "type": "object" },
+                    "handoff_note": { "type": "object" }
+                  },
+                  "example": {
+                    "repo_name": "nhl-predictor",
+                    "task_id": "2.2",
+                    "outputs": [
+                      {
+                        "path": "project/outputs/2.2/summary.md",
+                        "content": "All implementation steps are complete."
+                      }
+                    ],
                     "reasoning_trace": {
-                      "type": "object",
-                      "description": "Optional detailed trace of reasoning"
+                      "thoughts": [{"message": "Work complete"}],
+                      "scoring": {},
+                      "improvement_opportunities": []
+                    },
+                    "handoff_note": {
+                      "timestamp": "2025-04-30T12:00:00Z",
+                      "from_pod": "DevPod",
+                      "to_pod": "QAPod",
+                      "reason": "Code complete, ready for QA",
+                      "token_count": 14500,
+                      "next_prompt": "Start with test plan for module A",
+                      "reference_files": ["src/module_a.py"],
+                      "notes": "Some edge cases still need coverage.",
+                      "ways_of_working": "Follow async feedback loop via chain_of_thought."
                     }
                   }
                 }
@@ -927,7 +951,7 @@
           },
           "responses": {
             "200": {
-              "description": "Completion confirmation",
+              "description": "Task completion confirmed",
               "content": {
                 "application/json": {
                   "schema": {
@@ -1016,6 +1040,103 @@
                     "type": "object",
                     "properties": {
                       "message": { "type": "string" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/tasks/append_handoff_note/{task_id}": {
+        "post": {
+          "summary": "Append a handoff note to a task",
+          "operationId": "appendHandoffNote",
+          "tags": ["Tasks"],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["repo_name", "from_pod", "to_pod", "reason", "token_count", "next_prompt"],
+                  "properties": {
+                    "repo_name": { "type": "string" },
+                    "from_pod": { "type": "string" },
+                    "to_pod": { "type": "string" },
+                    "reason": { "type": "string" },
+                    "token_count": { "type": "integer" },
+                    "next_prompt": { "type": "string" },
+                    "reference_files": {
+                      "type": "array",
+                      "items": { "type": "string" }
+                    },
+                    "notes": { "type": "string" },
+                    "ways_of_working": { "type": "string" }
+                  },
+                  "example": {
+                    "repo_name": "nhl-predictor",
+                    "from_pod": "DevPod",
+                    "to_pod": "QAPod",
+                    "reason": "Feature complete, ready for QA",
+                    "token_count": 13200,
+                    "next_prompt": "Please test component A and validate edge case B",
+                    "reference_files": ["src/main.py", "test/test_main.py"],
+                    "notes": "Watch out for flakiness in test X",
+                    "ways_of_working": "Continue async updates via chain_of_thought.yaml"
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Handoff note appended successfully",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "message": { "type": "string" },
+                      "note": { "type": "object" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/tasks/fetch_handoff_note": {
+        "post": {
+          "summary": "Retrieve latest handoff note from upstream task",
+          "operationId": "fetchHandoffNote",
+          "tags": ["Tasks"],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["repo_name", "task_id"],
+                  "properties": {
+                    "repo_name": { "type": "string" },
+                    "task_id": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Handoff note found",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "handoff_from": { "type": "string" },
+                      "handoff_note": { "type": "object" }
                     }
                   }
                 }

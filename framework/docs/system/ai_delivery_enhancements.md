@@ -2509,3 +2509,61 @@ We now have a robust, end-to-end set of FastAPI tools that:
 **This means:**  
 GPT Pods can now operate independently and safely within a structured delivery system, without breaking the repo or losing traceability — ready for real-world usage.
 
+---
+
+## 🧩 Batch 5 Plan
+
+| Step | Task                                 | Plan                                                                                       |
+|------|--------------------------------------|--------------------------------------------------------------------------------------------|
+| 5.1  | `/tasks/append_handoff_note/{task_id}` | Add FastAPI route to append handoff notes to `.logs/handoff_notes/{task_id}.md`            |
+| 5.2  | Auto-generate handoff notes           | Generate structured notes from task summary + reasoning trace                              |
+| 5.3  | Finalize `promote_patch`              | Bundle final artifacts (`prompt_used.txt`, `reasoning_trace.md`, `changelog.md`, etc.) into a downloadable zip |
+| 5.4  | Validate `changelog.yaml`             | Ensure full audit trail with task → files → rationale → approver metadata                  |
+| 5.5  | Validate `memory.yaml` integrity      | Run full scan to detect missing, outdated, or orphaned entries                             |
+| 5.6  | Publish NHL Predictor MVP + audit     | Generate publishing checklist + zip + public `README` + traceability pack                  |
+
+---
+
+### ✅ Assumptions
+
+- We're working in the `nhl-predictor` repo (confirm or correct).
+- FastAPI backend and custom GPT actions are already wired to handle `PATCH`, `POST`, and `GET` routes for task metadata.
+- Logging conventions follow:
+  - `.logs/prompts/{pod}/{task_id}_*.txt`
+  - `.logs/reasoning/{task_id}_*.md`
+  - `.logs/changelogs/{task_id}_*.md`
+  - `.logs/handoff_notes/{task_id}.md` *(new)*
+- `promote_patch` currently pushes files and changelogs, and will now also create a final zip with:
+  - Output files
+  - Prompt + reasoning trace
+  - Markdown audit entry
+  - Handoff notes
+
+---
+
+### 🛠️ Required From You
+
+- ✅ Confirm working repo (`nhl-predictor`)
+- ✅ Confirm file locations + naming are consistent with above (or tell me if any were customized)
+- ✅ Confirm you're ready to implement patches and test each step
+
+---
+
+## ✅ Updated Batch 5 Scope (Handoff-Enhanced)
+
+| Step  | Task                        | Now Includes                                                                                 |
+|-------|-----------------------------|----------------------------------------------------------------------------------------------|
+| 5.1   | `append_handoff_note`       | ✅ Done                                                                                       |
+| 5.2   | Auto-generate handoff note  | 🆕 Optional on task complete or via button/tool                                               |
+| 5.2b  | `fetch_handoff_note` tool   | 🆕 Fetches latest relevant handoff for a given `task_id` using:<br>🔹 `handoff_from` in `task.yaml`<br>🔹 or smart fallback if missing |
+| 5.2c  | Enhance `task.yaml` spec    | 🆕 Add `handoff_from`, `depends_on`, `linked_tasks` support                                   |
+| 5.2d  | Enhance `/tasks/start`      | 🆕 Auto-fetch and return latest handoff if `handoff_from` is present                          |
+| 5.3   | Remove `promote_patch`      | ✅ As planned                                                                                 |
+| 5.4   | Validate `changelog.yaml`   | ✅ As planned                                                                                 |
+| 5.5   | Memory enhancements          | ✅ Delta indexing + descriptions + wiring into flows                                          |
+| 5.6   | Publish NHL Predictor        | ✅ Bundled delivery + audit trail                                                             |
+
+---
+
+
+
