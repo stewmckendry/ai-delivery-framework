@@ -471,7 +471,6 @@ async def activate_task(task_id: Union[str, List[str]] = Body(...), repo_name: s
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to activate task(s): {str(e)}")
 
-
 @app.post("/tasks/start")
 async def start_task(task_id: str = Body(...), repo_name: str = Body(...)):
     try:
@@ -485,31 +484,90 @@ async def start_task(task_id: str = Body(...), repo_name: str = Body(...)):
 
         task = task_data["tasks"][task_id]
         task["status"] = "in_progress"
+        task["updated_at"] = datetime.utcnow().isoformat()
         updated_task_yaml = yaml.dump(task_data, sort_keys=False)
-        commit_and_log(repo, task_path, updated_task_yaml, f"Mark task {task_id} as in_progress")
+        repo.update_file(task_path, f"Start task {task_id}", updated_task_yaml, task_file.sha)
 
         prompt_path = task.get("prompt")
         input_files = task.get("inputs", [])
-        prompt_content = ""
 
+        prompt_content = "Prompt file missing."
         if prompt_path:
             try:
                 prompt_file = repo.get_contents(prompt_path)
                 prompt_content = prompt_file.decoded_content.decode()
-            except Exception:
+            except:
                 prompt_content = "Prompt file missing."
 
         return {
             "message": f"Task {task_id} started successfully.",
             "prompt_content": prompt_content,
-            "inputs": input_files
+            "inputs": input_files,
+            "next_step": "Call /tasks/append_chain_of_thought to log 2–3 initial thoughts from GPT Pod."
         }
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to start task: {str(e)}")
+        return JSONResponse(status_code=500, content={"detail": f"Internal Server Error: {type(e).__name__}: {e}"})
 
+@app.post("/tasks/reopen")
+async def reopen_task(repo_name: str = Body(...), task_id: str = Body(...), reason: Optional[str] = Body("Reopening for further work.")):
+    try:
+        repo = get_repo(repo_name)
+        task_path = "project/task.yaml"
+        task_file = repo.get_contents(task_path)
+        task_data = yaml.safe_load(task_file.decoded_content)
 
+        if task_id not in task_data.get("tasks", {}):
+            raise HTTPException(status_code=404, detail=f"Task {task_id} not found")
 
+        task_data["tasks"][task_id]["status"] = "in_progress"
+        task_data["tasks"][task_id]["updated_at"] = datetime.utcnow().isoformat()
+        updated_content = yaml.dump(task_data)
+        commit_and_log(repo, task_path, updated_content, f"Reopen task {task_id}")
+
+        # Append to chain of thought
+        cot_path = f"project/outputs/{task_id}/chain_of_thought.yaml"
+        cot_message = {
+            "timestamp": datetime.utcnow().isoformat(),
+            "message": reason
+        }
+        try:
+            cot_file = repo.get_contents(cot_path)
+            cot_data = yaml.safe_load(cot_file.decoded_content) or []
+            cot_data.append(cot_message)
+            commit_and_log(repo, cot_path, yaml.dump(cot_data), f"Append COT reopen note for {task_id}")
+        except:
+            commit_and_log(repo, cot_path, yaml.dump([cot_message]), f"Initialize COT for {task_id}")
+
+        return {"message": f"Task {task_id} reopened and note added to chain of thought."}
+
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"detail": str(e)})
+    
+@app.post("/tasks/next")
+async def get_next_task(repo_name: str = Body(...), pod_owner: str = Body(...)):
+    try:
+        repo = get_repo(repo_name)
+        task_path = "project/task.yaml"
+        task_file = repo.get_contents(task_path)
+        task_data = yaml.safe_load(task_file.decoded_content)
+
+        next_tasks = [
+            {"task_id": tid, **tdata}
+            for tid, tdata in task_data.get("tasks", {}).items()
+            if tdata.get("status") in ["planned", "backlog"] and tdata.get("pod_owner") == pod_owner
+        ]
+
+        if not next_tasks:
+            return {"message": f"No planned or backlog tasks for {pod_owner}."}
+
+        next_tasks = sorted(next_tasks, key=lambda x: x.get("updated_at", x.get("created_at", "")))
+        return {"next_task": next_tasks[0]}
+
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"detail": str(e)})
+
+    
 @app.post("/tasks/clone")
 async def clone_task(
     repo_name: str = Body(...),

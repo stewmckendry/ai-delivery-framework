@@ -754,7 +754,7 @@
       "/tasks/start": {
         "post": {
           "operationId": "startTask",
-          "summary": "Start a task, mark as in_progress, and retrieve prompt + inputs",
+          "summary": "Start a task and mark it in progress",
           "tags": ["Tasks"],
           "x-gpt-action": {
             "name": "Start Task"
@@ -776,7 +776,7 @@
           },
           "responses": {
             "200": {
-              "description": "Successful task start",
+              "description": "Task status updated to in_progress",
               "content": {
                 "application/json": {
                   "schema": {
@@ -787,7 +787,8 @@
                       "inputs": {
                         "type": "array",
                         "items": { "type": "string" }
-                      }
+                      },
+                      "next_step": { "type": "string" }
                     }
                   }
                 }
@@ -927,6 +928,88 @@
           "responses": {
             "200": {
               "description": "Completion confirmation",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "message": { "type": "string" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/tasks/next": {
+        "post": {
+          "operationId": "getNextTask",
+          "summary": "Suggest the next task in the queue for the requesting Pod",
+          "tags": ["Tasks"],
+          "x-gpt-action": {
+            "name": "Get Next Task"
+          },
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["repo_name", "pod_owner"],
+                  "properties": {
+                    "repo_name": { "type": "string" },
+                    "pod_owner": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Next available task metadata",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "next_task": { "type": "object" },
+                      "message": { "type": "string" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/tasks/reopen": {
+        "post": {
+          "operationId": "reopenTask",
+          "summary": "Reopen a completed task and mark as in progress",
+          "tags": ["Tasks"],
+          "x-gpt-action": {
+            "name": "Reopen Task"
+          },
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["repo_name", "task_id"],
+                  "properties": {
+                    "repo_name": { "type": "string" },
+                    "task_id": { "type": "string" },
+                    "reason": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Task reopened and COT updated",
               "content": {
                 "application/json": {
                   "schema": {
