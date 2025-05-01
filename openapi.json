@@ -2806,12 +2806,7 @@
           "tags": ["Tasks"],
           "x-gpt-action": {
             "name": "Get Task Dependencies",
-            "instructions": "Use this to find all tasks that this task depends on, and tasks that depend on it.",
-            "summary_keywords": [
-              "dependencies",
-              "upstream",
-              "downstream"
-            ]
+            "instructions": "Use this to find all tasks that this task depends on, and tasks that depend on it."
           },
           "parameters": [
             {
@@ -2854,153 +2849,128 @@
                   }
                 }
               }
-            },
-            "/tasks/graph": {
-            "get": {
-              "operationId": "getTaskGraph",
-              "summary": "Get structured graph of task dependencies",
-              "tags": ["Tasks"],
-              "x-gpt-action": {
-                "name": "Get Task Graph",
-                "instructions": "Use this to retrieve all tasks and their dependency relationships in graph format. Each task is a node. Edges show 'depends_on' or 'handoff_from' links.",
-                "summary_keywords": [
-                  "graph",
-                  "dependencies",
-                  "tasks"
-                ]
-              },
-              "parameters": [
-                {
-                  "name": "repo_name",
-                  "in": "query",
-                  "required": true,
-                  "schema": { "type": "string" },
-                  "description": "GitHub repo name containing task.yaml",
-                  "example": "ai-delivery-framework"
-                }
-              ],
-              "responses": {
-                "200": {
-                  "description": "Structured graph of task relationships",
-                  "content": {
-                    "application/json": {
-                      "schema": {
-                        "type": "object",
-                        "properties": {
-                          "graph": {
-                            "type": "object",
-                            "properties": {
-                              "nodes": {
-                                "type": "array",
-                                "items": {
-                                  "type": "object",
-                                  "properties": {
-                                    "id": { "type": "string" },
-                                    "label": { "type": "string" },
-                                    "pod_owner": { "type": "string" },
-                                    "description": { "type": "string" }
-                                  }
-                                }
-                              },
-                              "edges": {
-                                "type": "array",
-                                "items": {
-                                  "type": "object",
-                                  "properties": {
-                                    "source": { "type": "string" },
-                                    "target": { "type": "string" },
-                                    "type": { "type": "string", "enum": ["depends_on", "handoff"] }
-                                  }
-                                }
-                              }
-                            }
-                          },
-                          "total_tasks": { "type": "integer" },
-                          "note": { "type": "string" }
-                        }
-                      }
-                    }
-                  }
-                },
-                "/tasks/reasoning_summary": {
-                  "get": {
-                    "operationId": "getReasoningSummary",
-                    "summary": "Summarize reasoning quality across all tasks",
-                    "tags": ["Tasks", "Metrics"],
-                    "x-gpt-action": {
-                      "name": "Get Reasoning Summary",
-                      "instructions": "Use this to get a high-level reasoning quality report across all tasks, with option to return as CSV.",
-                      "summary_keywords": [
-                        "reasoning",
-                        "summary",
-                        "quality"
-                      ]
-                    },
-                    "parameters": [
-                      {
-                        "name": "repo_name",
-                        "in": "query",
-                        "required": true,
-                        "schema": { "type": "string" },
-                        "description": "The GitHub repository to analyze",
-                        "example": "ai-delivery-framework"
-                      },
-                      {
-                        "name": "format",
-                        "in": "query",
-                        "required": false,
-                        "schema": {
-                          "type": "string",
-                          "enum": ["csv"]
-                        },
-                        "description": "Optional format: if 'csv', returns as downloadable text/csv instead of JSON"
-                      }
-                    ],
-                    "responses": {
-                      "200": {
-                        "description": "Reasoning summary table for all tasks (JSON or CSV)",
-                        "content": {
-                          "application/json": {
-                            "schema": {
-                              "type": "object",
-                              "properties": {
-                                "reasoning_summary": {
-                                  "type": "array",
-                                  "items": {
-                                    "type": "object",
-                                    "properties": {
-                                      "task_id": { "type": "string" },
-                                      "thought_quality": { "type": "integer", "minimum": 1, "maximum": 5 },
-                                      "recall_used": { "type": "boolean" },
-                                      "novel_insight": { "type": "boolean" },
-                                      "total_thoughts": { "type": "integer" },
-                                      "improvement_opportunities": { "type": "string" }
-                                    }
-                                  }
-                                },
-                                "total_tasks_with_trace": {
-                                  "type": "integer",
-                                  "description": "How many tasks had a reasoning_trace.yaml file"
-                                }
-                              }
-                            }
-                          },
-                          "text/csv": {
-                            "schema": {
-                              "type": "string",
-                              "example": "task_id,thought_quality,recall_used,..."
+            }
+          }
+        }
+      },
+      "/tasks/reasoning_summary": {
+        "get": {
+          "operationId": "getReasoningSummary",
+          "summary": "Summarize reasoning quality across all tasks",
+          "tags": ["Tasks", "Metrics"],
+          "x-gpt-action": {
+            "name": "Get Reasoning Summary",
+            "instructions": "Use this to get a high-level reasoning quality report across all tasks, including thought quality scores, insights, and areas for improvement."
+          },
+          "parameters": [
+            {
+              "name": "repo_name",
+              "in": "query",
+              "required": true,
+              "schema": { "type": "string" },
+              "example": "ai-delivery-framework",
+              "description": "The GitHub repository to analyze"
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Reasoning summary for each task that has a trace",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "reasoning_summary": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "task_id": { "type": "string" },
+                            "thought_quality": { "type": "integer", "minimum": 1, "maximum": 5 },
+                            "recall_used": { "type": "boolean" },
+                            "novel_insight": { "type": "boolean" },
+                            "total_thoughts": { "type": "integer" },
+                            "improvement_opportunities": {
+                              "type": "array",
+                              "items": { "type": "string" }
                             }
                           }
                         }
+                      },
+                      "total_tasks_with_trace": {
+                        "type": "integer",
+                        "description": "Total number of tasks that had reasoning trace files"
                       }
                     }
                   }
                 }
-
               }
             }
           }
-
+        }
+      },
+      "/tasks/graph": {
+        "get": {
+          "operationId": "getTaskGraph",
+          "summary": "Get structured graph of task dependencies",
+          "tags": ["Tasks"],
+          "x-gpt-action": {
+            "name": "Get Task Graph",
+            "instructions": "Use this to retrieve all tasks and their dependency relationships in graph format. Each task is a node. Edges show 'depends_on' or 'handoff_from' links."
+          },
+          "parameters": [
+            {
+              "name": "repo_name",
+              "in": "query",
+              "required": true,
+              "schema": { "type": "string" },
+              "description": "GitHub repo name containing task.yaml",
+              "example": "ai-delivery-framework"
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Structured graph of task relationships",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "graph": {
+                        "type": "object",
+                        "properties": {
+                          "nodes": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "id": { "type": "string" },
+                                "label": { "type": "string" },
+                                "pod_owner": { "type": "string" },
+                                "description": { "type": "string" }
+                              }
+                            }
+                          },
+                          "edges": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "source": { "type": "string" },
+                                "target": { "type": "string" },
+                                "type": { "type": "string", "enum": ["depends_on", "handoff"] }
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "total_tasks": { "type": "integer" },
+                      "note": { "type": "string" }
+                    }
+                  }
+                }
+              }
+            }
           }
         }
       },
