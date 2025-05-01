@@ -2734,3 +2734,17 @@ Would you like to begin with item **6.8** (`prompt_used.txt` capture)?
 | 🔗 Task chaining  | Auto-suggest/activate next task via `depends_on`, `handoff_from`            |
 | 🔁 Lifecycle test | Full run: task ➝ memory ➝ commit ➝ log ➝ handoff ➝ next                      |
 | 📦 Retry utils    | Wrap PyGitHub calls globally with retry logic or wrapper functions (deferred) |
+
+---
+
+## 🛠 Enhancement Backlog (Updated)
+
+| Area                  | Description                                                                 |
+|-----------------------|-----------------------------------------------------------------------------|
+| 🧱 Refactor tools      | Use `fetch_yaml_from_github` and standardize across all FastAPI routes      |
+| 🔄 Add new routes      | `/tasks/fetch_chain_of_thought`, `/tasks/fetch_reasoning_trace`             |
+| 🔗 Task chaining       | Auto-suggest/activate next task via `depends_on`, `handoff_from`            |
+| 🔁 Lifecycle test      | Full run: task ➝ memory ➝ commit ➝ log ➝ handoff ➝ next                      |
+| 🧠 Memory sync         | Auto-update `memory.yaml` inside `commit_and_log` whenever a file is updated |
+| 🐛 Bug/enhancement tools | Add tools to log and fetch bugs/enhancements across framework + project repos |
+| 📦 Retry utils (deferred) | Wrap PyGitHub calls globally with retry logic or wrapper functions         |

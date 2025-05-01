@@ -2178,17 +2178,12 @@
       },
       "/tasks/auto_handoff": {
         "post": {
-          "summary": "Link two tasks together via handoff",
           "operationId": "autoHandoff",
-          "tags": ["Tasks"],
+          "summary": "Configure a handoff from one task to the next with enriched metadata",
+          "tags": ["Tasks", "Handoff"],
           "x-gpt-action": {
-            "name": "Auto-Handoff Task",
-            "instructions": "Link two tasks for seamless pod handoff and set the next one as ready.",
-            "summary_keywords": [
-              "handoff",
-              "link",
-              "tasks"
-            ]
+            "name": "Auto Handoff Between Tasks",
+            "instructions": "Use this to set up a handoff from one task to another. It logs the handoff, updates downstream metadata, and suggests the next step."
           },
           "requestBody": {
             "required": true,
@@ -2196,40 +2191,52 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": ["repo_name", "task_id", "next_task_id"],
                   "properties": {
-                    "repo_name": { 
+                    "repo_name": {
                       "type": "string",
-                      "description": "The name of the GitHub repository (e.g. nhl-predictor)"
+                      "example": "ai-delivery-framework"
                     },
-                    "task_id": { 
+                    "task_id": {
                       "type": "string",
-                      "description": "The ID of the task being handed off" 
+                      "description": "ID of the source (handoff origin) task",
+                      "example": "2.3_write_api_spec"
                     },
-                    "next_task_id": { 
+                    "next_task_id": {
                       "type": "string",
-                      "description": "The ID of the next task to be linked" 
+                      "description": "ID of the downstream task to receive the handoff",
+                      "example": "3.1_write_tests"
                     },
                     "handoff_mode": {
                       "type": "string",
-                      "description": "Mode of handoff: sync, async, or auto. Default is async.",
-                      "enum": ["sync", "async", "auto"],
-                      "default": "async"
+                      "description": "Mode of the handoff (e.g., async or sync)",
+                      "example": "async"
                     }
-                  }
+                  },
+                  "required": ["repo_name", "task_id", "next_task_id"]
                 }
               }
             }
           },
           "responses": {
             "200": {
-              "description": "Confirmation of handoff linkage",
+              "description": "Confirmation of the auto handoff, with guidance on the next step",
               "content": {
                 "application/json": {
                   "schema": {
                     "type": "object",
                     "properties": {
-                      "message": { "type": "string" }
+                      "message": { "type": "string" },
+                      "next_step": { "type": "string" },
+                      "handoff_note": {
+                        "type": "object",
+                        "properties": {
+                          "note": { "type": "string" },
+                          "origin_pod": { "type": "string" },
+                          "target_pod": { "type": "string" },
+                          "timestamp": { "type": "string" },
+                          "mode": { "type": "string" }
+                        }
+                      }
                     }
                   }
                 }
@@ -2625,6 +2632,436 @@
                     "type": "object",
                     "properties": {
                       "message": { "type": "string" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/memory/list_entries": {
+        "get": {
+          "operationId": "listMemoryEntries",
+          "summary": "List memory entries with optional filters",
+          "tags": ["Memory"],
+          "x-gpt-action": {
+            "name": "List Memory Entries",
+            "instructions": "Use this to explore the memory index for a project with filters like owner, tag, or type."
+          },
+          "parameters": [
+            { "name": "repo_name", "in": "query", "required": true, "schema": { "type": "string" } },
+            { "name": "pod_owner", "in": "query", "required": false, "schema": { "type": "string" } },
+            { "name": "tag", "in": "query", "required": false, "schema": { "type": "string" } },
+            { "name": "file_type", "in": "query", "required": false, "schema": { "type": "string" } }
+          ],
+          "responses": {
+            "200": {
+              "description": "List of matching memory entries",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "total": { "type": "integer" },
+                      "results": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "path": { "type": "string" },
+                            "description": { "type": "string" },
+                            "tags": { "type": "array", "items": { "type": "string" } },
+                            "pod_owner": { "type": "string" },
+                            "last_updated": { "type": "string" }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/memory/stats": {
+        "get": {
+          "operationId": "getMemoryStats",
+          "summary": "Return memory index statistics",
+          "tags": ["Memory"],
+          "x-gpt-action": {
+            "name": "Memory Stats",
+            "instructions": "Use this to get a summary view of the memory index for diagnostics or audit."
+          },
+          "parameters": [
+            {
+              "name": "repo_name",
+              "in": "query",
+              "required": true,
+              "schema": { "type": "string" }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Memory statistics by owner and gaps",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "total_entries": { "type": "integer" },
+                      "missing_metadata": { "type": "integer" },
+                      "by_pod_owner": {
+                        "type": "object",
+                        "additionalProperties": { "type": "integer" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/tasks/artifacts/{task_id}": {
+        "get": {
+          "operationId": "getTaskArtifacts",
+          "summary": "Fetch all artifacts for a specific task",
+          "tags": ["Tasks"],
+          "x-gpt-action": {
+            "name": "Get Task Artifacts",
+            "instructions": "Use this to retrieve all related data for a task, including its prompt, outputs, chain of thought, reasoning trace, and handoff notes.",
+            "summary_keywords": [
+              "artifacts",
+              "task",
+              "data"
+            ]
+          },
+          "parameters": [
+            {
+              "name": "task_id",
+              "in": "path",
+              "required": true,
+              "schema": { "type": "string" },
+              "description": "The task ID for which to fetch artifacts",
+              "example": "1.2_define_user_and_delivery_flows"
+            },
+            {
+              "name": "repo_name",
+              "in": "query",
+              "required": true,
+              "schema": { "type": "string" },
+              "description": "The GitHub repository name",
+              "example": "ai-delivery-framework"
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "All available artifacts related to the task",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "prompt": {
+                        "type": ["string", "null"],
+                        "description": "Prompt content used to start the task"
+                      },
+                      "outputs": {
+                        "type": "object",
+                        "additionalProperties": {
+                          "type": ["string", "null"]
+                        },
+                        "description": "Dictionary of output file paths and contents"
+                      },
+                      "chain_of_thought": {
+                        "type": "array",
+                        "description": "List of thought entries",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "message": { "type": "string" },
+                            "timestamp": { "type": "string" }
+                          }
+                        }
+                      },
+                      "reasoning_trace": {
+                        "type": "object",
+                        "description": "Reasoning trace dictionary generated by the GPT pod"
+                      },
+                      "handoff_notes": {
+                        "type": "array",
+                        "description": "List of handoff note entries",
+                        "items": {
+                          "type": "object"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/tasks/dependencies/{task_id}": {
+        "get": {
+          "operationId": "getTaskDependencies",
+          "summary": "Get upstream and downstream dependencies for a task",
+          "tags": ["Tasks"],
+          "x-gpt-action": {
+            "name": "Get Task Dependencies",
+            "instructions": "Use this to find all tasks that this task depends on, and tasks that depend on it.",
+            "summary_keywords": [
+              "dependencies",
+              "upstream",
+              "downstream"
+            ]
+          },
+          "parameters": [
+            {
+              "name": "task_id",
+              "in": "path",
+              "required": true,
+              "schema": { "type": "string" },
+              "description": "The task ID to analyze",
+              "example": "1.3_define_architecture"
+            },
+            {
+              "name": "repo_name",
+              "in": "query",
+              "required": true,
+              "schema": { "type": "string" },
+              "description": "The name of the GitHub repository",
+              "example": "ai-delivery-framework"
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Upstream and downstream tasks for the given task ID",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "task_id": { "type": "string" },
+                      "upstream": {
+                        "type": "array",
+                        "items": { "type": "string" },
+                        "description": "Task IDs this task depends on"
+                      },
+                      "downstream": {
+                        "type": "array",
+                        "items": { "type": "string" },
+                        "description": "Task IDs that depend on this task"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "/tasks/graph": {
+            "get": {
+              "operationId": "getTaskGraph",
+              "summary": "Get structured graph of task dependencies",
+              "tags": ["Tasks"],
+              "x-gpt-action": {
+                "name": "Get Task Graph",
+                "instructions": "Use this to retrieve all tasks and their dependency relationships in graph format. Each task is a node. Edges show 'depends_on' or 'handoff_from' links.",
+                "summary_keywords": [
+                  "graph",
+                  "dependencies",
+                  "tasks"
+                ]
+              },
+              "parameters": [
+                {
+                  "name": "repo_name",
+                  "in": "query",
+                  "required": true,
+                  "schema": { "type": "string" },
+                  "description": "GitHub repo name containing task.yaml",
+                  "example": "ai-delivery-framework"
+                }
+              ],
+              "responses": {
+                "200": {
+                  "description": "Structured graph of task relationships",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "object",
+                        "properties": {
+                          "graph": {
+                            "type": "object",
+                            "properties": {
+                              "nodes": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "id": { "type": "string" },
+                                    "label": { "type": "string" },
+                                    "pod_owner": { "type": "string" },
+                                    "description": { "type": "string" }
+                                  }
+                                }
+                              },
+                              "edges": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "source": { "type": "string" },
+                                    "target": { "type": "string" },
+                                    "type": { "type": "string", "enum": ["depends_on", "handoff"] }
+                                  }
+                                }
+                              }
+                            }
+                          },
+                          "total_tasks": { "type": "integer" },
+                          "note": { "type": "string" }
+                        }
+                      }
+                    }
+                  }
+                },
+                "/tasks/reasoning_summary": {
+                  "get": {
+                    "operationId": "getReasoningSummary",
+                    "summary": "Summarize reasoning quality across all tasks",
+                    "tags": ["Tasks", "Metrics"],
+                    "x-gpt-action": {
+                      "name": "Get Reasoning Summary",
+                      "instructions": "Use this to get a high-level reasoning quality report across all tasks, with option to return as CSV.",
+                      "summary_keywords": [
+                        "reasoning",
+                        "summary",
+                        "quality"
+                      ]
+                    },
+                    "parameters": [
+                      {
+                        "name": "repo_name",
+                        "in": "query",
+                        "required": true,
+                        "schema": { "type": "string" },
+                        "description": "The GitHub repository to analyze",
+                        "example": "ai-delivery-framework"
+                      },
+                      {
+                        "name": "format",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                          "type": "string",
+                          "enum": ["csv"]
+                        },
+                        "description": "Optional format: if 'csv', returns as downloadable text/csv instead of JSON"
+                      }
+                    ],
+                    "responses": {
+                      "200": {
+                        "description": "Reasoning summary table for all tasks (JSON or CSV)",
+                        "content": {
+                          "application/json": {
+                            "schema": {
+                              "type": "object",
+                              "properties": {
+                                "reasoning_summary": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "object",
+                                    "properties": {
+                                      "task_id": { "type": "string" },
+                                      "thought_quality": { "type": "integer", "minimum": 1, "maximum": 5 },
+                                      "recall_used": { "type": "boolean" },
+                                      "novel_insight": { "type": "boolean" },
+                                      "total_thoughts": { "type": "integer" },
+                                      "improvement_opportunities": { "type": "string" }
+                                    }
+                                  }
+                                },
+                                "total_tasks_with_trace": {
+                                  "type": "integer",
+                                  "description": "How many tasks had a reasoning_trace.yaml file"
+                                }
+                              }
+                            }
+                          },
+                          "text/csv": {
+                            "schema": {
+                              "type": "string",
+                              "example": "task_id,thought_quality,recall_used,..."
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+
+              }
+            }
+          }
+
+          }
+        }
+      },
+      "/tasks/list_phases": {
+        "get": {
+          "operationId": "listTaskPhases",
+          "summary": "List all user-defined tasks grouped by SDLC phase",
+          "tags": ["Tasks", "Organization"],
+          "x-gpt-action": {
+            "name": "List Tasks by Phase",
+            "instructions": "Use this to retrieve all user tasks grouped by phase. Ignores system-level tasks like 0.x.",
+            "summary_keywords": [
+              "tasks",
+              "phases",
+              "sdlc"
+            ]
+          },
+          "parameters": [
+            {
+              "name": "repo_name",
+              "in": "query",
+              "required": true,
+              "schema": { "type": "string" },
+              "description": "Name of the GitHub repo containing the task.yaml file",
+              "example": "ai-delivery-framework"
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Tasks grouped by SDLC phase",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "phases": {
+                        "type": "object",
+                        "additionalProperties": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "task_id": { "type": "string" },
+                              "status": { "type": "string" },
+                              "pod_owner": { "type": "string" },
+                              "description": { "type": "string" }
+                            }
+                          }
+                        },
+                        "description": "Mapping of phase names to lists of task summaries"
+                      },
+                      "total_phases": {
+                        "type": "integer",
+                        "description": "Number of unique phases detected"
+                      }
                     }
                   }
                 }

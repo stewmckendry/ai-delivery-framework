@@ -3,7 +3,7 @@
 # ---- (1) Imports ----
 from fastapi import FastAPI, HTTPException, Request, Body, Query, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, FileResponse, PlainTextResponse
+from fastapi.responses import JSONResponse, FileResponse, PlainTextResponse, Response
 from fastapi.openapi.utils import get_openapi
 from fastapi import BackgroundTasks
 from pydantic import BaseModel
@@ -24,6 +24,8 @@ import traceback
 import base64
 import os
 import time
+import io
+import csv
 from github import Github, GithubException
 from openai import OpenAI
 from dotenv import load_dotenv
@@ -411,6 +413,14 @@ def commit_and_log(repo, file_path, content, commit_message, task_id: Optional[s
 
         # --- PATCH: update memory.yaml if missing or outdated ---
         memory_path = "project/memory.yaml"
+        if file_path == memory_path:
+            changelog_content = yaml.dump(changelog, sort_keys=False)
+            if changelog_sha:
+                repo.update_file(changelog_path, f"Update changelog at {timestamp}", changelog_content, changelog_sha)
+            else:
+                repo.create_file(changelog_path, f"Create changelog at {timestamp}", changelog_content)
+            return  # Skip memory indexing for memory.yaml itself
+
         try:
             memory_file = repo.get_contents(memory_path)
             memory = yaml.safe_load(memory_file.decoded_content) or []
@@ -590,6 +600,30 @@ def list_tasks(
 
     return {"tasks": filtered_tasks}
 
+async def list_task_phases(repo_name: str = Query(...)):
+    try:
+        repo = get_repo(repo_name)
+        task_file = repo.get_contents("project/task.yaml")
+        task_data = yaml.safe_load(task_file.decoded_content).get("tasks", {})
+
+        phases = {}
+        for task_id, task in task_data.items():
+            if task_id.startswith("0."):
+                continue
+            phase = task.get("phase", "Unspecified Phase")
+            if phase not in phases:
+                phases[phase] = []
+            phases[phase].append({
+                "task_id": task_id,
+                "status": task.get("status"),
+                "pod_owner": task.get("pod_owner"),
+                "description": task.get("description")
+            })
+
+        return {"phases": phases, "total_phases": len(phases)}
+
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"detail": f"Failed to list task phases: {type(e).__name__}: {e}"})
 
 @app.post("/tasks/activate")
 async def activate_task(task_id: Union[str, List[str]] = Body(...), repo_name: str = Body(...)):
@@ -945,6 +979,51 @@ async def fetch_reasoning_trace(
     except Exception as e:
         return JSONResponse(status_code=404, content={"detail": f"Could not fetch reasoning trace: {type(e).__name__}: {e}"})
 
+# PATCHED /tasks/reasoning_summary — supports CSV export
+
+@app.get("/tasks/reasoning_summary")
+async def get_reasoning_summary(
+    repo_name: str = Query(...),
+    format: Optional[str] = Query(None)
+):
+    try:
+        repo = get_repo(repo_name)
+        task_path = "project/task.yaml"
+        task_file = repo.get_contents(task_path)
+        task_data = yaml.safe_load(task_file.decoded_content).get("tasks", {})
+
+        summary = []
+        for task_id in task_data:
+            trace_path = f"project/outputs/{task_id}/reasoning_trace.yaml"
+            try:
+                trace_file = repo.get_contents(trace_path)
+                trace = yaml.safe_load(trace_file.decoded_content) or {}
+                scoring = trace.get("scoring", {})
+                thoughts = trace.get("thoughts", [])
+                entry = {
+                    "task_id": task_id,
+                    "thought_quality": scoring.get("thought_quality"),
+                    "recall_used": scoring.get("recall_used"),
+                    "novel_insight": scoring.get("novel_insight"),
+                    "total_thoughts": len(thoughts),
+                    "improvement_opportunities": "; ".join(trace.get("improvement_opportunities", []))
+                }
+                summary.append(entry)
+            except:
+                continue
+
+        if format == "csv":
+            output = io.StringIO()
+            writer = csv.DictWriter(output, fieldnames=list(summary[0].keys()))
+            writer.writeheader()
+            writer.writerows(summary)
+            return Response(content=output.getvalue(), media_type="text/csv")
+
+        return {"reasoning_summary": summary, "total_tasks_with_trace": len(summary)}
+
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"detail": f"Failed to summarize reasoning traces: {type(e).__name__}: {e}"})
+
 @app.post("/tasks/append_handoff_note/{task_id}")
 async def append_handoff_note(
     task_id: str,
@@ -995,7 +1074,6 @@ async def auto_generate_handoff(task_id: str, repo_name: str = Body(...)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to auto-generate handoff note: {str(e)}")
 
-
 @app.post("/tasks/auto_handoff")
 async def auto_handoff(
     repo_name: str = Body(...),
@@ -1003,29 +1081,74 @@ async def auto_handoff(
     next_task_id: str = Body(...),
     handoff_mode: Optional[str] = Body("async")
 ):
-    repo = get_repo(repo_name)
-    task_file = repo.get_contents("project/task.yaml")
-    task_data = yaml.safe_load(task_file.decoded_content)
+    try:
+        repo = get_repo(repo_name)
+        task_file = repo.get_contents("project/task.yaml")
+        task_data = yaml.safe_load(task_file.decoded_content)
 
-    if task_id not in task_data["tasks"] or next_task_id not in task_data["tasks"]:
-        raise HTTPException(status_code=404, detail="One or both task IDs not found")
+        if task_id not in task_data["tasks"] or next_task_id not in task_data["tasks"]:
+            raise HTTPException(status_code=404, detail="One or both task IDs not found")
 
-    task_data["tasks"][next_task_id]["handoff_from"] = task_id
-    task_data["tasks"][next_task_id]["depends_on"] = [task_id]
-    task_data["tasks"][next_task_id]["handoff_mode"] = handoff_mode
-    task_data["tasks"][next_task_id]["status"] = "ready"
+        from_task = task_data["tasks"][task_id]
+        to_task = task_data["tasks"][next_task_id]
 
-    updated_content = yaml.dump(task_data, sort_keys=False)
-    commit_and_log(
-        repo,
-        "project/task.yaml",
-        updated_content,
-        f"Auto-handoff setup from {task_id} to {next_task_id}",
-        task_id=task_id,
-        committed_by="auto_handoff"
-    )
+        # Update metadata for downstream task
+        to_task["handoff_from"] = task_id
+        to_task["depends_on"] = [task_id]
+        to_task["handoff_mode"] = handoff_mode
+        if to_task.get("status") == "unassigned":
+            to_task["status"] = "planned"
+        task_data["tasks"][next_task_id] = to_task
 
-    return {"message": f"Handoff from {task_id} to {next_task_id} configured."}
+        # Commit task.yaml updates
+        updated_content = yaml.dump(task_data, sort_keys=False)
+        commit_and_log(
+            repo,
+            "project/task.yaml",
+            updated_content,
+            f"Auto-handoff setup from {task_id} to {next_task_id}",
+            task_id=task_id,
+            committed_by="auto_handoff"
+        )
+
+        # Create enriched handoff note
+        handoff_note = {
+            "note": f"Handoff to task {next_task_id} ({to_task.get('description', '')})",
+            "origin_pod": from_task.get("pod_owner"),
+            "target_pod": to_task.get("pod_owner"),
+            "timestamp": datetime.utcnow().isoformat(),
+            "mode": handoff_mode
+        }
+
+        output_path = f"project/outputs/{task_id}/handoff_notes.yaml"
+        try:
+            handoff_file = repo.get_contents(output_path)
+            handoff_data = yaml.safe_load(handoff_file.decoded_content) or {}
+        except:
+            handoff_data = {}
+
+        handoff_data.setdefault("handoffs", []).append(handoff_note)
+        commit_and_log(
+            repo,
+            output_path,
+            yaml.dump(handoff_data, sort_keys=False),
+            f"Log handoff note from {task_id} to {next_task_id}",
+            task_id=task_id,
+            committed_by="auto_handoff"
+        )
+
+        # Suggest next step to human or GPT
+        next_step = f"Next: switch to {to_task.get('pod_owner')} and call /tasks/start for task {next_task_id}."
+
+        return {
+            "message": f"Handoff from {task_id} to {next_task_id} configured.",
+            "next_step": next_step,
+            "handoff_note": handoff_note
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to complete auto_handoff: {str(e)}")
+
 
 @app.post("/tasks/fetch_handoff_note")
 async def fetch_handoff_note(
@@ -1203,12 +1326,21 @@ async def complete_task(
             handoff_data.setdefault("handoffs", []).append(handoff_note)
             commit_and_log(repo, handoff_path, yaml.dump(handoff_data, sort_keys=False), f"Log handoff note for {task_id}", task_id=task_id, committed_by=pod_owner)
 
-        return {"message": f"Task {task_id} completed and outputs committed."}
+        # Auto-activate any downstream tasks that depend on this one
+        activated = []
+        for tid, t in task_data.get("tasks", {}).items():
+            if t.get("status") == "unassigned" and t.get("depends_on") and task_id in t["depends_on"]:
+                t["status"] = "planned"
+                t["updated_at"] = datetime.utcnow().isoformat()
+                activated.append(tid)
+
+        if activated:
+            commit_and_log(repo, task_path, yaml.dump(task_data), f"Auto-activated downstream tasks: {', '.join(activated)}", task_id=task_id, committed_by="chaining_bot")
+
+        return {"message": f"Task {task_id} completed and outputs committed. Activated downstream: {activated}"}
 
     except Exception as e:
         return JSONResponse(status_code=500, content={"detail": str(e)})
-
-
 
 @app.get("/tasks/{task_id}")
 def get_task_details(task_id: str):
@@ -1350,6 +1482,148 @@ async def update_task_metadata(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to update metadata: {str(e)}")
 
+@app.post("/tasks/fetch_next_linked_task")
+async def fetch_next_linked_task(
+    task_id: str = Body(...),
+    repo_name: str = Body(...)
+):
+    try:
+        repo = get_repo(repo_name)
+        task_file = repo.get_contents("task.yaml")
+        task_data = yaml.safe_load(task_file.decoded_content)
+
+        next_tasks = []
+        for tid, t in task_data.get("tasks", {}).items():
+            if t.get("depends_on") and task_id in t["depends_on"]:
+                next_tasks.append({"task_id": tid, **t})
+
+        return {"linked_tasks": next_tasks}
+
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"detail": f"Could not fetch next linked task: {type(e).__name__}: {e}"})
+
+@app.get("/tasks/artifacts/{task_id}")
+async def get_task_artifacts(task_id: str, repo_name: str = Query(...)):
+    try:
+        repo = get_repo(repo_name)
+        task_path = "project/task.yaml"
+        output_dir = f"project/outputs/{task_id}"
+
+        task_file = repo.get_contents(task_path)
+        task_data = yaml.safe_load(task_file.decoded_content)
+        task = task_data.get("tasks", {}).get(task_id)
+        if not task:
+            raise HTTPException(status_code=404, detail="Task not found")
+
+        # Load prompt
+        prompt_path = f"{output_dir}/prompt_used.txt"
+        try:
+            prompt = repo.get_contents(prompt_path).decoded_content.decode("utf-8")
+        except:
+            prompt = None
+
+        # Load outputs
+        outputs = {}
+        for path in task.get("outputs", []):
+            try:
+                outputs[path] = repo.get_contents(path).decoded_content.decode("utf-8")
+            except:
+                outputs[path] = None
+
+        # Load chain of thought
+        try:
+            cot_path = f"{output_dir}/chain_of_thought.yaml"
+            cot_data = repo.get_contents(cot_path)
+            chain_of_thought = yaml.safe_load(cot_data.decoded_content)
+        except:
+            chain_of_thought = []
+
+        # Load reasoning trace
+        try:
+            rt_path = f"{output_dir}/reasoning_trace.yaml"
+            rt_data = repo.get_contents(rt_path)
+            reasoning_trace = yaml.safe_load(rt_data.decoded_content)
+        except:
+            reasoning_trace = {}
+
+        # Load handoff notes
+        try:
+            hn_path = f"{output_dir}/handoff_notes.yaml"
+            hn_data = repo.get_contents(hn_path)
+            handoff_notes = yaml.safe_load(hn_data.decoded_content).get("handoffs", [])
+        except:
+            handoff_notes = []
+
+        return {
+            "prompt": prompt,
+            "outputs": outputs,
+            "chain_of_thought": chain_of_thought,
+            "reasoning_trace": reasoning_trace,
+            "handoff_notes": handoff_notes
+        }
+
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"detail": f"Failed to load artifacts for task {task_id}: {type(e).__name__}: {e}"})
+
+@app.get("/tasks/dependencies/{task_id}")
+async def get_task_dependencies(task_id: str, repo_name: str = Query(...)):
+    try:
+        repo = get_repo(repo_name)
+        task_path = "project/task.yaml"
+        task_file = repo.get_contents(task_path)
+        task_data = yaml.safe_load(task_file.decoded_content).get("tasks", {})
+
+        if task_id not in task_data:
+            raise HTTPException(status_code=404, detail="Task not found")
+
+        # Direct upstream
+        upstream = task_data[task_id].get("depends_on", [])
+
+        # Direct downstream: any task that depends on this one
+        downstream = [tid for tid, t in task_data.items() if task_id in t.get("depends_on", [])]
+
+        return {
+            "task_id": task_id,
+            "upstream": upstream,
+            "downstream": downstream
+        }
+
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"detail": f"Failed to get task dependencies: {type(e).__name__}: {e}"})
+
+@app.get("/tasks/graph")
+async def get_task_dependency_graph(repo_name: str = Query(...)):
+    try:
+        repo = get_repo(repo_name)
+        task_file = repo.get_contents("project/task.yaml")
+        task_data = yaml.safe_load(task_file.decoded_content).get("tasks", {})
+
+        nodes = []
+        edges = []
+
+        for task_id, task in task_data.items():
+            nodes.append({
+                "id": task_id,
+                "label": f"{task_id} ({task.get('status')})",
+                "pod_owner": task.get("pod_owner"),
+                "description": task.get("description")
+            })
+            for dep in task.get("depends_on", []):
+                edges.append({"source": dep, "target": task_id, "type": "depends_on"})
+            if task.get("handoff_from"):
+                edges.append({"source": task["handoff_from"], "target": task_id, "type": "handoff"})
+
+        return {
+            "graph": {
+                "nodes": nodes,
+                "edges": edges
+            },
+            "total_tasks": len(nodes),
+            "note": "This graph is structured for GPT or client rendering — edges show 'depends_on' and 'handoff' relations."
+        }
+
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"detail": f"Failed to load task graph: {type(e).__name__}: {e}"})
 
 # ---- Memory Management ----
 
