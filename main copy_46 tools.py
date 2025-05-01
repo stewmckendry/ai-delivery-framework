@@ -1627,83 +1627,8 @@ async def get_task_dependency_graph(repo_name: str = Query(...)):
 
 # ---- Memory Management ----
 
-
-@app.post("/memory/manage")
-async def manage_memory(payload: dict = Body(...)):
-    action = payload.get("action")
-    if not action:
-        raise HTTPException(status_code=400, detail="Missing 'action' field.")
-
-    if action == "add":
-        return await handle_add_to_memory(payload)
-    elif action == "index":
-        return await handle_index_memory(payload)
-    elif action == "diff":
-        return await handle_diff_memory_files(payload)
-    elif action == "validate":
-        return await handle_validate_memory_files(payload)
-    else:
-        raise HTTPException(status_code=400, detail=f"Invalid action: {action}")
-
-@app.post("/memory/query")
-async def query_memory(payload: dict = Body(...)):
-    mode = payload.get("mode")
-    repo_name = payload.get("repo_name")
-
-    if not repo_name:
-        raise HTTPException(status_code=400, detail="'repo_name' is required")
-
-    if mode == "search":
-        keyword = payload.get("keyword")
-        if not keyword:
-            raise HTTPException(status_code=400, detail="'keyword' is required for search")
-        return handle_search_memory(repo_name=repo_name, keyword=keyword)
-
-    elif mode == "list":
-        return handle_list_memory_entries(
-            repo_name=repo_name,
-            pod_owner=payload.get("pod_owner"),
-            tag=payload.get("tag"),
-            file_type=payload.get("file_type")
-        )
-
-    elif mode == "stats":
-        return handle_get_memory_stats(repo_name=repo_name)
-
-    raise HTTPException(status_code=400, detail=f"Unsupported mode: {mode}")
-
-@app.post("/memory/manage_entry")
-async def manage_memory_entry(payload: dict = Body(...)):
-    action = payload.get("action")
-    repo_name = payload.get("repo_name")
-    path = payload.get("path")
-
-    if not action or not repo_name or not path:
-        raise HTTPException(status_code=400, detail="'action', 'repo_name', and 'path' are required")
-
-    if action == "update":
-        return await handle_update_entry(
-            repo_name=repo_name,
-            path=path,
-            description=payload.get("description"),
-            tags=payload.get("tags"),
-            pod_owner=payload.get("pod_owner")
-        )
-    elif action == "remove":
-        return await handle_remove_entry(
-            repo_name=repo_name,
-            path=path
-        )
-
-    raise HTTPException(status_code=400, detail=f"Unsupported action: {action}")
-
-async def handle_index_memory(payload: dict) -> dict:
-    """Index new files in specified base paths into memory.yaml."""
-    repo_name = payload.get("repo_name")
-    base_paths = payload.get("base_paths")
-    if not repo_name:
-        raise HTTPException(status_code=400, detail="'repo_name' is required for action 'index'")
-    
+@app.post("/memory/index")
+async def index_memory(repo_name: str = Body(...), base_paths: Optional[List[str]] = None):
     try:
         repo = get_repo(repo_name)
         memory_path = "project/memory.yaml"
@@ -1766,14 +1691,8 @@ async def handle_index_memory(payload: dict) -> dict:
         return JSONResponse(status_code=500, content={"detail": str(e)})
 
         
-
-async def handle_diff_memory_files(payload: dict) -> dict:
-    """Detect missing memory entries by comparing to GitHub files."""
-    repo_name = payload.get("repo_name")
-    base_paths = payload.get("base_paths")
-    if not repo_name or base_paths is None:
-        raise HTTPException(status_code=400, detail="'repo_name' and 'base_paths' are required for action 'diff'")
-    
+@app.post("/memory/diff")
+def memory_diff(repo_name: str = Body(...), base_paths: List[str] = Body(default=[])):
     try:
         repo = get_repo(repo_name)
         try:
@@ -1802,13 +1721,8 @@ async def handle_diff_memory_files(payload: dict) -> dict:
     except Exception as e:
         return JSONResponse(status_code=500, content={"detail": str(e)})
 
-async def handle_add_to_memory(payload: dict) -> dict:
-    """Add files to memory.yaml with optional metadata."""
-    repo_name = payload.get("repo_name")
-    files = payload.get("files")
-    if not repo_name or not files:
-        raise HTTPException(status_code=400, detail="'repo_name' and 'files' are required for action 'add'")
-    
+@app.post("/memory/add")
+async def add_to_memory(repo_name: str = Body(...), files: List[dict] = Body(...)):
     try:
         repo = get_repo(repo_name)
         memory_path = "project/memory.yaml"
@@ -1853,13 +1767,8 @@ async def handle_add_to_memory(payload: dict) -> dict:
         return JSONResponse(status_code=500, content={"detail": str(e)})
         
 
-async def handle_validate_memory_files(payload: dict) -> dict:
-    """Check if listed files exist in memory.yaml and GitHub repo."""
-    repo_name = payload.get("repo_name")
-    files = payload.get("files")
-    if not repo_name or not files:
-        raise HTTPException(status_code=400, detail="'repo_name' and 'files' are required for action 'validate'")
-    
+@app.post("/memory/validate-files")
+def validate_memory_file_exists(repo_name: str = Body(...), files: List[str] = Body(...)):    
     try:
         repo = get_repo(repo_name)
         try:
@@ -1892,8 +1801,8 @@ async def handle_validate_memory_files(payload: dict) -> dict:
     except Exception as e:
         return JSONResponse(status_code=500, content={"detail": str(e)})
 
-def handle_search_memory(repo_name: str, keyword: str) -> dict:
-    """Search memory.yaml for keyword matches in path, description, or tags."""
+@app.post("/memory/search")
+def search_memory(repo_name: str = Body(...), keyword: str = Body(...)):
     try:
         repo = get_repo(repo_name)
         try:
@@ -1920,14 +1829,14 @@ def handle_search_memory(repo_name: str, keyword: str) -> dict:
     except Exception as e:
         return JSONResponse(status_code=500, content={"detail": str(e)})
 
-async def handle_update_entry(
-    repo_name: str,
-    path: str,
-    description: Optional[str] = None,
-    tags: Optional[List[str]] = None,
-    pod_owner: Optional[str] = None
-) -> dict:
-    """Update metadata for a memory entry by file path."""
+@app.patch("/memory/update_entry")
+async def update_memory_entry(
+    repo_name: str = Body(...),
+    path: str = Body(...),
+    description: Optional[str] = Body(None),
+    tags: Optional[List[str]] = Body(None),
+    pod_owner: Optional[str] = Body(None)
+):
     try:
         repo = get_repo(repo_name)
         memory_path = "project/memory.yaml"
@@ -1959,11 +1868,8 @@ async def handle_update_entry(
     except Exception as e:
         return JSONResponse(status_code=500, content={"detail": f"Internal Server Error: {type(e).__name__}: {e}"})
 
-async def handle_remove_entry(
-    repo_name: str,
-    path: str
-) -> dict:
-    """Remove a memory entry from memory.yaml by path."""
+@app.delete("/memory/remove")
+async def remove_memory_entry(repo_name: str = Query(...), path: str = Query(...)):
     try:
         repo = get_repo(repo_name)
         memory_path = "project/memory.yaml"
@@ -1983,8 +1889,13 @@ async def handle_remove_entry(
     except Exception as e:
         return JSONResponse(status_code=500, content={"detail": f"Internal Server Error: {type(e).__name__}: {e}"})
 
-def handle_list_memory_entries(repo_name: str, pod_owner: Optional[str] = None, tag: Optional[str] = None, file_type: Optional[str] = None) -> dict:
-    """List memory entries with optional filters like owner, tag, or file type."""
+@app.get("/memory/list_entries")
+async def list_memory_entries(
+    repo_name: str = Query(...),
+    pod_owner: Optional[str] = Query(None),
+    tag: Optional[str] = Query(None),
+    file_type: Optional[str] = Query(None)
+):
     try:
         repo = get_repo(repo_name)
         memory_path = "project/memory.yaml"
@@ -2003,8 +1914,8 @@ def handle_list_memory_entries(repo_name: str, pod_owner: Optional[str] = None, 
     except Exception as e:
         return JSONResponse(status_code=500, content={"detail": f"Internal Server Error: {type(e).__name__}: {e}"})
 
-def handle_get_memory_stats(repo_name: str) -> dict:
-    """Return memory statistics including totals, gaps, and ownership breakdown."""
+@app.get("/memory/stats")
+async def memory_stats(repo_name: str = Query(...)):
     try:
         repo = get_repo(repo_name)
         memory_path = "project/memory.yaml"
