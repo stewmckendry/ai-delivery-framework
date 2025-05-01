@@ -1529,12 +1529,16 @@ def list_available_actions():
 
     return {"actions": actions_response}
 
-@app.get("/system/guide")
-def get_onboarding_guide(repo_name: str = Query(...)):
-    """Returns the onboarding guide from GitHub using PyGitHub."""
+@app.post("/system/guide")
+def get_onboarding_guide(
+    repo_name: str = Body(...),
+    simple: bool = Body(default=False)
+):
+    """Returns either the technical or simplified onboarding guide from GitHub."""
     try:
         repo = get_repo(repo_name)
-        guide_file = repo.get_contents("project/docs/onboarding_guide.md")
+        filename = "project/docs/onboarding_guide_simple.md" if simple else "project/docs/onboarding_guide.md"
+        guide_file = repo.get_contents(filename)
         content = guide_file.decoded_content.decode("utf-8")
         return PlainTextResponse(content, media_type="text/markdown")
     except Exception as e:

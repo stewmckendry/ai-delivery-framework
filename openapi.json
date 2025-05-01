@@ -1561,7 +1561,7 @@
           "tags": ["System"],
           "x-gpt-action": {
             "name": "Get Onboarding Guide",
-            "instructions": "Use this to retrieve onboarding instructions for the human lead. Helpful if you are unsure about how to start a task, use tools, or interpret logs."
+            "instructions": "Use this to retrieve onboarding instructions. Set `simple=true` for a non-technical guide."
           },
           "requestBody": {
             "required": true,
@@ -1574,6 +1574,11 @@
                     "repo_name": {
                       "type": "string",
                       "description": "GitHub repository name (e.g. 'nhl-predictor')"
+                    },
+                    "simple": {
+                      "type": "boolean",
+                      "default": false,
+                      "description": "Set to true to retrieve a non-technical guide"
                     }
                   }
                 }
@@ -1586,8 +1591,7 @@
               "content": {
                 "text/markdown": {
                   "schema": {
-                    "type": "string",
-                    "example": "# 🧭 Human Lead Onboarding Guide\\n\\nThis file explains how to use the AI-native delivery system..."
+                    "type": "string"
                   }
                 }
               }
