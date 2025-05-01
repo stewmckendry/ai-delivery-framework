@@ -1180,6 +1180,219 @@
           }
         }
       },
+      "/tasks/fetch_chain_of_thought": {
+        "get": {
+          "operationId": "fetchChainOfThought",
+          "summary": "Fetch the chain_of_thought.yaml for a given task",
+          "tags": ["Tasks"],
+          "x-gpt-action": {
+            "name": "Fetch Chain of Thought",
+            "instructions": "Use this to retrieve any thoughts, issues, or lessons logged for a task.",
+            "summary_keywords": [
+              "task",
+              "chain of thought",
+              "fetch"
+            ]
+          },
+          "parameters": [
+            {
+              "name": "task_id",
+              "in": "query",
+              "required": true,
+              "description": "The task ID (e.g., 2.1_model_inputs)",
+              "schema": { "type": "string" }
+            },
+            {
+              "name": "repo_name",
+              "in": "query",
+              "required": true,
+              "description": "The name of the GitHub repository",
+              "schema": { "type": "string" }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Successfully retrieved the chain of thought",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "task_id": { "type": "string" },
+                      "chain_of_thought": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "message": { "type": "string" },
+                            "timestamp": { "type": "string" },
+                            "tags": {
+                              "type": "array",
+                              "items": { "type": "string" }
+                            },
+                            "issues": {
+                              "type": "array",
+                              "items": { "type": "string" }
+                            },
+                            "lessons": {
+                              "type": "array",
+                              "items": { "type": "string" }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "example": {
+                      "task_id": "2.1_model_inputs",
+                      "chain_of_thought": [
+                        {
+                          "message": "We encountered retry issues with GitHub PATCH.",
+                          "timestamp": "2025-04-30T21:15:00Z",
+                          "tags": ["infra"],
+                          "issues": ["API retries slowed task start"],
+                          "lessons": ["Add visibility into retry attempts"]
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/tasks/fetch_reasoning_trace": {
+        "get": {
+          "operationId": "fetchReasoningTrace",
+          "summary": "Fetch the reasoning_trace.yaml or full trace including prompt and chain of thought",
+          "tags": ["Tasks"],
+          "x-gpt-action": {
+            "name": "Fetch Reasoning Trace",
+            "instructions": "Use this to retrieve the final reasoning trace or the full context of how the task was reasoned through.",
+            "summary_keywords": [
+              "task",
+              "reasoning",
+              "trace"
+            ]
+          },
+          "parameters": [
+            {
+              "name": "task_id",
+              "in": "query",
+              "required": true,
+              "description": "The ID of the task (e.g. 2.1_model_inputs)",
+              "schema": { "type": "string" }
+            },
+            {
+              "name": "repo_name",
+              "in": "query",
+              "required": true,
+              "description": "The GitHub repository name",
+              "schema": { "type": "string" }
+            },
+            {
+              "name": "full",
+              "in": "query",
+              "required": false,
+              "description": "If true, returns the full trace including prompt and chain of thought",
+              "schema": { "type": "boolean" }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Returns the reasoning trace or the full set of reasoning artifacts",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "oneOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "task_id": { "type": "string" },
+                          "reasoning_trace": {
+                            "type": "object",
+                            "description": "Structured reasoning trace from the GPT pod for this task",
+                            "properties": {
+                              "task_id": { "type": "string" },
+                              "thoughts": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "thought": { "type": "string" },
+                                    "tags": {
+                                      "type": "array",
+                                      "items": { "type": "string" }
+                                    }
+                                  }
+                                }
+                              },
+                              "scoring": {
+                                "type": "object",
+                                "properties": {
+                                  "thought_quality": { "type": "integer", "minimum": 1, "maximum": 5 },
+                                  "recall_used": { "type": "boolean" },
+                                  "novel_insight": { "type": "boolean" }
+                                }
+                              },
+                              "summary": { "type": "string" },
+                              "improvement_opportunities": {
+                                "type": "array",
+                                "items": { "type": "string" }
+                              },
+                              "alternatives": {
+                                "type": "array",
+                                "items": { "type": "string" }
+                              }
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "task_id": { "type": "string" },
+                          "full_reasoning_trace": {
+                            "type": "object",
+                            "properties": {
+                              "prompt_used": { "type": "string" },
+                              "chain_of_thought": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "message": { "type": "string" },
+                                    "timestamp": { "type": "string" },
+                                    "tags": {
+                                      "type": "array",
+                                      "items": { "type": "string" }
+                                    },
+                                    "issues": {
+                                      "type": "array",
+                                      "items": { "type": "string" }
+                                    },
+                                    "lessons": {
+                                      "type": "array",
+                                      "items": { "type": "string" }
+                                    }
+                                  }
+                                }
+                              },
+                              "reasoning_trace": {
+                                "$ref": "#/components/schemas/ReasoningTrace"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
       "/tasks/update_changelog/{task_id}": {
         "post": {
           "operationId": "updateChangelog",
@@ -2105,6 +2318,123 @@
                         "items": { "type": "string" }
                       },
                       "handoff_note": { "type": "object" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/system/log_issue_or_enhancement": {
+        "post": {
+          "operationId": "logIssueOrEnhancement",
+          "summary": "Log a bug or enhancement to the issue tracker",
+          "tags": ["System"],
+          "x-gpt-action": {
+            "name": "Log Issue or Enhancement",
+            "instructions": "Use this to report a bug or suggest an enhancement. Each entry includes scope, status, and optional task linkage.",
+            "summary_keywords": [
+              "issue",
+              "enhancement",
+              "bug",
+              "tracker"
+            ]
+          },
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["repo_name", "scope", "type", "title"],
+                  "properties": {
+                    "repo_name": { "type": "string", "description": "Target GitHub repo (e.g. ai-delivery-framework)" },
+                    "scope": { "type": "string", "enum": ["framework", "project"], "description": "Where the issue applies" },
+                    "type": { "type": "string", "enum": ["bug", "enhancement"], "description": "Type of entry" },
+                    "task_id": { "type": "string", "description": "Optional task ID related to this entry" },
+                    "title": { "type": "string", "description": "Title of the issue or enhancement" },
+                    "detail": { "type": "string", "description": "Optional detailed description" },
+                    "suggested_fix": { "type": "string", "description": "Optional fix or improvement" },
+                    "tags": { "type": "array", "items": { "type": "string" }, "description": "Optional categorization tags" },
+                    "status": { "type": "string", "enum": ["open", "closed"], "default": "open", "description": "Tracking status" }
+                  },
+                  "example": {
+                    "repo_name": "ai-delivery-framework",
+                    "scope": "framework",
+                    "type": "bug",
+                    "task_id": "2.1_model_inputs",
+                    "title": "Retry logic failed silently",
+                    "detail": "API returned 200 but file did not update",
+                    "suggested_fix": "Add retry logging visibility",
+                    "tags": ["infra", "retry"],
+                    "status": "open"
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Logged successfully",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "message": { "type": "string" },
+                      "entry": { "type": "object" }
+                    }
+                  }
+                }
+              }
+            },
+            "/system/fetch_issues_or_enhancements": {
+              "get": {
+                "operationId": "fetchIssuesOrEnhancements",
+                "summary": "Fetch issues and enhancements by scope, tag, type, or task",
+                "tags": ["System"],
+                "x-gpt-action": {
+                  "name": "Fetch Issues or Enhancements",
+                  "instructions": "Use this to search the project or framework issue tracker. You can filter by scope, status, tag, etc."
+                },
+                "parameters": [
+                  { "name": "repo_name", "in": "query", "required": true, "schema": { "type": "string" } },
+                  { "name": "scope", "in": "query", "required": false, "schema": { "type": "string", "enum": ["framework", "project"] } },
+                  { "name": "type", "in": "query", "required": false, "schema": { "type": "string", "enum": ["bug", "enhancement"] } },
+                  { "name": "task_id", "in": "query", "required": false, "schema": { "type": "string" } },
+                  { "name": "tag", "in": "query", "required": false, "schema": { "type": "string" } },
+                  { "name": "status", "in": "query", "required": false, "schema": { "type": "string", "enum": ["open", "closed"] } }
+                ],
+                "responses": {
+                  "200": {
+                    "description": "Filtered issue/enhancement list",
+                    "content": {
+                      "application/json": {
+                        "schema": {
+                          "type": "object",
+                          "properties": {
+                            "scope": { "type": "string" },
+                            "results": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "type": { "type": "string" },
+                                  "scope": { "type": "string" },
+                                  "task_id": { "type": "string" },
+                                  "title": { "type": "string" },
+                                  "detail": { "type": "string" },
+                                  "suggested_fix": { "type": "string" },
+                                  "tags": { "type": "array", "items": { "type": "string" } },
+                                  "status": { "type": "string" },
+                                  "timestamp": { "type": "string" }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
                     }
                   }
                 }

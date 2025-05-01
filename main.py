@@ -823,6 +823,66 @@ async def append_chain_of_thought(
     except Exception as e:
         return JSONResponse(status_code=500, content={"detail": f"Internal Server Error: {type(e).__name__}: {e}"})
 
+@app.get("/tasks/fetch_chain_of_thought")
+async def fetch_chain_of_thought(task_id: str = Query(...), repo_name: str = Query(...)):
+    try:
+        repo = get_repo(repo_name)
+        path = f"project/outputs/{task_id}/chain_of_thought.yaml"
+
+        file = repo.get_contents(path)
+
+        
+        content = yaml.safe_load(file.decoded_content)
+        return {"task_id": task_id, "chain_of_thought": content or []}
+
+    except Exception as e:
+        return JSONResponse(status_code=404, content={"detail": f"Could not fetch chain of thought: {type(e).__name__}: {e}"})
+
+@app.get("/tasks/fetch_reasoning_trace")
+async def fetch_reasoning_trace(
+    task_id: str = Query(...),
+    repo_name: str = Query(...),
+    full: Optional[bool] = Query(False)
+):
+    try:
+        repo = get_repo(repo_name)
+        base_path = f"project/outputs/{task_id}"
+
+        # Always return summary reasoning trace
+        rt_file = repo.get_contents(f"{base_path}/reasoning_trace.yaml")
+        reasoning_trace = yaml.safe_load(rt_file.decoded_content) or {}
+
+        if not full:
+            return {"task_id": task_id, "reasoning_trace": reasoning_trace}
+
+        # If full = true, include prompt and chain of thought
+        prompt_path = f"{base_path}/prompt_used.txt"
+        cot_path = f"{base_path}/chain_of_thought.yaml"
+
+        try:
+            prompt_file = repo.get_contents(prompt_path)
+            prompt_text = prompt_file.decoded_content.decode()
+        except:
+            prompt_text = None
+
+        try:
+            cot_file = repo.get_contents(cot_path)
+            chain_of_thought = yaml.safe_load(cot_file.decoded_content) or []
+        except:
+            chain_of_thought = []
+
+        return {
+            "task_id": task_id,
+            "full_reasoning_trace": {
+                "prompt_used": prompt_text,
+                "chain_of_thought": chain_of_thought,
+                "reasoning_trace": reasoning_trace
+            }
+        }
+
+    except Exception as e:
+        return JSONResponse(status_code=404, content={"detail": f"Could not fetch reasoning trace: {type(e).__name__}: {e}"})
+
 @app.post("/tasks/append_handoff_note/{task_id}")
 async def append_handoff_note(
     task_id: str,
@@ -1720,3 +1780,110 @@ def get_onboarding_guide(
         return PlainTextResponse(content, media_type="text/markdown")
     except Exception as e:
         return JSONResponse(status_code=500, content={"detail": f"Failed to retrieve guide: {str(e)}"})
+    
+# ---- Bug & Enhancements ------
+
+@app.post("/system/log_issue_or_enhancement")
+async def log_issue_or_enhancement(
+    repo_name: str = Body(...),
+    scope: str = Body(...),  # 'framework' or 'project'
+    type: str = Body(...),   # 'bug' or 'enhancement'
+    task_id: Optional[str] = Body(default=None),
+    title: str = Body(...),
+    detail: Optional[str] = Body(default=None),
+    suggested_fix: Optional[str] = Body(default=None),
+    tags: Optional[List[str]] = Body(default=[]),
+    status: str = Body(default="open")  # 'open' or 'closed'
+):
+    try:
+        repo = get_repo(repo_name)
+        path = f".logs/issues/{scope}.yaml"
+
+        try:
+            file = repo.get_contents(path)
+            data = yaml.safe_load(file.decoded_content) or []
+        except:
+            data = []
+
+        entry = {
+            "type": type,
+            "scope": scope,
+            "task_id": task_id,
+            "title": title,
+            "detail": detail,
+            "suggested_fix": suggested_fix,
+            "tags": tags,
+            "status": status,
+            "timestamp": datetime.utcnow().isoformat()
+        }
+
+        data.append(entry)
+        content = yaml.dump(data, sort_keys=False)
+
+        commit_and_log(repo, path, content, f"Log {type} in {scope} scope", committed_by="GPTPod")
+        return {"message": "Issue or enhancement logged", "entry": entry}
+
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"detail": f"Internal Server Error: {type(e).__name__}: {e}"})
+    
+@app.get("/system/fetch_issues_or_enhancements")
+async def fetch_issues_or_enhancements(
+    repo_name: str = Query(...),
+    scope: str = Query(...),
+    type: Optional[str] = Query(None),
+    task_id: Optional[str] = Query(None),
+    tag: Optional[str] = Query(None),
+    status: Optional[str] = Query(None)
+):
+    try:
+        repo = get_repo(repo_name)
+        path = f".logs/issues/{scope}.yaml"
+        file = repo.get_contents(path)
+        data = yaml.safe_load(file.decoded_content) or []
+
+        filtered = [
+            d for d in data
+            if (not type or d.get("type") == type)
+            and (not task_id or d.get("task_id") == task_id)
+            and (not tag or tag in (d.get("tags") or []))
+            and (not status or d.get("status") == status)
+        ]
+
+        return {"scope": scope, "results": filtered}
+
+    except Exception as e:
+        return JSONResponse(status_code=404, content={"detail": f"Could not fetch issues or enhancements: {type(e).__name__}: {e}"})
+
+@app.get("/system/fetch_issues_or_enhancements")
+async def fetch_issues_or_enhancements(
+    repo_name: str = Query(...),
+    scope: Optional[str] = Query(None),  # framework, project, or None for both
+    type: Optional[str] = Query(None),
+    task_id: Optional[str] = Query(None),
+    tag: Optional[str] = Query(None),
+    status: Optional[str] = Query(None)
+):
+    try:
+        repo = get_repo(repo_name)
+        scopes = ["framework", "project"] if not scope else [scope]
+        data = []
+        for s in scopes:
+            try:
+                file = repo.get_contents(f".logs/issues/{s}.yaml")
+                items = yaml.safe_load(file.decoded_content) or []
+                data.extend(items)
+            except:
+                continue
+
+        filtered = [
+            d for d in data
+            if (not type or d.get("type") == type)
+            and (not task_id or d.get("task_id") == task_id)
+            and (not tag or tag in (d.get("tags") or []))
+            and (not status or d.get("status") == status)
+        ]
+
+        return {"scope": scope or "both", "results": filtered}
+
+    except Exception as e:
+        return JSONResponse(status_code=404, content={"detail": f"Could not fetch issues or enhancements: {type(e).__name__}: {e}"})
