@@ -92,3 +92,90 @@ Add `handoff_mode` to `task.yaml`:
 | Pull (Async) | Pod polls system | Enrich `/tasks/next` response |
 | Seamless     | Shared artifacts | Leverage `handoff_notes.yaml`, reasoning logs, prompt |
 | Flexible     | Configurable     | Per-task `handoff_mode` supports hybrid workflows |
+
+---
+
+## 🔄 6.4 Multi-Pod Orchestration – Enhanced Analysis
+
+### ✅ Objective
+Enable structured, flexible, and traceable task coordination between GPT Pods — supporting push and pull flows, seamless handoffs, and scalability (e.g. handling pod exhaustion).
+
+---
+
+## 🔁 1. Push Model – “Assign the Next Task”
+**Flow:** A pod proactively hands off the next task after finishing its own.  
+**✅ Uses:**
+- `handoff_from`, `handoff_notes.yaml`
+- `/tasks/complete`, `/tasks/activate`
+
+**🛠 Recommendation:**
+- Add helper tool: `/tasks/auto_handoff`
+- Add `handoff_mode` to `task.yaml`
+
+---
+
+## 📥 2. Pull Model – “Pick Up the Next Task”
+**Flow:** A pod reacts by pulling the next task it is eligible for.  
+**✅ Uses:**
+- `/tasks/next`
+- `pod_owner`, `status`, `depends_on`, `handoff_from`
+
+**🛠 Recommendation:**
+- Filter `/tasks/next` by `pod_owner`
+- Return prompt, inputs, handoff note in response
+
+---
+
+## 🔗 3. Seamless Handoff – "Bring the Context With You"
+**Goal:** Enable smooth transitions with complete reasoning and file context.  
+**✅ Uses:**
+- `reasoning_trace.yaml`, `chain_of_thought.yaml`, `handoff_notes.yaml`
+- `outputs`, `prompt.txt`
+
+**🛠 Recommendation:**
+- Enhance `/tasks/start`:
+  - Return richer context
+  - Show past reasoning and suggested next steps
+
+---
+
+## ⏱ 4. Async vs Sync Modes
+**Goal:** Decide whether next pod starts immediately or waits to pick up the task.  
+**✅ Proposal:** Add `handoff_mode: sync`, `async`, or `auto`
+
+**🛠 Behavior:**
+- `sync`: immediately activate next task
+- `async`: wait until GPT pulls
+- `auto`: let GPT decide
+
+---
+
+## 📈 5. Pod Capacity & Overflow (New)
+**Scenario:** GPT pod hits context/token limit and needs to handoff to another instance of the same pod type.  
+**Agile Analogy:** Handoff due to overload or timeout to a peer with shared context.
+
+**✅ Use Case:**
+- Pod reaches ~15K tokens or stalls
+- Logs reason and transitions to a new instance
+
+**🛠 Recommendations:**
+- Add `handoff_to_same_pod: true` support in `/tasks/complete`
+- In `handoff_notes.yaml`, include:
+  - `reason: capacity_reached`
+  - `token_count`
+  - `handoff_type: scale`
+- Optionally auto-clone task for same pod type
+
+---
+
+## 🔧 Suggested Enhancements (Updated)
+
+| Area             | Tool / Field              | Description |
+|------------------|---------------------------|-------------|
+| Task Metadata    | `handoff_mode`            | sync, async, auto to control orchestration |
+| New Tool         | `/tasks/auto_handoff`     | Accepts task_id + next_task_id; wires metadata, handoff |
+| Update           | `/tasks/start`            | Include prompt, handoff note, reasoning, linked outputs |
+| Update           | `/tasks/next`             | Filter by `pod_owner`; enrich with context |
+| Update           | `/tasks/complete`         | Support `handoff_to_same_pod: true` to scale out |
+| Update           | `handoff_notes.yaml`      | Add `handoff_type: scale`, `token_count`, `reason` |
+| Optional Tool    | `/tasks/scale_out(task_id)` | Clone task, reassign to same pod type for load-balancing |

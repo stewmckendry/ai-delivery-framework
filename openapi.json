@@ -356,55 +356,81 @@
           }
         }
       },
-      "/tasks/create": {
-        "post": {
-          "operationId": "createNewTask",
-          "summary": "Create a new custom task from scratch",
-          "tags": ["Tasks"],
-          "x-gpt-action": {
-            "name": "Create New Task",
-            "instructions": "Use this to create a new task with custom metadata."
-          },
-          "requestBody": {
-            "required": true,
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "required": ["phase", "category", "description", "pod_owner", "descriptor"],
-                  "properties": {
-                    "phase": { "type": "string" },
-                    "category": { "type": "string" },
-                    "description": { "type": "string" },
-                    "pod_owner": { "type": "string" },
-                    "inputs": { "type": "array", "items": { "type": "string" } },
-                    "outputs": { "type": "array", "items": { "type": "string" } },
-                    "descriptor": { "type": "string" }
-                  }
-                }
-              }
-            }
-          },
-          "responses": {
-            "200": {
-              "description": "Returns newly created task metadata and updated task list",
+        "/tasks/create": {
+          "post": {
+            "operationId": "createNewTask",
+            "summary": "Create a new task from a structured template",
+            "tags": ["Tasks"],
+            "x-gpt-action": {
+              "name": "Create New Task",
+              "instructions": "Use this to create a new task using a template defined in /framework/task_templates/<phase>/<task>."
+            },
+            "requestBody": {
+              "required": true,
               "content": {
                 "application/json": {
                   "schema": {
                     "type": "object",
+                    "required": ["repo_name", "phase", "task_key", "task_id", "assigned_pod"],
                     "properties": {
-                      "message": { "type": "string" },
-                      "new_task_id": { "type": "string" },
-                      "new_task_metadata": { "type": "object" },
-                      "updated_tasks": { "type": "object" }
+                      "repo_name": {
+                        "type": "string",
+                        "description": "GitHub repo name"
+                      },
+                      "phase": {
+                        "type": "string",
+                        "description": "The SDLC phase (e.g., phase2)"
+                      },
+                      "task_key": {
+                        "type": "string",
+                        "description": "Task folder name inside the phase template"
+                      },
+                      "task_id": {
+                        "type": "string",
+                        "description": "Unique identifier for the new task"
+                      },
+                      "assigned_pod": {
+                        "type": "string",
+                        "description": "Which Pod owns this task (e.g., DevPod)"
+                      },
+                      "prompt_variables": {
+                        "type": "object",
+                        "description": "Optional variable values to inject into the prompt"
+                      }
+                    },
+                    "example": {
+                      "repo_name": "nhl-predictor",
+                      "phase": "phase2",
+                      "task_key": "2.4a_fix_bugs_from_qa",
+                      "task_id": "2.4a",
+                      "assigned_pod": "DevPod",
+                      "prompt_variables": {
+                        "bug_ids": ["BUG-22", "BUG-31"]
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "responses": {
+              "200": {
+                "description": "Task creation successful",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "type": "object",
+                      "properties": {
+                        "message": { "type": "string" },
+                        "new_task_id": { "type": "string" },
+                        "task_metadata": { "type": "object" }
+                      }
                     }
                   }
                 }
               }
             }
           }
-        }
-      },
+        },
       "/memory/index": {
         "post": {
           "operationId": "indexMemory",
@@ -892,6 +918,7 @@
                         "items": { "type": "string" }
                       },
                       "handoff_note": { "type": "object" },
+                      "reasoning_summary": { "type": "string" },
                       "next_step": { "type": "string" }
                     }
                   }
@@ -1015,10 +1042,17 @@
                   "type": "object",
                   "required": ["repo_name", "task_id"],
                   "properties": {
-                    "repo_name": { "type": "string" },
-                    "task_id": { "type": "string" },
+                    "repo_name": {
+                      "type": "string",
+                      "description": "The name of the GitHub repository (e.g. nhl-predictor)"
+                    },
+                    "task_id": {
+                      "type": "string",
+                      "description": "The ID of the task being completed"
+                    },
                     "outputs": {
                       "type": "array",
+                      "description": "List of output files created by the task",
                       "items": {
                         "type": "object",
                         "required": ["path", "content"],
@@ -1065,7 +1099,18 @@
                         }
                       }
                     },
-                    "handoff_note": { "type": "object" }
+                    "handoff_note": {
+                      "type": "object",
+                      "description": "Optional handoff note to the next pod or teammate"
+                    },
+                    "handoff_to_same_pod": {
+                      "type": "boolean",
+                      "description": "Set to true to trigger a scale handoff to a new GPT of the same pod type"
+                    },
+                    "token_count": {
+                      "type": "integer",
+                      "description": "Approximate token usage so far, used to inform scale-out decisions"
+                    }
                   },
                   "example": {
                     "repo_name": "nhl-predictor",
@@ -1112,7 +1157,9 @@
                       "reference_files": ["src/module_a.py"],
                       "notes": "Some edge cases still need coverage.",
                       "ways_of_working": "Follow async feedback loop via chain_of_thought."
-                    }
+                    },
+                    "handoff_to_same_pod": false,
+                    "token_count": 14800
                   }
                 }
               }
@@ -1138,11 +1185,11 @@
       "/tasks/next": {
         "post": {
           "operationId": "getNextTask",
-          "summary": "Suggest the next task in the queue for the requesting Pod",
+          "summary": "Retrieve the next available task(s) for a Pod",
           "tags": ["Tasks"],
           "x-gpt-action": {
             "name": "Get Next Task",
-            "instructions": "Use this to retrieve the next task assigned to the requesting Pod."
+            "instructions": "Find the next task(s) available for a specific pod_owner. Call /tasks/start to begin working."
           },
           "requestBody": {
             "required": true,
@@ -1150,10 +1197,14 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": ["repo_name", "pod_owner"],
+                  "required": ["repo_name"],
                   "properties": {
                     "repo_name": { "type": "string" },
                     "pod_owner": { "type": "string" }
+                  },
+                  "example": {
+                    "repo_name": "nhl-predictor",
+                    "pod_owner": "DevPod"
                   }
                 }
               }
@@ -1161,14 +1212,25 @@
           },
           "responses": {
             "200": {
-              "description": "Next available task metadata",
+              "description": "List of ready tasks for this Pod",
               "content": {
                 "application/json": {
                   "schema": {
                     "type": "object",
                     "properties": {
-                      "next_task": { "type": "object" },
-                      "message": { "type": "string" }
+                      "message": { "type": "string" },
+                      "tasks": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "task_id": { "type": "string" },
+                            "description": { "type": "string" },
+                            "status": { "type": "string" }
+                          }
+                        }
+                      },
+                      "next_step": { "type": "string" }
                     }
                   }
                 }
@@ -1236,18 +1298,35 @@
                   "type": "object",
                   "required": ["repo_name", "from_pod", "to_pod", "reason", "token_count", "next_prompt"],
                   "properties": {
-                    "repo_name": { "type": "string" },
-                    "from_pod": { "type": "string" },
-                    "to_pod": { "type": "string" },
-                    "reason": { "type": "string" },
-                    "token_count": { "type": "integer" },
-                    "next_prompt": { "type": "string" },
+                    "repo_name": { 
+                      "type": "string",
+                      "description": "The name of the GitHub repository (e.g. nhl-predictor)"},
+                    "from_pod": { 
+                      "type": "string",
+                      "description": "The name of the pod from which the task is being handed off (eg DevPod, QAPod, ResearchPod, DeliveryPod)" },
+                    "to_pod": { 
+                      "type": "string",
+                      "description": "The name of the pod to which the task is being handed off (eg DevPod, QAPod, ResearchPod, DeliveryPod)" },
+                    "reason": { 
+                      "type": "string",
+                      "description": "The reason for the handoff" },
+                    "token_count": { 
+                      "type": "integer",
+                      "description": "The number of tokens used so far in the chat session" },
+                    "next_prompt": { 
+                      "type": "string",
+                      "description": "The next prompt for the task" },
                     "reference_files": {
                       "type": "array",
+                      "description": "A list of reference files related to the task",
                       "items": { "type": "string" }
                     },
-                    "notes": { "type": "string" },
-                    "ways_of_working": { "type": "string" }
+                    "notes": { 
+                      "type": "string",
+                      "description": "Additional notes regarding the task" },
+                    "ways_of_working": { 
+                      "type": "string",
+                      "description": "Description of the ways of working between gpt and user for the task" }
                   },
                   "example": {
                     "repo_name": "nhl-predictor",
@@ -1405,12 +1484,30 @@
                   "type": "object",
                   "required": ["repo_name", "task_id", "file_path", "content", "message"],
                   "properties": {
-                    "repo_name": { "type": "string" },
-                    "task_id": { "type": "string" },
-                    "file_path": { "type": "string" },
-                    "content": { "type": "string" },
-                    "message": { "type": "string" },
-                    "committed_by": { "type": "string", "default": "GPTPod" }
+                    "repo_name": { 
+                      "type": "string",
+                      "description": "The name of the GitHub repository (e.g. nhl-predictor)" 
+                    },
+                    "task_id": { 
+                      "type": "string",
+                      "description": "The ID of the task being committed" 
+                    },
+                    "file_path": { 
+                      "type": "string",
+                      "description": "The path to the file being committed" 
+                    },
+                    "content": { 
+                      "type": "string",
+                      "description": "The content of the file being committed"},
+                    "message": { 
+                      "type": "string",
+                      "description": "The commit message for the file"
+                    },
+                    "committed_by": { 
+                      "type": "string",
+                      "description": "The name of the person or gpt pod committing the file",
+                      "default": "GPTPod" 
+                    }
                   },
                   "example": {
                     "repo_name": "nhl-predictor",
@@ -1514,7 +1611,10 @@
                   "type": "object",
                   "required": ["repo_name", "commit_sha"],
                   "properties": {
-                    "repo_name": { "type": "string" },
+                    "repo_name": { 
+                      "type": "string",
+                      "description": "The name of the GitHub repository (e.g. nhl-predictor)"
+                    },
                     "commit_sha": {
                       "type": "string",
                       "description": "The SHA of the commit to rollback from.\n\nHow to find it:\n- Use `git log` locally, or\n- Visit the GitHub repo ➜ Commits tab ➜ Copy the commit hash\n- Or call the `/git/list_commits` tool (if available)"
@@ -1592,6 +1692,144 @@
                 "text/markdown": {
                   "schema": {
                     "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/tasks/auto_handoff": {
+        "post": {
+          "summary": "Link two tasks together via handoff",
+          "operationId": "autoHandoff",
+          "tags": ["Tasks"],
+          "x-gpt-action": {
+            "name": "Auto-Handoff Task",
+            "instructions": "Link two tasks for seamless pod handoff and set the next one as ready."
+          },
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["repo_name", "task_id", "next_task_id"],
+                  "properties": {
+                    "repo_name": { 
+                      "type": "string",
+                      "description": "The name of the GitHub repository (e.g. nhl-predictor)"
+                    },
+                    "task_id": { 
+                      "type": "string",
+                      "description": "The ID of the task being handed off" 
+                    },
+                    "next_task_id": { 
+                      "type": "string",
+                      "description": "The ID of the next task to be linked" 
+                    },
+                    "handoff_mode": {
+                      "type": "string",
+                      "description": "Mode of handoff: sync, async, or auto. Default is async.",
+                      "enum": ["sync", "async", "auto"],
+                      "default": "async"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Confirmation of handoff linkage",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "message": { "type": "string" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/tasks/scale_out": {
+        "post": {
+          "operationId": "scaleOutTask",
+          "summary": "Create a new scaled-out task instance and optionally log a handoff note",
+          "tags": ["Tasks"],
+          "x-gpt-action": {
+            "name": "Scale Out Task",
+            "instructions": "Use this to clone a task into a new one when the current pod reaches token/context limits. Optionally provide a handoff note to carry over."
+          },
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["repo_name", "task_id"],
+                  "properties": {
+                    "repo_name": {
+                      "type": "string",
+                      "description": "The GitHub repo name where the task lives"
+                    },
+                    "task_id": {
+                      "type": "string",
+                      "description": "The original task to scale out"
+                    },
+                    "reason": {
+                      "type": "string",
+                      "description": "Why the scale-out is occurring (e.g., context/token overflow)"
+                    },
+                    "handoff_note": {
+                      "type": "object",
+                      "description": "Optional structured handoff note to attach to the previous task"
+                    }
+                  },
+                  "example": {
+                    "repo_name": "nhl-predictor",
+                    "task_id": "2.3",
+                    "reason": "Reached token limit while processing test cases.",
+                    "handoff_note": {
+                      "from_pod": "DevPod",
+                      "to_pod": "DevPod",
+                      "reason": "Continuing due to scale out",
+                      "reference_files": ["project/outputs/2.3/test_plan.md"],
+                      "notes": "Test case generation in progress",
+                      "ways_of_working": "Start with what's left in reasoning trace",
+                      "handoff_type": "scale"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Returns new task ID and continuation context",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "message": { "type": "string" },
+                      "new_task_id": { "type": "string" },
+                      "task_metadata": { "type": "object" },
+                      "next_step": { "type": "string" },
+                      "inputs": {
+                        "type": "array",
+                        "items": { "type": "string" }
+                      },
+                      "prior_outputs": {
+                        "type": "array",
+                        "items": { "type": "string" }
+                      },
+                      "handoff_note": { "type": "object" }
+                    }
                   }
                 }
               }

@@ -2563,3 +2563,88 @@ GPT Pods can now operate independently and safely within a structured delivery s
 | 5.5    | Memory enhancements          | ❌ Partial  | Delta indexing works, but no metadata tagging or tool integration yet |
 | 5.6    | Publish NHL Predictor        | 🟨 Unclear  | Placeholder for output bundling, audit trail ZIP, public delivery     |
 
+---
+
+## ✅ Batch 5: Cutover & Go-Live Phase
+
+All tasks complete!
+
+| Step | Task                              | Status |
+|------|-----------------------------------|--------|
+| 5.1  | `/tasks/append_handoff_note`      | ✅     |
+| 5.2  | Auto-generate handoff note        | ✅     |
+| 5.3  | Remove legacy `promote_patch`     | ✅     |
+| 5.4  | `validate_changelog.yaml` logic   | ✅     |
+| 5.5  | Memory enhancements               | ✅     |
+| 5.6  | Publish NHL Predictor w/ audit    | ✅     |
+
+---
+
+## ✅ Batch 6: Polish & Stretch Goals
+
+| Step     | Task                                         | Status |
+|----------|----------------------------------------------|--------|
+| 6.1      | Define rollback strategy for batch commits   | ✅     |
+| 6.2      | Integrate reasoning metrics                  | ✅     |
+| 6.3.1    | Write Human Lead onboarding doc              | ✅     |
+| 6.3.2    | Add `/system/guide` route                    | ✅     |
+| 6.3.3    | Track onboarding doc in Git repo             | ✅     |
+| 6.3.4    | Link onboarding guide in memory/prompt hints | ✅     |
+| 6.4      | Multi-Pod Orchestration                      | ✅     |
+
+---
+
+## 🟡 Remaining Backlog
+
+| Step   | Task                                                             | Status |
+|--------|------------------------------------------------------------------|--------|
+| 6.5    | Auto-capture initial chain of thought in `/init_project`        | 🔜 To Do |
+| 6.6    | Auto-link project-level context in `memory.yaml`                | 🔜 To Do |
+| 6.7    | Enhance `reasoning_trace.yaml` format (more metadata, tags)     | 🔜 To Do |
+| 6.8    | Save `prompt_used.txt` at start of each task                    | 🔜 To Do |
+| 6.9    | Auto-log changelog entry during `/init_project`                 | 🔜 To Do |
+| 6.10   | Add failsafes + retries for GitHub API calls                    | 🔜 To Do |
+| 6.11   | Prompt simplification for non-technical users                   | 🔜 To Do |
+| 6.12   | Fuzzy matching or fallback if task ID is wrong                  | 🔜 To Do |
+| 6.13   | Add issues + lessons learned to `chain_of_thought.yaml`         | 🔜 To Do |
+
+---
+
+## 🧩 Batch 6 (Part 2) – Final Enhancements + Testing
+
+---
+
+### 🔄 Backlog Items
+
+| Step   | Task                                                            | Status   |
+|--------|------------------------------------------------------------------|----------|
+| 6.8    | Save `prompt_used.txt` at start of each task                    | 🔜 To Do |
+| 6.10   | Add failsafes + retries for GitHub API calls                    | 🔜 To Do |
+| 6.11   | Prompt simplification for non-technical users                   | 🔜 To Do |
+| 6.12   | Fuzzy matching or fallback if task ID is wrong                  | 🔜 To Do |
+| 6.13   | Add issues + lessons learned to `chain_of_thought.yaml`         | 🔜 To Do |
+
+---
+
+### 🛠 Additional Enhancements
+
+- **Refactor legacy tool logic**
+  - e.g., `/tasks/list`, `/tasks/{task_id}` should use `fetch_yaml_from_github` and follow standard tool patterns
+
+- **Add New Routes:**
+  - `/tasks/fetch_chain_of_thought?task_id=...`
+  - `/tasks/fetch_reasoning_trace?task_id=...`
+
+- **Chain Related Tasks:**
+  - After completing a task, suggest and activate the next one based on `depends_on` and `handoff_from`
+
+---
+
+### 🧪 Tool Testing
+
+- ✅ Task lifecycle: start → reasoning → complete
+- ✅ Memory management: indexing, add, search
+- ✅ Commit and rollback: `commit_and_log`, `rollback_commit`
+- ✅ Prompt interaction: capture, replay, guide
+- ✅ Changelog and trace validation: ensure full audit trail
+- ✅ Orchestration across Pods: push/pull modes, context continuity
