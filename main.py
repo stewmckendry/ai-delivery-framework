@@ -381,7 +381,6 @@ def get_repo(repo_name: str):
     github_client = Github(GITHUB_TOKEN)
     return github_client.get_repo(f"stewmckendry/{repo_name}")
 
-
 def commit_and_log(repo, file_path, content, commit_message, task_id: Optional[str] = None, committed_by: Optional[str] = None):
     try:
         changelog_path = "project/outputs/changelog.yaml"
@@ -394,7 +393,7 @@ def commit_and_log(repo, file_path, content, commit_message, task_id: Optional[s
             changelog_sha = None
 
         timestamp = datetime.utcnow().isoformat()
-        log_entry = {
+        output_log_entry = {
             "timestamp": timestamp,
             "path": file_path,
             "task_id": task_id,
@@ -408,9 +407,71 @@ def commit_and_log(repo, file_path, content, commit_message, task_id: Optional[s
         except Exception:
             repo.create_file(file_path, commit_message, content)
 
-        changelog.append(log_entry)
-        changelog_content = yaml.dump(changelog, sort_keys=False)
+        changelog.append(output_log_entry)
 
+        # --- PATCH: update memory.yaml if missing or outdated ---
+        memory_path = "project/memory.yaml"
+        try:
+            memory_file = repo.get_contents(memory_path)
+            memory = yaml.safe_load(memory_file.decoded_content) or []
+            memory_sha = memory_file.sha
+        except Exception:
+            memory = []
+            memory_sha = None
+
+        memory_updated = False
+        already_indexed = False
+        for entry in memory:
+            if entry.get("path") == file_path:
+                already_indexed = True
+                if not entry.get("description") or not entry.get("tags") or not entry.get("pod_owner"):
+                    try:
+                        file_content = repo.get_contents(file_path).decoded_content.decode("utf-8")
+                        enriched = describe_file_for_memory(file_path, file_content)
+                        entry.update(enriched)
+                        memory_updated = True
+                    except UnicodeDecodeError:
+                        pass
+                break
+
+        if not already_indexed:
+            try:
+                file_content = repo.get_contents(file_path).decoded_content.decode("utf-8")
+                enriched = describe_file_for_memory(file_path, file_content)
+                new_entry = {
+                    "path": file_path,
+                    "raw_url": f"https://raw.githubusercontent.com/{GITHUB_USERNAME}/{repo.name}/main/{file_path}",
+                    "file_type": file_path.split(".")[-1] if "." in file_path else "unknown",
+                    "description": enriched["description"],
+                    "tags": enriched["tags"],
+                    "last_updated": datetime.utcnow().date().isoformat(),
+                    "pod_owner": enriched["pod_owner"]
+                }
+                memory.append(new_entry)
+                memory_updated = True
+            except UnicodeDecodeError:
+                pass
+            except Exception:
+                pass
+
+        if memory_updated:
+            updated_memory = yaml.dump(memory, sort_keys=False)
+            if memory_sha:
+                repo.update_file(memory_path, f"Update memory.yaml for {file_path}", updated_memory, memory_sha)
+            else:
+                repo.create_file(memory_path, f"Create memory.yaml for {file_path}", updated_memory)
+
+            # add separate changelog entry
+            memory_log_entry = {
+                "timestamp": timestamp,
+                "path": memory_path,
+                "task_id": task_id,
+                "committed_by": committed_by,
+                "message": f"Memory update related to {file_path}"
+            }
+            changelog.append(memory_log_entry)
+
+        changelog_content = yaml.dump(changelog, sort_keys=False)
         if changelog_sha:
             repo.update_file(changelog_path, f"Update changelog at {timestamp}", changelog_content, changelog_sha)
         else:
@@ -418,7 +479,8 @@ def commit_and_log(repo, file_path, content, commit_message, task_id: Optional[s
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Commit and changelog failed: {str(e)}")
-    
+
+
 def generate_handoff_note(task_id: str, repo) -> dict:
         task_path = "project/task.yaml"
         cot_path = f"project/outputs/{task_id}/chain_of_thought.yaml"
@@ -1310,18 +1372,34 @@ async def index_memory(repo_name: str = Body(...), base_paths: Optional[List[str
             if not isinstance(entries, list):
                 entries = [entries]
             for entry in entries:
-                if entry.type == "file" and entry.path not in memory_paths:
-                    content = repo.get_contents(entry.path).decoded_content.decode("utf-8")
-                    meta = describe_file_for_memory(entry.path, content)
-                    memory.append({
-                        "path": entry.path,
-                        "raw_url": entry.download_url,
-                        "file_type": entry.name.split(".")[-1] if "." in entry.name else "unknown",
-                        "description": meta["description"],
-                        "tags": meta["tags"],
-                        "last_updated": datetime.utcnow().date().isoformat(),
-                        "pod_owner": meta["pod_owner"]
-                    })
+                if entry.type == "file":
+                    file_path = entry.path
+                    try:
+                        file_content = repo.get_contents(file_path).decoded_content.decode("utf-8")
+                    except UnicodeDecodeError:
+                        continue
+
+                    if file_path not in memory_paths:
+                        meta = describe_file_for_memory(file_path, file_content)
+                        memory.append({
+                            "path": file_path,
+                            "raw_url": entry.download_url,
+                            "file_type": entry.name.split(".")[-1] if "." in entry.name else "unknown",
+                            "description": meta["description"],
+                            "tags": meta["tags"],
+                            "last_updated": datetime.utcnow().date().isoformat(),
+                            "pod_owner": meta["pod_owner"]
+                        })
+                    else:
+                        for existing in memory:
+                            if existing.get("path") == file_path:
+                                if not existing.get("description") or not existing.get("tags") or not existing.get("pod_owner"):
+                                    meta = describe_file_for_memory(file_path, file_content)
+                                    existing["description"] = meta["description"]
+                                    existing["tags"] = meta["tags"]
+                                    existing["pod_owner"] = meta["pod_owner"]
+                                    existing["last_updated"] = datetime.utcnow().date().isoformat()
+                                break
                 elif entry.type == "dir":
                     recurse_files(entry.path)
 
@@ -1337,6 +1415,7 @@ async def index_memory(repo_name: str = Body(...), base_paths: Optional[List[str
         return {"message": f"Memory indexed with {len(memory)} entries."}
     except Exception as e:
         return JSONResponse(status_code=500, content={"detail": str(e)})
+
         
 @app.post("/memory/diff")
 def memory_diff(repo_name: str = Body(...), base_paths: List[str] = Body(default=[])):
@@ -1475,7 +1554,117 @@ def search_memory(repo_name: str = Body(...), keyword: str = Body(...)):
 
     except Exception as e:
         return JSONResponse(status_code=500, content={"detail": str(e)})
-    
+
+@app.patch("/memory/update_entry")
+async def update_memory_entry(
+    repo_name: str = Body(...),
+    path: str = Body(...),
+    description: Optional[str] = Body(None),
+    tags: Optional[List[str]] = Body(None),
+    pod_owner: Optional[str] = Body(None)
+):
+    try:
+        repo = get_repo(repo_name)
+        memory_path = "project/memory.yaml"
+        memory_file = repo.get_contents(memory_path)
+        memory = yaml.safe_load(memory_file.decoded_content) or []
+        memory_sha = memory_file.sha
+
+        found = False
+        for entry in memory:
+            if entry.get("path") == path:
+                if description is not None:
+                    entry["description"] = description
+                if tags is not None:
+                    entry["tags"] = tags
+                if pod_owner is not None:
+                    entry["pod_owner"] = pod_owner
+                entry["last_updated"] = datetime.utcnow().date().isoformat()
+                found = True
+                break
+
+        if not found:
+            return JSONResponse(status_code=404, content={"detail": f"Path '{path}' not found in memory."})
+
+        updated_content = yaml.dump(memory, sort_keys=False)
+        commit_and_log(repo, memory_path, updated_content, f"Update memory metadata for {path}")
+
+        return {"message": f"Memory entry updated for {path}"}
+
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"detail": f"Internal Server Error: {type(e).__name__}: {e}"})
+
+@app.delete("/memory/remove")
+async def remove_memory_entry(repo_name: str = Query(...), path: str = Query(...)):
+    try:
+        repo = get_repo(repo_name)
+        memory_path = "project/memory.yaml"
+        memory_file = repo.get_contents(memory_path)
+        memory = yaml.safe_load(memory_file.decoded_content) or []
+        memory_sha = memory_file.sha
+
+        updated = [entry for entry in memory if entry.get("path") != path]
+        if len(updated) == len(memory):
+            return JSONResponse(status_code=404, content={"detail": f"Path '{path}' not found in memory."})
+
+        updated_content = yaml.dump(updated, sort_keys=False)
+        repo.update_file(memory_path, f"Remove memory entry for {path}", updated_content, memory_sha)
+
+        return {"message": f"Memory entry for {path} removed"}
+
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"detail": f"Internal Server Error: {type(e).__name__}: {e}"})
+
+@app.get("/memory/list_entries")
+async def list_memory_entries(
+    repo_name: str = Query(...),
+    pod_owner: Optional[str] = Query(None),
+    tag: Optional[str] = Query(None),
+    file_type: Optional[str] = Query(None)
+):
+    try:
+        repo = get_repo(repo_name)
+        memory_path = "project/memory.yaml"
+        memory_file = repo.get_contents(memory_path)
+        memory = yaml.safe_load(memory_file.decoded_content) or []
+
+        results = [
+            entry for entry in memory
+            if (not pod_owner or entry.get("pod_owner") == pod_owner)
+            and (not tag or tag in (entry.get("tags") or []))
+            and (not file_type or entry.get("file_type") == file_type)
+        ]
+
+        return {"total": len(results), "results": results}
+
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"detail": f"Internal Server Error: {type(e).__name__}: {e}"})
+
+@app.get("/memory/stats")
+async def memory_stats(repo_name: str = Query(...)):
+    try:
+        repo = get_repo(repo_name)
+        memory_path = "project/memory.yaml"
+        memory_file = repo.get_contents(memory_path)
+        memory = yaml.safe_load(memory_file.decoded_content) or []
+
+        total = len(memory)
+        missing_meta = [m for m in memory if not m.get("description") or not m.get("tags") or not m.get("pod_owner")]
+        by_owner = {}
+        for m in memory:
+            owner = m.get("pod_owner", "unknown")
+            by_owner[owner] = by_owner.get(owner, 0) + 1
+
+        return {
+            "total_entries": total,
+            "missing_metadata": len(missing_meta),
+            "by_pod_owner": by_owner
+        }
+
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"detail": f"Internal Server Error: {type(e).__name__}: {e}"})
+
+
 # ---- Metrics ----
 
 @app.get("/metrics/summary")
@@ -1826,38 +2015,57 @@ async def log_issue_or_enhancement(
     except Exception as e:
         return JSONResponse(status_code=500, content={"detail": f"Internal Server Error: {type(e).__name__}: {e}"})
     
-@app.get("/system/fetch_issues_or_enhancements")
-async def fetch_issues_or_enhancements(
-    repo_name: str = Query(...),
-    scope: str = Query(...),
-    type: Optional[str] = Query(None),
-    task_id: Optional[str] = Query(None),
-    tag: Optional[str] = Query(None),
-    status: Optional[str] = Query(None)
+@app.post("/system/log_issue_or_enhancement")
+async def log_issue_or_enhancement(
+    repo_name: str = Body(...),
+    scope: str = Body(...),  # 'framework' or 'project'
+    type: str = Body(...),   # 'bug' or 'enhancement'
+    task_id: Optional[str] = Body(default=None),
+    title: str = Body(...),
+    detail: Optional[str] = Body(default=None),
+    suggested_fix: Optional[str] = Body(default=None),
+    tags: Optional[List[str]] = Body(default=[]),
+    status: str = Body(default="open")  # 'open' or 'closed'
 ):
     try:
+        import uuid
         repo = get_repo(repo_name)
         path = f".logs/issues/{scope}.yaml"
-        file = repo.get_contents(path)
-        data = yaml.safe_load(file.decoded_content) or []
 
-        filtered = [
-            d for d in data
-            if (not type or d.get("type") == type)
-            and (not task_id or d.get("task_id") == task_id)
-            and (not tag or tag in (d.get("tags") or []))
-            and (not status or d.get("status") == status)
-        ]
+        try:
+            file = repo.get_contents(path)
+            data = yaml.safe_load(file.decoded_content) or []
+        except:
+            data = []
 
-        return {"scope": scope, "results": filtered}
+        issue_id = str(uuid.uuid4())
+        entry = {
+            "issue_id": issue_id,
+            "type": type,
+            "scope": scope,
+            "task_id": task_id,
+            "title": title,
+            "detail": detail,
+            "suggested_fix": suggested_fix,
+            "tags": tags,
+            "status": status,
+            "timestamp": datetime.utcnow().isoformat()
+        }
+
+        data.append(entry)
+        content = yaml.dump(data, sort_keys=False)
+
+        commit_and_log(repo, path, content, f"Log {type} in {scope} scope", committed_by="GPTPod")
+        return {"message": "Issue or enhancement logged", "entry": entry}
 
     except Exception as e:
-        return JSONResponse(status_code=404, content={"detail": f"Could not fetch issues or enhancements: {type(e).__name__}: {e}"})
+        return JSONResponse(status_code=500, content={"detail": f"Internal Server Error: {type(e).__name__}: {e}"})
 
 @app.get("/system/fetch_issues_or_enhancements")
 async def fetch_issues_or_enhancements(
     repo_name: str = Query(...),
     scope: Optional[str] = Query(None),  # framework, project, or None for both
+    issue_id: Optional[str] = Query(None),
     type: Optional[str] = Query(None),
     task_id: Optional[str] = Query(None),
     tag: Optional[str] = Query(None),
@@ -1877,7 +2085,8 @@ async def fetch_issues_or_enhancements(
 
         filtered = [
             d for d in data
-            if (not type or d.get("type") == type)
+            if (not issue_id or d.get("issue_id") == issue_id)
+            and (not type or d.get("type") == type)
             and (not task_id or d.get("task_id") == task_id)
             and (not tag or tag in (d.get("tags") or []))
             and (not status or d.get("status") == status)
@@ -1887,3 +2096,34 @@ async def fetch_issues_or_enhancements(
 
     except Exception as e:
         return JSONResponse(status_code=404, content={"detail": f"Could not fetch issues or enhancements: {type(e).__name__}: {e}"})
+
+
+@app.post("/system/update_issue_status")
+async def update_issue_status(
+    repo_name: str = Body(...),
+    scope: str = Body(...),
+    issue_id: str = Body(...),
+    new_status: str = Body(...)
+):
+    try:
+        repo = get_repo(repo_name)
+        path = f".logs/issues/{scope}.yaml"
+        file = repo.get_contents(path)
+        data = yaml.safe_load(file.decoded_content) or []
+
+        found = False
+        for entry in data:
+            if entry.get("issue_id") == issue_id:
+                entry["status"] = new_status
+                found = True
+
+        if not found:
+            return JSONResponse(status_code=404, content={"detail": f"Entry with issue_id '{issue_id}' not found."})
+
+        content = yaml.dump(data, sort_keys=False)
+        commit_and_log(repo, path, content, f"Update issue status to {new_status}: {issue_id}", committed_by="GPTPod")
+
+        return {"message": f"Status updated to {new_status} for: {issue_id}"}
+
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"detail": f"Internal Server Error: {type(e).__name__}: {e}"})

@@ -2401,6 +2401,7 @@
                 "parameters": [
                   { "name": "repo_name", "in": "query", "required": true, "schema": { "type": "string" } },
                   { "name": "scope", "in": "query", "required": false, "schema": { "type": "string", "enum": ["framework", "project"] } },
+                  { "name": "issue_id", "in": "query", "required": false, "schema": { "type": "string" } },
                   { "name": "type", "in": "query", "required": false, "schema": { "type": "string", "enum": ["bug", "enhancement"] } },
                   { "name": "task_id", "in": "query", "required": false, "schema": { "type": "string" } },
                   { "name": "tag", "in": "query", "required": false, "schema": { "type": "string" } },
@@ -2442,6 +2443,198 @@
             }
           }
         }
+      },
+      "/system/update_issue_status": {
+        "post": {
+          "operationId": "updateIssueStatus",
+          "summary": "Update the status of a logged issue or enhancement",
+          "tags": ["System"],
+          "x-gpt-action": {
+            "name": "Update Issue Status",
+            "instructions": "Use this to mark an issue or enhancement as resolved or reopen it. Reference the entry using issue_id.",
+            "summary_keywords": [
+              "issue",
+              "enhancement",
+              "status",
+              "update"
+            ]
+          },
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["repo_name", "scope", "issue_id", "new_status"],
+                  "properties": {
+                    "repo_name": {
+                      "type": "string",
+                      "description": "Target repository (e.g., ai-delivery-framework)"
+                    },
+                    "scope": {
+                      "type": "string",
+                      "description": "Where the issue is logged",
+                      "enum": ["framework", "project"]
+                    },
+                    "issue_id": {
+                      "type": "string",
+                      "description": "The unique ID of the issue to update"
+                    },
+                    "new_status": {
+                      "type": "string",
+                      "description": "The new status value (e.g., open, closed)",
+                      "enum": ["open", "closed"]
+                    }
+                  },
+                  "example": {
+                    "repo_name": "ai-delivery-framework",
+                    "scope": "framework",
+                    "issue_id": "a12b3c4d-567e-89f0-gh12-ijk345lmno67",
+                    "new_status": "closed"
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Status updated successfully",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "message": { "type": "string" }
+                    },
+                    "example": {
+                      "message": "Status updated to closed for: a12b3c4d-567e-89f0-gh12-ijk345lmno67"
+                    }
+                  }
+                }
+              }
+            },
+            "404": {
+              "description": "Issue not found",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "detail": { "type": "string" }
+                    },
+                    "example": {
+                      "detail": "Entry with issue_id 'XYZ' not found."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/memory/update_entry": {
+        "patch": {
+          "operationId": "updateMemoryEntry",
+          "summary": "Update a memory entry’s metadata",
+          "tags": ["Memory"],
+          "x-gpt-action": {
+            "name": "Update Memory Entry",
+            "instructions": "Use this to manually update the description, tags, or pod owner of a memory entry by file path.",
+            "summary_keywords": [
+              "memory",
+              "update",
+              "entry"
+            ]
+          },
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["repo_name", "path"],
+                  "properties": {
+                    "repo_name": { "type": "string" },
+                    "path": { "type": "string" },
+                    "description": { "type": "string" },
+                    "tags": { "type": "array", "items": { "type": "string" } },
+                    "pod_owner": { "type": "string" }
+                  },
+                  "example": {
+                    "repo_name": "ai-delivery-framework",
+                    "path": "project/outputs/task.yaml",
+                    "description": "Tracks all task definitions and metadata",
+                    "tags": ["tasks", "config"],
+                    "pod_owner": "DeliveryPod"
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Memory entry updated",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "message": { "type": "string" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/memory/remove": {
+        "delete": {
+          "operationId": "removeMemoryEntry",
+          "summary": "Remove a memory entry by path",
+          "tags": ["Memory"],
+          "x-gpt-action": {
+            "name": "Remove Memory Entry",
+            "instructions": "Use this to remove an outdated or deleted file from the memory index.",
+            "summary_keywords": [
+              "memory",
+              "remove",
+              "entry"
+            ]
+          },
+          "parameters": [
+            {
+              "name": "repo_name",
+              "in": "query",
+              "required": true,
+              "schema": { "type": "string" }
+            },
+            {
+              "name": "path",
+              "in": "query",
+              "required": true,
+              "schema": { "type": "string" }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Entry removed successfully",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "message": { "type": "string" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
       }
+
+
+
     }
   }
