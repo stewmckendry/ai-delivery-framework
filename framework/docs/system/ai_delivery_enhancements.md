@@ -2709,3 +2709,28 @@ Once confirmed, I’ll start with the following implementation sequence:
 4. Patch for `/tasks/fetch_chain_of_thought` route
 
 Would you like to begin with item **6.8** (`prompt_used.txt` capture)?
+
+---
+
+## ✅ Completed in Batch 6 (Part 2)
+
+| Step   | Task                                                     | Status    |
+|--------|----------------------------------------------------------|-----------|
+| 6.8    | Save prompt_used.txt at start of each task               | ✅ Done   |
+| 6.10   | Add failsafes + retries for GitHub API calls             | 💤 Deferred |
+| 6.11   | Prompt simplification for non-technical users            | ✅ Done   |
+| 6.12   | Fuzzy matching or fallback if task ID is wrong           | ✅ Done   |
+| 6.13   | Add tags, issues, lessons to chain_of_thought.yaml       | ✅ Done   |
+| 6.14   | Onboarding improvements + auto-guide in GPT              | ✅ Done   |
+
+---
+
+## 🛠 Enhancement Backlog
+
+| Area             | Description                                                                 |
+|------------------|-----------------------------------------------------------------------------|
+| 🧱 Refactor tools | Use `fetch_yaml_from_github` and standardize across all FastAPI routes      |
+| 🔄 Add new routes | `/tasks/fetch_chain_of_thought`, `/tasks/fetch_reasoning_trace`             |
+| 🔗 Task chaining  | Auto-suggest/activate next task via `depends_on`, `handoff_from`            |
+| 🔁 Lifecycle test | Full run: task ➝ memory ➝ commit ➝ log ➝ handoff ➝ next                      |
+| 📦 Retry utils    | Wrap PyGitHub calls globally with retry logic or wrapper functions (deferred) |
