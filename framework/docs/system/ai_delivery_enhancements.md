@@ -2748,3 +2748,20 @@ Would you like to begin with item **6.8** (`prompt_used.txt` capture)?
 | 🧠 Memory sync         | Auto-update `memory.yaml` inside `commit_and_log` whenever a file is updated |
 | 🐛 Bug/enhancement tools | Add tools to log and fetch bugs/enhancements across framework + project repos |
 | 📦 Retry utils (deferred) | Wrap PyGitHub calls globally with retry logic or wrapper functions         |
+
+---
+
+# 🛠 Enhancement Tracker
+
+| Priority    | Task                                                                 | Status     |
+|-------------|----------------------------------------------------------------------|------------|
+| 🔼 High     | Add `fetch_next_linked_task` + auto-activate downstream tasks        | ✅ Done     |
+| 🔼 High     | Update `/complete` to activate downstream tasks                      | ✅ Done     |
+| 🔼 High     | Add `GET /tasks/artifacts/{task_id}`                                 | ✅ Done     |
+| 🟡 Medium   | Add `/graph` or `/dependencies/{task_id}`                            | ✅ Done     |
+| 🟡 Medium   | Add `/list_phases`                                                   | ✅ Done     |
+| 🟢 Future   | Add `/tasks/reasoning_summary` for analytical insights               | ✅ Done     |
+| 🟢 Future   | Extend `auto_handoff` for pod routing                                | ✅ Done     |
+| 🟢 Future   | Add risk/mitigation guidance and hardening best practices            | ✅ Done     |
+| 🟢 Future   | Add public ProductPod GPT with safe sandboxing + onboarding          | 🔜 To Do    |
+| 🟢 Future   | Run QA: tool-by-tool + full E2E task flow testing                    | 🔜 To Do    |
