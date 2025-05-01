@@ -93,6 +93,32 @@ You don’t need to know the command names — just ask GPT what to do and it wi
 
 ---
 
+## 🔍 What Does a Task Look Like?
+
+Here’s a sample prompt you might give GPT:
+
+> **"Start task 1.2. The goal is to describe user roles and delivery flow. Let’s begin with a list of key personas."**
+
+📸 *(Insert screenshot of a task panel, if using a UI)*
+
+Or, show this structure:
+
+- **Task ID:** `1.2_define_user_and_delivery_flows`  
+- **Inputs:** `personas.md`, `workflows.md`  
+- **Goal:** Describe how users interact and how the system delivers  
+
+---
+
+### ✅ What GPT Can Help You Do
+
+- Suggest next tasks  
+- Walk you through completing a task  
+- Log what went well or what was tricky  
+- Help summarize the whole project  
+
+
+---
+
 ## 📊 Where to Find Reports
 
 | Report | What It Shows |
@@ -109,6 +135,24 @@ You don’t need to know the command names — just ask GPT what to do and it wi
 - You can ask the AI to explain its reasoning.
 - If you’re unsure what to do, ask: “What’s the next task?” or “Where do you need help?”
 - Everything is logged — nothing is lost.
+
+---
+
+## 🧭 Getting Started
+
+Welcome! This AI assistant helps you run structured delivery tasks using GPT pods and tools.
+
+### 🗣 Example Prompts to Try:
+- “Start a new task”
+- “What’s next in my delivery project?”
+- “List all tools I can use”
+- “Show me the current task queue”
+- “What’s the summary for task 2.1?”
+
+### 💡 You Can Ask GPT for Help Anytime:
+- “What tools do I have?”
+- “Remind me how to complete a task”
+- “Where does chain_of_thought go?”
 
 ---
 

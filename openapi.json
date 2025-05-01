@@ -34,7 +34,13 @@
         "tags": ["GitHub Files"],
         "x-gpt-action": {
           "name": "Fetch Single GitHub File",
-          "instructions": "Use this to fetch a single file from a GitHub repo. Specify the repo name and file path."
+          "instructions": "Use this to fetch a single file from a GitHub repo. Specify the repo name and file path.",
+          "summary_keywords": [
+            "GitHub",
+            "file",
+            "fetch",
+            "repo"
+          ]
         },
         "requestBody": {
           "required": true,
@@ -82,7 +88,14 @@
         "tags": ["GitHub Files"],
         "x-gpt-action": {
           "name": "Fetch Multiple GitHub Files",
-          "instructions": "Provide a list of file paths to fetch from the GitHub repo."
+          "instructions": "Provide a list of file paths to fetch from the GitHub repo.",
+          "summary_keywords": [
+            "GitHub",
+            "files",
+            "fetch",
+            "batch",
+            "multiple files" 
+          ]
         },
         "requestBody": {
           "required": true,
@@ -137,7 +150,12 @@
           "tags": ["Tasks"],
           "x-gpt-action": {
             "name": "Update Task Metadata",
-            "instructions": "Use this to update specific metadata fields for a task."
+            "instructions": "Use this to update specific metadata fields for a task.",
+            "summary_keywords": [
+              "task",
+              "metadata",
+              "update"
+            ]
           },
           "requestBody": {
             "required": true,
@@ -187,7 +205,13 @@
           "tags": ["Tasks"],
           "x-gpt-action": {
             "name": "List All Tasks",
-            "instructions": "Fetch all tasks from the task.yaml file in the GitHub repo."
+            "instructions": "Fetch all tasks from the task.yaml file in the GitHub repo.",
+            "summary_keywords": [
+              "task",
+              "list",
+              "tasks",
+              "metadata"
+            ]
           },
           "parameters": [
             { "name": "status", "in": "query", "required": false, "schema": { "type": "string" } },
@@ -224,7 +248,12 @@
           "tags": ["Tasks"],
           "x-gpt-action": {
             "name": "Activate Tasks",
-            "instructions": "Use this to activate tasks by updating their status to 'planned'."
+            "instructions": "Use this to activate tasks by updating their status to 'planned'.",
+            "summary_keywords": [
+              "task",
+              "activate",
+              "planned"
+            ]
           },
           "requestBody": {
             "required": true,
@@ -281,7 +310,12 @@
           "tags": ["Tasks"],
           "x-gpt-action": {
             "name": "Clone Task",
-            "instructions": "Use this to clone an existing task and generate a new task ID."
+            "instructions": "Use this to clone an existing task and generate a new task ID.",
+            "summary_keywords": [
+              "task",
+              "clone",
+              "metadata"
+            ]
           },
           "requestBody": {
             "required": true,
@@ -325,7 +359,12 @@
           "tags": ["Tasks"],
           "x-gpt-action": {
             "name": "Get Task Details",
-            "instructions": "Call this to get the full metadata for a specific task."
+            "instructions": "Call this to get the full metadata for a specific task.",
+            "summary_keywords": [
+              "task",
+              "metadata",
+              "details"
+            ]
           },
           "parameters": [
             {
@@ -363,7 +402,12 @@
             "tags": ["Tasks"],
             "x-gpt-action": {
               "name": "Create New Task",
-              "instructions": "Use this to create a new task using a template defined in /framework/task_templates/<phase>/<task>."
+              "instructions": "Use this to create a new task using a template defined in /framework/task_templates/<phase>/<task>.",
+              "summary_keywords": [
+                "task",
+                "create",
+                "template"
+              ]
             },
             "requestBody": {
               "required": true,
@@ -438,7 +482,12 @@
           "tags": ["Memory"],
           "x-gpt-action": {
             "name": "Index Memory Files",
-            "instructions": "Call this to scan base_paths for new files and add them to memory.yaml with GPT-generated descriptions and tags."
+            "instructions": "Call this to scan base_paths for new files and add them to memory.yaml with GPT-generated descriptions and tags.",
+            "summary_keywords": [
+              "memory",
+              "index",
+              "files"
+            ]
           },
           "requestBody": {
             "required": true,
@@ -483,7 +532,12 @@
           "tags": ["Memory"],
           "x-gpt-action": {
             "name": "Diff Memory Files",
-            "instructions": "Use this to find files that are in memory.yaml but not in the GitHub repo."
+            "instructions": "Use this to find files that are in memory.yaml but not in the GitHub repo.",
+            "summary_keywords": [
+              "memory",
+              "diff",
+              "files"
+            ]
           },
           "requestBody": {
             "required": true,
@@ -531,7 +585,12 @@
           "tags": ["Memory"],
           "x-gpt-action": {
             "name": "Add Files to Memory",
-            "instructions": "Provide a list of file paths. The system will auto-generate descriptions, tags, and pod owner using GPT."
+            "instructions": "Provide a list of file paths. The system will auto-generate descriptions, tags, and pod owner using GPT.",
+            "summary_keywords": [
+              "memory",
+              "add",
+              "files"
+            ]
           },
           "requestBody": {
             "required": true,
@@ -598,7 +657,12 @@
           "tags": ["Memory"],
           "x-gpt-action": {
             "name": "Validate Memory Files",
-            "instructions": "Use this to check if files exist in memory.yaml and GitHub."
+            "instructions": "Use this to check if files exist in memory.yaml and GitHub.",
+            "summary_keywords": [
+              "memory",
+              "validate",
+              "files"
+            ]
           },
           "requestBody": {
             "required": true,
@@ -652,7 +716,12 @@
           "tags": ["Memory"],
           "x-gpt-action": {
             "name": "Search Memory by Keyword",
-            "instructions": "Use this to find relevant memory files based on a keyword or phrase."
+            "instructions": "Use this to find relevant memory files based on a keyword or phrase.",
+            "summary_keywords": [
+              "memory",
+              "search",
+              "keyword"
+            ]
           },
           "requestBody": {
             "required": true,
@@ -700,7 +769,12 @@
           "tags": ["Utilities"],
           "x-gpt-action": {
             "name": "List Available Actions",
-            "instructions": "Retrieve a list of actions grouped by functionality, including paths, descriptions, and supported methods."
+            "instructions": "Retrieve a list of actions grouped by functionality, including paths, descriptions, and supported methods.",
+            "summary_keywords": [
+              "actions",
+              "list",
+              "tools"
+            ]
           },
           "responses": {
             "200": {
@@ -746,7 +820,12 @@
           "tags": ["Metrics"],
           "x-gpt-action": {
             "name": "Get Delivery Metrics Summary",
-            "instructions": "Retrieve a summary of delivery and reasoning metrics. Includes completion %, cycle time, and AI thinking insights."
+            "instructions": "Retrieve a summary of delivery and reasoning metrics. Includes completion %, cycle time, and AI thinking insights.",
+            "summary_keywords": [
+              "metrics",
+              "summary",
+              "delivery"
+            ]
           },
           "requestBody": {
             "required": true,
@@ -796,7 +875,12 @@
           "tags": ["Metrics"],
           "x-gpt-action": {
             "name": "Export Reasoning Logs",
-            "instructions": "Export full reasoning_trace logs for all completed tasks in the project."
+            "instructions": "Export full reasoning_trace logs for all completed tasks in the project.",
+            "summary_keywords": [
+              "metrics",
+              "export",
+              "reasoning"
+            ]
           },
           "requestBody": {
             "required": true,
@@ -840,7 +924,12 @@
           "tags": ["Project"],
           "x-gpt-action": {
             "name": "Initialize Project",
-            "instructions": "Use this to set up a new project in the specified GitHub repository."
+            "instructions": "Use this to set up a new project in the specified GitHub repository.",
+            "summary_keywords": [
+              "project",
+              "initialize",
+              "setup"
+            ]
           },
           "requestBody": {
             "required": true,
@@ -886,7 +975,12 @@
           "tags": ["Tasks"],
           "x-gpt-action": {
             "name": "Start Task",
-            "instructions": "Use this to mark a task as in progress and update its status."
+            "instructions": "Use this to mark a task as in progress, log the prompt_used, and prepare for chain-of-thought.",
+            "summary_keywords": [
+              "task",
+              "start",
+              "in progress"
+            ]
           },
           "requestBody": {
             "required": true,
@@ -894,10 +988,25 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": ["task_id", "repo_name"],
+                  "required": ["repo_name", "task_id"],
                   "properties": {
-                    "task_id": { "type": "string" },
-                    "repo_name": { "type": "string" }
+                    "repo_name": {
+                      "type": "string",
+                      "description": "The name of the GitHub repository (e.g., nhl-predictor)"
+                    },
+                    "task_id": {
+                      "type": "string",
+                      "description": "The task identifier to start (e.g., 1.3_define_architecture)"
+                    },
+                    "prompt_used": {
+                      "type": "string",
+                      "description": "The full prompt sent to GPT for this task. Will be saved to prompt_used.txt"
+                    }
+                  },
+                  "example": {
+                    "repo_name": "nhl-predictor",
+                    "task_id": "1.3_define_architecture",
+                    "prompt_used": "Please design the system architecture using the following constraints and personas..."
                   }
                 }
               }
@@ -905,21 +1014,47 @@
           },
           "responses": {
             "200": {
-              "description": "Task started",
+              "description": "Task successfully started and prompt logged",
               "content": {
                 "application/json": {
                   "schema": {
                     "type": "object",
                     "properties": {
-                      "message": { "type": "string" },
-                      "prompt_content": { "type": "string" },
+                      "message": {
+                        "type": "string",
+                        "description": "Confirmation message that task was started"
+                      },
                       "inputs": {
                         "type": "array",
+                        "description": "Input files listed in task metadata",
                         "items": { "type": "string" }
                       },
-                      "handoff_note": { "type": "object" },
-                      "reasoning_summary": { "type": "string" },
-                      "next_step": { "type": "string" }
+                      "handoff_note": {
+                        "type": "object",
+                        "description": "Latest handoff note from upstream task, if any"
+                      },
+                      "reasoning_summary": {
+                        "type": "string",
+                        "description": "Summary of the reasoning trace from the upstream task, if available"
+                      },
+                      "next_step": {
+                        "type": "string",
+                        "description": "Suggested next step in the workflow (e.g., append chain of thought)"
+                      }
+                    },
+                    "example": {
+                      "message": "Task 1.3_define_architecture started successfully.",
+                      "inputs": [
+                        "docs/personas/user_roles.md",
+                        "docs/workflows/delivery_flow.md"
+                      ],
+                      "handoff_note": {
+                        "from_pod": "ProductPod",
+                        "to_pod": "DevPod",
+                        "notes": "Ready to implement architecture."
+                      },
+                      "reasoning_summary": "Upstream team outlined constraints and goals. Focus is on modular design.",
+                      "next_step": "Call /tasks/append_chain_of_thought to log 2–3 initial thoughts from GPT Pod."
                     }
                   }
                 }
@@ -931,11 +1066,16 @@
       "/tasks/append_chain_of_thought": {
         "post": {
           "operationId": "appendChainOfThought",
-          "summary": "Append a message to a task's chain_of_thought.yaml file",
+          "summary": "Append a message, tags, issues, or lessons to a task's chain_of_thought.yaml file",
           "tags": ["Tasks"],
           "x-gpt-action": {
             "name": "Append to Chain of Thought",
-            "instructions": "Use this to append a message to a task's chain_of_thought.yaml file."
+            "instructions": "Use this to append a thought, issue, or lesson learned for a specific task.",
+            "summary_keywords": [
+              "task",
+              "append",
+              "chain of thought"
+            ]
           },
           "requestBody": {
             "required": true,
@@ -945,9 +1085,46 @@
                   "type": "object",
                   "required": ["repo_name", "task_id", "message"],
                   "properties": {
-                    "repo_name": { "type": "string" },
-                    "task_id": { "type": "string" },
-                    "message": { "type": "string" }
+                    "repo_name": {
+                      "type": "string",
+                      "description": "Name of the GitHub repository"
+                    },
+                    "task_id": {
+                      "type": "string",
+                      "description": "The task ID to which this thought applies"
+                    },
+                    "message": {
+                      "type": "string",
+                      "description": "Main thought or observation to log"
+                    },
+                    "tags": {
+                      "type": "array",
+                      "description": "Optional list of freeform tags (e.g., phase, topic, tool)",
+                      "items": { "type": "string" }
+                    },
+                    "issues": {
+                      "type": "array",
+                      "description": "Optional list of issues encountered during the task",
+                      "items": { "type": "string" }
+                    },
+                    "lessons": {
+                      "type": "array",
+                      "description": "Optional list of lessons learned",
+                      "items": { "type": "string" }
+                    }
+                  },
+                  "example": {
+                    "repo_name": "nhl-predictor",
+                    "task_id": "2.1_model_inputs",
+                    "message": "We encountered retry issues on GitHub PATCH.",
+                    "tags": ["retry", "infra"],
+                    "issues": [
+                      "GitHub API rate limit caused 2 retry delays"
+                    ],
+                    "lessons": [
+                      "Preload or cache common files where possible",
+                      "Consider adding a sleep between commits"
+                    ]
                   }
                 }
               }
@@ -955,14 +1132,46 @@
           },
           "responses": {
             "200": {
-              "description": "Successfully appended chain of thought",
+              "description": "Successfully appended to chain_of_thought",
               "content": {
                 "application/json": {
                   "schema": {
                     "type": "object",
                     "properties": {
-                      "message": { "type": "string" },
-                      "appended_thought": { "type": "object" }
+                      "message": {
+                        "type": "string",
+                        "description": "Success confirmation"
+                      },
+                      "appended_thought": {
+                        "type": "object",
+                        "description": "The full entry appended to the YAML",
+                        "properties": {
+                          "message": { "type": "string" },
+                          "timestamp": { "type": "string" },
+                          "tags": {
+                            "type": "array",
+                            "items": { "type": "string" }
+                          },
+                          "issues": {
+                            "type": "array",
+                            "items": { "type": "string" }
+                          },
+                          "lessons": {
+                            "type": "array",
+                            "items": { "type": "string" }
+                          }
+                        }
+                      }
+                    },
+                    "example": {
+                      "message": "Chain of thought appended.",
+                      "appended_thought": {
+                        "message": "We encountered retry issues on GitHub PATCH.",
+                        "timestamp": "2025-04-30T22:30:00Z",
+                        "tags": ["retry", "infra"],
+                        "issues": ["GitHub API rate limit caused 2 retry delays"],
+                        "lessons": ["Preload or cache common files where possible"]
+                      }
                     }
                   }
                 }
@@ -978,7 +1187,12 @@
           "tags": ["Tasks"],
           "x-gpt-action": {
             "name": "Update Changelog",
-            "instructions": "Use this to add a new entry to the project's CHANGELOG file."
+            "instructions": "Use this to add a new entry to the project's CHANGELOG file.",
+            "summary_keywords": [
+              "changelog",
+              "update",
+              "task"
+            ]
           },
           "parameters": [
             {
@@ -1032,7 +1246,12 @@
           "tags": ["Tasks"],
           "x-gpt-action": {
             "name": "Complete Task",
-            "instructions": "Use this to mark a task as complete and log outputs, trace, and handoff."
+            "instructions": "Use this to mark a task as complete and log outputs, trace, and handoff.",
+            "summary_keywords": [
+              "task",
+              "complete",
+              "handoff"
+            ]
           },
           "requestBody": {
             "required": true,
@@ -1189,7 +1408,12 @@
           "tags": ["Tasks"],
           "x-gpt-action": {
             "name": "Get Next Task",
-            "instructions": "Find the next task(s) available for a specific pod_owner. Call /tasks/start to begin working."
+            "instructions": "Find the next task(s) available for a specific pod_owner. Call /tasks/start to begin working.",
+            "summary_keywords": [
+              "task",
+              "next",
+              "available"
+            ]
           },
           "requestBody": {
             "required": true,
@@ -1246,7 +1470,12 @@
           "tags": ["Tasks"],
           "x-gpt-action": {
             "name": "Reopen Task",
-            "instructions": "Use this to reopen a task that was previously marked as complete."
+            "instructions": "Use this to reopen a task that was previously marked as complete.",
+            "summary_keywords": [
+              "task",
+              "reopen",
+              "in progress"
+            ]
           },
           "requestBody": {
             "required": true,
@@ -1288,7 +1517,12 @@
           "tags": ["Tasks"],
           "x-gpt-action": {
             "name": "Append Handoff Note",
-            "instructions": "Use this to append a handoff note to a task's metadata."
+            "instructions": "Use this to append a handoff note to a task's metadata.",
+            "summary_keywords": [
+              "handoff",
+              "note",
+              "append"
+            ]
           },
           "requestBody": {
             "required": true,
@@ -1368,7 +1602,12 @@
           "tags": ["Tasks"],
           "x-gpt-action": {
             "name": "Fetch Handoff Note",
-            "instructions": "Use this to retrieve the latest handoff note from an upstream task."
+            "instructions": "Use this to retrieve the latest handoff note from an upstream task.",
+            "summary_keywords": [
+              "handoff",
+              "note",
+              "fetch"
+            ]
           },
           "requestBody": {
             "required": true,
@@ -1410,7 +1649,12 @@
           "tags": ["Tasks"],
           "x-gpt-action": {
             "name": "Auto-Generate Handoff Note",
-            "instructions": "Use this to auto-generate a handoff note for a completed task."
+            "instructions": "Use this to auto-generate a handoff note for a completed task.",
+            "summary_keywords": [
+              "handoff",
+              "note",
+              "auto-generate"
+            ]
           },
           "parameters": [
             {
@@ -1474,7 +1718,12 @@
           "tags": ["Tasks"],
           "x-gpt-action": {
             "name": "Commit and Log Output File",
-            "instructions": "Use this to commit and log a single output file for a task."
+            "instructions": "Use this to commit and log a single output file for a task.",
+            "summary_keywords": [
+              "commit",
+              "log",
+              "output"
+            ]
           },
           "requestBody": {
             "required": true,
@@ -1545,7 +1794,12 @@
           "tags": ["Audit"],
           "x-gpt-action": {
             "name": "Validate Changelog Entries",
-            "instructions": "Use this to validate and optionally backfill changelog entries for completed tasks."
+            "instructions": "Use this to validate and optionally backfill changelog entries for completed tasks.",
+            "summary_keywords": [
+              "changelog",
+              "validate",
+              "backfill"
+            ]
           },
           "requestBody": {
             "required": true,
@@ -1601,7 +1855,12 @@
           "tags": ["Git"],
           "x-gpt-action": {
             "name": "Rollback Commit",
-            "instructions": "Use this to revert files to a previous commit version. Use with caution. Log a reason for rollback."
+            "instructions": "Use this to revert files to a previous commit version. Use with caution. Log a reason for rollback.",
+            "summary_keywords": [
+              "git",
+              "rollback",
+              "commit"
+            ]
           },
           "requestBody": {
             "required": true,
@@ -1661,7 +1920,12 @@
           "tags": ["System"],
           "x-gpt-action": {
             "name": "Get Onboarding Guide",
-            "instructions": "Use this to retrieve onboarding instructions. Set `simple=true` for a non-technical guide."
+            "instructions": "Use this to retrieve onboarding instructions. Set `simple=true` for a non-technical guide.",
+            "summary_keywords": [
+              "onboarding",
+              "guide",
+              "instructions"
+            ]
           },
           "requestBody": {
             "required": true,
@@ -1706,7 +1970,12 @@
           "tags": ["Tasks"],
           "x-gpt-action": {
             "name": "Auto-Handoff Task",
-            "instructions": "Link two tasks for seamless pod handoff and set the next one as ready."
+            "instructions": "Link two tasks for seamless pod handoff and set the next one as ready.",
+            "summary_keywords": [
+              "handoff",
+              "link",
+              "tasks"
+            ]
           },
           "requestBody": {
             "required": true,
@@ -1763,7 +2032,14 @@
           "tags": ["Tasks"],
           "x-gpt-action": {
             "name": "Scale Out Task",
-            "instructions": "Use this to clone a task into a new one when the current pod reaches token/context limits. Optionally provide a handoff note to carry over."
+            "instructions": "Use this to clone a task into a new one when the current pod reaches token/context limits. Optionally provide a handoff note to carry over.",
+            "summary_keywords": [
+              "scale",
+              "out",
+              "task",
+              "capacity",
+              "new chat"
+            ]
           },
           "requestBody": {
             "required": true,

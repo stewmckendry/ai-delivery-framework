@@ -27,6 +27,7 @@ import time
 from github import Github, GithubException
 from openai import OpenAI
 from dotenv import load_dotenv
+from utils.github_retry import with_retries
 
 # ---- (2) Global Variables ----
 load_dotenv()
@@ -567,8 +568,10 @@ async def activate_task(task_id: Union[str, List[str]] = Body(...), repo_name: s
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to activate task(s): {str(e)}")
 
+# PATCHED /tasks/start route: Adds prompt_used.txt logging (cleaned up)
+
 @app.post("/tasks/start")
-async def start_task(task_id: str = Body(...), repo_name: str = Body(...)):
+async def start_task(task_id: str = Body(...), repo_name: str = Body(...), prompt_used: Optional[str] = Body(default=None)):
     try:
         repo = get_repo(repo_name)
         task_path = "project/task.yaml"
@@ -576,11 +579,21 @@ async def start_task(task_id: str = Body(...), repo_name: str = Body(...)):
         task_data = yaml.safe_load(task_file.decoded_content)
 
         if task_id not in task_data.get("tasks", {}):
-            raise HTTPException(status_code=404, detail=f"Task ID {task_id} not found.")
+            from difflib import get_close_matches
+            close = get_close_matches(task_id, task_data.get("tasks", {}).keys(), n=3, cutoff=0.4)
+            raise HTTPException(status_code=404, detail=f"Task ID {task_id} not found. Suggestions: {close}")
 
         task = task_data["tasks"][task_id]
         task["status"] = "in_progress"
         task["updated_at"] = datetime.utcnow().isoformat()
+
+        # Save prompt_used.txt
+        if prompt_used:
+            prompt_path = f"project/outputs/{task_id}/prompt_used.txt"
+            commit_and_log(repo, prompt_path, prompt_used, f"Log prompt used for task {task_id}", task_id=task_id, committed_by=task.get("pod_owner", "GPTPod"))
+            task["prompt_used"] = prompt_path
+
+        # Update task.yaml
         updated_task_yaml = yaml.dump(task_data, sort_keys=False)
         commit_and_log(repo, task_path, updated_task_yaml, f"Start task {task_id}", task_id=task_id, committed_by=task.get("pod_owner", "unknown"))
 
@@ -595,18 +608,10 @@ async def start_task(task_id: str = Body(...), repo_name: str = Body(...)):
             except Exception:
                 handoff_note = None
 
-        prompt_path = task.get("prompt")
+        # Get input files list
         input_files = task.get("inputs", [])
 
-        prompt_content = "Prompt file missing."
-        if prompt_path:
-            try:
-                prompt_file = repo.get_contents(prompt_path)
-                prompt_content = prompt_file.decoded_content.decode()
-            except:
-                prompt_content = "Prompt file missing."
-
-        # Reasoning trace summary
+        # Get reasoning trace summary from previous task (optional)
         reasoning_summary = None
         try:
             rt_file = repo.get_contents(f"project/outputs/{handoff_from}/reasoning_trace.yaml")
@@ -617,7 +622,6 @@ async def start_task(task_id: str = Body(...), repo_name: str = Body(...)):
 
         return {
             "message": f"Task {task_id} started successfully.",
-            "prompt_content": prompt_content,
             "inputs": input_files,
             "handoff_note": handoff_note,
             "reasoning_summary": reasoning_summary,
@@ -773,30 +777,51 @@ async def commit_and_log_output(
 async def append_chain_of_thought(
     repo_name: str = Body(...),
     task_id: str = Body(...),
-    message: str = Body(...)):
-
+    message: str = Body(...),
+    tags: Optional[List[str]] = Body(default=None),
+    issues: Optional[List[str]] = Body(default=None),
+    lessons: Optional[List[str]] = Body(default=None),
+):
     try:
         repo = get_repo(repo_name)
-        cot_path = f"project/outputs/{task_id}/chain_of_thought.yaml"
+        path = f"project/outputs/{task_id}/chain_of_thought.yaml"
 
         try:
-            cot_file = repo.get_contents(cot_path)
-            chain = yaml.safe_load(cot_file.decoded_content) or []
-        except Exception:
-            chain = []
+            file = repo.get_contents(path)
+            data = yaml.safe_load(file.decoded_content) or []
+            sha = file.sha
+        except:
+            data = []
+            sha = None
 
-        new_thought = {"timestamp": datetime.utcnow().isoformat(), "message": message}
-        chain.append(new_thought)
-        content = yaml.dump(chain)
+        entry = {
+            "message": message,
+            "timestamp": datetime.utcnow().isoformat()
+        }
+        if tags:
+            entry["tags"] = tags
+        if issues:
+            entry["issues"] = issues
+        if lessons:
+            entry["lessons"] = lessons
+
+        data.append(entry)
+        content = yaml.dump(data, sort_keys=False)
 
         pod_owner = get_pod_owner(repo, task_id)
-        commit_and_log(repo, cot_path, content, f"Append chain of thought for {task_id}", task_id=task_id, committed_by=pod_owner)
+        commit_and_log(
+            repo,
+            path,
+            content,
+            f"Append chain of thought to task {task_id}",
+            task_id=task_id,
+            committed_by=pod_owner
+        )
 
-        return {"message": "Chain of thought updated", "appended_thought": new_thought}
+        return {"message": "Chain of thought appended.", "appended_thought": entry}
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to append chain of thought: {str(e)}")
-
+        return JSONResponse(status_code=500, content={"detail": f"Internal Server Error: {type(e).__name__}: {e}"})
 
 @app.post("/tasks/append_handoff_note/{task_id}")
 async def append_handoff_note(

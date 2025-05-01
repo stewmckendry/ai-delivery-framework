@@ -2648,3 +2648,64 @@ All tasks complete!
 - ✅ Prompt interaction: capture, replay, guide
 - ✅ Changelog and trace validation: ensure full audit trail
 - ✅ Orchestration across Pods: push/pull modes, context continuity
+
+---
+
+## ✅ Step 1: Batch 6.2 Overview
+
+---
+
+### 🎯 Goals
+Implement final system polish + tool robustness across all phases of the AI-native delivery cycle.
+
+---
+
+### 🛠 Included in This Batch
+
+#### 🔄 Backlog Items
+- **6.8** Save `prompt_used.txt` at start of each task (standardized logging)
+- **6.10** Add failsafes + retries for GitHub API calls (e.g., exponential backoff)
+- **6.11** Simplify prompts for non-technical users (e.g., remove jargon, add examples)
+- **6.12** Add fuzzy match + fallback for invalid task IDs (e.g., `difflib.get_close_matches`)
+- **6.13** Append issues + lessons to `chain_of_thought.yaml` per task
+
+#### 🛠️ Enhancements
+- Refactor tool logic to standard pattern (e.g., switch to `fetch_yaml_from_github`)
+- Add routes:
+  - `/tasks/fetch_chain_of_thought`
+  - `/tasks/fetch_reasoning_trace`
+- Enable task chaining using `depends_on` and `handoff_from` fields
+
+---
+
+### 🧪 Testing Focus
+Run a full end-to-end test of the delivery lifecycle:
+`task ➝ memory ➝ commit ➝ log ➝ handoff`
+
+---
+
+## ✅ Step 2: Required Inputs
+
+To begin, I need the following:
+
+- ✅ Confirm the repo structure (same as before)?
+- ✅ Confirm route naming + FastAPI pattern is consistent with previous tools?
+
+⬇️ Upload:
+- Sample `task.yaml` with `depends_on`, `handoff_from` fields populated
+- One recent `prompt_used.txt` from `/project/outputs/<task_id>/`
+- A sample `chain_of_thought.yaml` where you'd like to log issues/lessons
+
+🎯 Clarify:
+- Should `prompt_used.txt` logging be triggered only on `/start_task`?
+- What fallback behavior do you want if no valid task ID is found?
+
+---
+
+Once confirmed, I’ll start with the following implementation sequence:
+1. Patch for 6.8 – `prompt_used.txt` logging  
+2. Patch for 6.10 – GitHub API retries  
+3. Patch for 6.12 – Fuzzy task ID handling  
+4. Patch for `/tasks/fetch_chain_of_thought` route
+
+Would you like to begin with item **6.8** (`prompt_used.txt` capture)?

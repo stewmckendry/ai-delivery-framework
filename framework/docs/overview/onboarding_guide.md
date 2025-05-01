@@ -115,6 +115,8 @@ These tools are available to the GPT Pods (and you) for completing, organizing, 
 | `/getFile` and `/batch-files` | Retrieve file content from GitHub (single or multiple) |
 | `/actions/list` | Get all available tools grouped by category with descriptions |
 
+Each tool maps to a route in the OpenAPI schema
+
 ---
 
 ## 📊 Logs & Reports
@@ -127,6 +129,34 @@ These tools are available to the GPT Pods (and you) for completing, organizing, 
 | `reverted_commits.yaml` | Undo history with reason |
 | `handoff_notes.yaml` | Pod-to-pod task transitions |
 | `chain_of_thought.yaml` | Inline reasoning log for each task |
+
+---
+
+## 🧭 Getting Started
+
+Welcome! This AI assistant helps you run structured delivery tasks using GPT pods and tools.
+
+### 🗣 Example Prompts to Try:
+- “Start a new task”
+- “What’s next in my delivery project?”
+- “List all tools I can use”
+- “Show me the current task queue”
+- “What’s the summary for task 2.1?”
+
+### 💡 You Can Ask GPT for Help Anytime:
+- “What tools do I have?”
+- “Remind me how to complete a task”
+- “Where does chain_of_thought go?”
+
+### 🧰 Developer Quick Actions
+
+| **Prompt**            | **Description**                                      |
+|------------------------|------------------------------------------------------|
+| Call `/actions/list`   | Lists all tools available                            |
+| Fetch `task.yaml`      | View all defined tasks                               |
+| Start task 1.2         | Kicks off a task with prompt tracking                |
+| Log an issue           | Append to `chain_of_thought` with issues and lessons |
+
 
 ---
 

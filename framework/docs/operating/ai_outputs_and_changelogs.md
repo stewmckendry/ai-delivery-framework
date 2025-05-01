@@ -1,3 +1,58 @@
+## ✅ Correct Flow for Starting a Task
+
+---
+
+### 🧠 What Happens
+
+1. **User or GPT calls** `/tasks/next` or `/tasks/activate` to retrieve a task.
+2. The returned task includes a pointer to `prompt_template`, which the human uses to craft the actual prompt.
+3. **User edits the prompt**, then starts the task by calling:
+
+POST /tasks/start  
+{
+  "repo_name": "...",
+  "task_id": "...",
+  "prompt_used": "🧠 Full prompt content actually sent to GPT"
+}
+
+---
+
+### ✅ System Actions in `/tasks/start`
+
+- Marks the task as `in_progress`
+- Saves `prompt_used.txt` under:  
+  `project/outputs/<task_id>/`
+- Optionally logs the path to this prompt in `task.yaml` (`prompt_used`)
+- **Does not return** the prompt content — caller already has it
+
+---
+
+### ✅ Required Fixes to Current Patch
+
+Current implementation of `/tasks/start` still includes:
+
+# Load optional prompt content (template)  
+prompt_template_path = task.get("prompt")  
+...  
+prompt_content = "Prompt file missing."  
+...  
+# returned in response  
+"prompt_content": prompt_content
+
+🛠 **This logic is outdated and must be removed.**
+
+---
+
+### 🔧 Patch Plan: Simplify `/tasks/start`
+
+**Remove:**
+- Any fetching or returning of the prompt template file
+
+**Keep:**
+- Saving `prompt_used.txt`
+- Recording `prompt_used` path in `task.yaml`
+
+
 ## ✅ (1) Output File Scenarios: Task → Changelog Flow
 
 ### 🟢 Scenario A: Happy Path — Standard Task Completion
