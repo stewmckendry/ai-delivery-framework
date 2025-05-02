@@ -59,22 +59,22 @@
                     "enum": ["json", "csv"],
                     "description": "Format of export (optional, default is JSON)"
                   }
+                }
+              },
+              "examples": {
+                "summary": {
+                  "summary": "Get delivery reasoning summary",
+                  "value": {
+                    "repo_name": "ai-delivery-framework",
+                    "mode": "summary"
+                  }
                 },
-                "examples": {
-                  "summary": {
-                    "summary": "Get delivery reasoning summary",
-                    "value": {
-                      "repo_name": "ai-delivery-framework",
-                      "mode": "summary"
-                    }
-                  },
-                  "export_csv": {
-                    "summary": "Export reasoning metrics as CSV",
-                    "value": {
-                      "repo_name": "ai-delivery-framework",
-                      "mode": "export",
-                      "format": "csv"
-                    }
+                "export_csv": {
+                  "summary": "Export reasoning metrics as CSV",
+                  "value": {
+                    "repo_name": "ai-delivery-framework",
+                    "mode": "export",
+                    "format": "csv"
                   }
                 }
               }
@@ -196,26 +196,26 @@
                     "items": { "type": "string" },
                     "description": "List of file paths (required for mode=batch)"
                   }
+                }
+              },
+              "examples": {
+                "single": {
+                  "summary": "Get a single file",
+                  "value": {
+                    "mode": "single",
+                    "repo_name": "ai-delivery-framework",
+                    "path": "framework/prompt_template.md"
+                  }
                 },
-                "examples": {
-                  "single": {
-                    "summary": "Get a single file",
-                    "value": {
-                      "mode": "single",
-                      "repo_name": "ai-delivery-framework",
-                      "path": "framework/prompt_template.md"
-                    }
-                  },
-                  "batch": {
-                    "summary": "Fetch multiple files",
-                    "value": {
-                      "mode": "batch",
-                      "repo_name": "ai-delivery-framework",
-                      "paths": [
-                        "project/task.yaml",
-                        "project/memory.yaml"
-                      ]
-                    }
+                "batch": {
+                  "summary": "Fetch multiple files",
+                  "value": {
+                    "mode": "batch",
+                    "repo_name": "ai-delivery-framework",
+                    "paths": [
+                      "project/task.yaml",
+                      "project/memory.yaml"
+                    ]
                   }
                 }
               }
@@ -359,15 +359,15 @@
                     "description": "The name of the person or gpt pod committing the file",
                     "default": "GPTPod"
                   }
-                },
-                "example": {
-                  "repo_name": "nhl-predictor",
-                  "task_id": "2.4_build",
-                  "file_path": "project/outputs/2.4_build/spec.yaml",
-                  "content": "output file content here...",
-                  "message": "Add feature spec",
-                  "committed_by": "DevPod"
                 }
+              },
+              "example": {
+                "repo_name": "nhl-predictor",
+                "task_id": "2.4_build",
+                "file_path": "project/outputs/2.4_build/spec.yaml",
+                "content": "output file content here...",
+                "message": "Add feature spec",
+                "committed_by": "DevPod"
               }
             }
           }
@@ -702,51 +702,51 @@
                     },
                     "description": "Used in `index` and `diff` actions"
                   }
+                }
+              },
+              "examples": {
+                "add": {
+                  "summary": "Add memory files",
+                  "value": {
+                    "repo_name": "nhl-predictor",
+                    "action": "add",
+                    "files": [
+                      {
+                        "path": "src/app/main.py"
+                      }
+                    ]
+                  }
                 },
-                "examples": {
-                  "add": {
-                    "summary": "Add memory files",
-                    "value": {
-                      "repo_name": "nhl-predictor",
-                      "action": "add",
-                      "files": [
-                        {
-                          "path": "src/app/main.py"
-                        }
-                      ]
-                    }
-                  },
-                  "index": {
-                    "summary": "Index new files",
-                    "value": {
-                      "repo_name": "nhl-predictor",
-                      "action": "index",
-                      "base_paths": [
-                        "src/"
-                      ]
-                    }
-                  },
-                  "diff": {
-                    "summary": "Compare memory to GitHub files",
-                    "value": {
-                      "repo_name": "nhl-predictor",
-                      "action": "diff",
-                      "base_paths": [
-                        "src/",
-                        "data/"
-                      ]
-                    }
-                  },
-                  "validate": {
-                    "summary": "Validate file existence",
-                    "value": {
-                      "repo_name": "nhl-predictor",
-                      "action": "validate",
-                      "files": [
-                        "README.md",
-                        "src/utils/helpers.py"
-                      ]
-                    }
+                "index": {
+                  "summary": "Index new files",
+                  "value": {
+                    "repo_name": "nhl-predictor",
+                    "action": "index",
+                    "base_paths": [
+                      "src/"
+                    ]
+                  }
+                },
+                "diff": {
+                  "summary": "Compare memory to GitHub files",
+                  "value": {
+                    "repo_name": "nhl-predictor",
+                    "action": "diff",
+                    "base_paths": [
+                      "src/",
+                      "data/"
+                    ]
+                  }
+                },
+                "validate": {
+                  "summary": "Validate file existence",
+                  "value": {
+                    "repo_name": "nhl-predictor",
+                    "action": "validate",
+                    "files": [
+                      "README.md",
+                      "src/utils/helpers.py"
+                    ]
                   }
                 }
               }
@@ -825,30 +825,30 @@
                     "type": "string",
                     "description": "Optional filter for `list` mode"
                   }
+                }
+              },
+              "examples": {
+                "search": {
+                  "summary": "Search memory index",
+                  "value": {
+                    "repo_name": "ai-delivery-framework",
+                    "mode": "search",
+                    "keyword": "task prompt"
+                  }
                 },
-                "examples": {
-                  "search": {
-                    "summary": "Search memory index",
-                    "value": {
-                      "repo_name": "ai-delivery-framework",
-                      "mode": "search",
-                      "keyword": "task prompt"
-                    }
-                  },
-                  "list": {
-                    "summary": "List memory entries by tag",
-                    "value": {
-                      "repo_name": "ai-delivery-framework",
-                      "mode": "list",
-                      "tag": "prompt"
-                    }
-                  },
-                  "stats": {
-                    "summary": "Get memory stats",
-                    "value": {
-                      "repo_name": "ai-delivery-framework",
-                      "mode": "stats"
-                    }
+                "list": {
+                  "summary": "List memory entries by tag",
+                  "value": {
+                    "repo_name": "ai-delivery-framework",
+                    "mode": "list",
+                    "tag": "prompt"
+                  }
+                },
+                "stats": {
+                  "summary": "Get memory stats",
+                  "value": {
+                    "repo_name": "ai-delivery-framework",
+                    "mode": "stats"
                   }
                 }
               }
@@ -930,29 +930,29 @@
                     "type": "string",
                     "description": "New pod owner (for update only)"
                   }
+                }
+              },
+              "examples": {
+                "update": {
+                  "summary": "Update memory entry",
+                  "value": {
+                    "repo_name": "ai-delivery-framework",
+                    "path": "project/outputs/task.yaml",
+                    "action": "update",
+                    "description": "Tracks task definitions",
+                    "tags": [
+                      "tasks",
+                      "config"
+                    ],
+                    "pod_owner": "DeliveryPod"
+                  }
                 },
-                "examples": {
-                  "update": {
-                    "summary": "Update memory entry",
-                    "value": {
-                      "repo_name": "ai-delivery-framework",
-                      "path": "project/outputs/task.yaml",
-                      "action": "update",
-                      "description": "Tracks task definitions",
-                      "tags": [
-                        "tasks",
-                        "config"
-                      ],
-                      "pod_owner": "DeliveryPod"
-                    }
-                  },
-                  "remove": {
-                    "summary": "Remove memory entry",
-                    "value": {
-                      "repo_name": "ai-delivery-framework",
-                      "path": "docs/old_doc.md",
-                      "action": "remove"
-                    }
+                "remove": {
+                  "summary": "Remove memory entry",
+                  "value": {
+                    "repo_name": "ai-delivery-framework",
+                    "path": "docs/old_doc.md",
+                    "action": "remove"
                   }
                 }
               }
@@ -1054,26 +1054,26 @@
                     "type": "string",
                     "description": "Descriptor of the cloned task’s purpose"
                   }
+                }
+              },
+              "examples": {
+                "update_metadata": {
+                  "summary": "Update task metadata",
+                  "value": {
+                    "repo_name": "ai-delivery-framework",
+                    "action": "update_metadata",
+                    "task_id": "2.1_design_feature_and_tech_spec",
+                    "description": "Refactor metadata tool",
+                    "ready": true
+                  }
                 },
-                "examples": {
-                  "update_metadata": {
-                    "summary": "Update task metadata",
-                    "value": {
-                      "repo_name": "ai-delivery-framework",
-                      "action": "update_metadata",
-                      "task_id": "2.1_design_feature_and_tech_spec",
-                      "description": "Refactor metadata tool",
-                      "ready": true
-                    }
-                  },
-                  "clone": {
-                    "summary": "Clone a task",
-                    "value": {
-                      "repo_name": "ai-delivery-framework",
-                      "action": "clone",
-                      "original_task_id": "2.1_design_feature_and_tech_spec",
-                      "descriptor": "for task 2.1 follow-up"
-                    }
+                "clone": {
+                  "summary": "Clone a task",
+                  "value": {
+                    "repo_name": "ai-delivery-framework",
+                    "action": "clone",
+                    "original_task_id": "2.1_design_feature_and_tech_spec",
+                    "descriptor": "for task 2.1 follow-up"
                   }
                 }
               }
@@ -1283,114 +1283,114 @@
                     "type": "object",
                     "description": "Optional inputs for prompt customization (used in: create)"
                   }
+                }
+              },
+              "examples": {
+                "activate": {
+                  "summary": "Activate tasks",
+                  "value": {
+                    "action": "activate",
+                    "repo_name": "ai-delivery-framework",
+                    "task_id": ["1.1_capture_project_goals_prompt", "1.2_define_user_and_delivery_flows", "1.3_define_architecture"]
+                  }
                 },
-                "examples": {
-                  "activate": {
-                    "summary": "Activate tasks",
-                    "value": {
-                      "action": "activate",
-                      "repo_name": "ai-delivery-framework",
-                      "task_id": ["1.1_capture_project_goals_prompt", "1.2_define_user_and_delivery_flows", "1.3_define_architecture"]
-                    }
-                  },
-                  "start": {
-                    "summary": "Start task",
-                    "value": {
-                      "action": "start",
-                      "repo_name": "ai-delivery-framework",
+                "start": {
+                  "summary": "Start task",
+                  "value": {
+                    "action": "start",
+                    "repo_name": "ai-delivery-framework",
+                    "task_id": "2.1",
+                    "prompt_used": "Design the system architecture..."
+                  }
+                },
+                "complete": {
+                  "summary": "Complete task",
+                  "value": {
+                    "action": "complete",
+                    "repo_name": "ai-delivery-framework",
+                    "task_id": "2.1",
+                    "outputs": [
+                      {
+                        "path": "outputs/2.1/summary.md",
+                        "content": "Architecture defined."
+                      }
+                    ],
+                    "reasoning_trace": {
                       "task_id": "2.1",
-                      "prompt_used": "Design the system architecture..."
-                    }
-                  },
-                  "complete": {
-                    "summary": "Complete task",
-                    "value": {
-                      "action": "complete",
-                      "repo_name": "ai-delivery-framework",
-                      "task_id": "2.1",
-                      "outputs": [
+                      "thoughts": [
                         {
-                          "path": "outputs/2.1/summary.md",
-                          "content": "Architecture defined."
+                          "thought": "Used persona constraints.",
+                          "tags": [
+                            "planning"
+                          ]
                         }
                       ],
-                      "reasoning_trace": {
-                        "task_id": "2.1",
-                        "thoughts": [
-                          {
-                            "thought": "Used persona constraints.",
-                            "tags": [
-                              "planning"
-                            ]
-                          }
-                        ],
-                        "scoring": {
-                          "thought_quality": 5,
-                          "recall_used": true,
-                          "novel_insight": true
-                        },
-                        "summary": "Clear, reusable design.",
-                        "improvement_opportunities": [
-                          "Consider edge cases"
-                        ],
-                        "alternatives": [
-                          "Use microservices"
-                        ]
+                      "scoring": {
+                        "thought_quality": 5,
+                        "recall_used": true,
+                        "novel_insight": true
                       },
-                      "handoff_note": {
-                        "timestamp": "2025-05-01T12:00:00Z",
-                        "from_pod": "ProductPod",
-                        "to_pod": "DevPod",
-                        "reason": "Implementation next",
-                        "token_count": 14000
-                      }
+                      "summary": "Clear, reusable design.",
+                      "improvement_opportunities": [
+                        "Consider edge cases"
+                      ],
+                      "alternatives": [
+                        "Use microservices"
+                      ]
+                    },
+                    "handoff_note": {
+                      "timestamp": "2025-05-01T12:00:00Z",
+                      "from_pod": "ProductPod",
+                      "to_pod": "DevPod",
+                      "reason": "Implementation next",
+                      "token_count": 14000
                     }
-                  },
-                  "reopen": {
-                    "summary": "Reopen task",
-                    "value": {
-                      "action": "reopen",
-                      "repo_name": "ai-delivery-framework",
-                      "task_id": "2.1",
-                      "reason": "QA failed"
+                  }
+                },
+                "reopen": {
+                  "summary": "Reopen task",
+                  "value": {
+                    "action": "reopen",
+                    "repo_name": "ai-delivery-framework",
+                    "task_id": "2.1",
+                    "reason": "QA failed"
+                  }
+                },
+                "next": {
+                  "summary": "Get next task for pod",
+                  "value": {
+                    "action": "next",
+                    "repo_name": "ai-delivery-framework",
+                    "pod_owner": "DevPod"
+                  }
+                },
+                "scale_out": {
+                  "summary": "Scale out task",
+                  "value": {
+                    "action": "scale_out",
+                    "repo_name": "ai-delivery-framework",
+                    "task_id": "2.2",
+                    "reason": "Token limit exceeded",
+                    "handoff_note": {
+                      "from_pod": "DevPod",
+                      "to_pod": "DevPod",
+                      "reason": "Split task for scale",
+                      "notes": "Continue generating tests"
                     }
-                  },
-                  "next": {
-                    "summary": "Get next task for pod",
-                    "value": {
-                      "action": "next",
-                      "repo_name": "ai-delivery-framework",
-                      "pod_owner": "DevPod"
-                    }
-                  },
-                  "scale_out": {
-                    "summary": "Scale out task",
-                    "value": {
-                      "action": "scale_out",
-                      "repo_name": "ai-delivery-framework",
-                      "task_id": "2.2",
-                      "reason": "Token limit exceeded",
-                      "handoff_note": {
-                        "from_pod": "DevPod",
-                        "to_pod": "DevPod",
-                        "reason": "Split task for scale",
-                        "notes": "Continue generating tests"
-                      }
-                    }
-                  },
-                  "create": {
-                    "summary": "Create new task from template",
-                    "value": {
-                      "action": "create",
-                      "repo_name": "ai-delivery-framework",
-                      "phase": "phase3",
-                      "task_key": "3.1a_write_docs",
-                      "task_id": "3.1a",
-                      "assigned_pod": "WriterPod",
-                      "prompt_variables": {
-                        "doc_type": "README",
-                        "target_audience": "Developers"
-                      }
+                  }
+                },
+                "create": {
+                  "summary": "Create new task from template",
+                  "value": {
+                    "action": "create",
+                    "repo_name": "ai-delivery-framework",
+                    "phase": "phase3",
+                    "task_key": "3.1a_write_docs",
+                    "task_id": "3.1a",
+                    "assigned_pod": "WriterPod",
+                    "prompt_variables": {
+                      "doc_type": "README",
+                      "target_audience": "Developers"
                     }
                   }
                 }
@@ -1502,52 +1502,52 @@
                     "type": "string",
                     "description": "e.g., `async` or `sync` (optional in `execute_auto`)"
                   }
+                }
+              },
+              "examples": {
+                "append": {
+                  "summary": "Append a manual handoff note",
+                  "value": {
+                    "action": "append",
+                    "repo_name": "ai-delivery-framework",
+                    "task_id": "2.3",
+                    "from_pod": "DevPod",
+                    "to_pod": "QAPod",
+                    "reason": "Feature complete, ready for QA",
+                    "token_count": 13200,
+                    "next_prompt": "Please test component A and validate edge case B",
+                    "reference_files": [
+                      "src/main.py",
+                      "test/test_main.py"
+                    ],
+                    "notes": "Watch out for flakiness in test X",
+                    "ways_of_working": "Continue async updates via chain_of_thought.yaml"
+                  }
                 },
-                "examples": {
-                  "append": {
-                    "summary": "Append a manual handoff note",
-                    "value": {
-                      "action": "append",
-                      "repo_name": "ai-delivery-framework",
-                      "task_id": "2.3",
-                      "from_pod": "DevPod",
-                      "to_pod": "QAPod",
-                      "reason": "Feature complete, ready for QA",
-                      "token_count": 13200,
-                      "next_prompt": "Please test component A and validate edge case B",
-                      "reference_files": [
-                        "src/main.py",
-                        "test/test_main.py"
-                      ],
-                      "notes": "Watch out for flakiness in test X",
-                      "ways_of_working": "Continue async updates via chain_of_thought.yaml"
-                    }
-                  },
-                  "fetch": {
-                    "summary": "Fetch latest handoff note",
-                    "value": {
-                      "action": "fetch",
-                      "repo_name": "ai-delivery-framework",
-                      "task_id": "3.1"
-                    }
-                  },
-                  "generate_auto": {
-                    "summary": "Auto-generate handoff from reasoning",
-                    "value": {
-                      "action": "generate_auto",
-                      "repo_name": "ai-delivery-framework",
-                      "task_id": "2.4"
-                    }
-                  },
-                  "execute_auto": {
-                    "summary": "Auto handoff to downstream task",
-                    "value": {
-                      "action": "execute_auto",
-                      "repo_name": "ai-delivery-framework",
-                      "task_id": "3.1",
-                      "next_task_id": "3.2",
-                      "handoff_mode": "async"
-                    }
+                "fetch": {
+                  "summary": "Fetch latest handoff note",
+                  "value": {
+                    "action": "fetch",
+                    "repo_name": "ai-delivery-framework",
+                    "task_id": "3.1"
+                  }
+                },
+                "generate_auto": {
+                  "summary": "Auto-generate handoff from reasoning",
+                  "value": {
+                    "action": "generate_auto",
+                    "repo_name": "ai-delivery-framework",
+                    "task_id": "2.4"
+                  }
+                },
+                "execute_auto": {
+                  "summary": "Auto handoff to downstream task",
+                  "value": {
+                    "action": "execute_auto",
+                    "repo_name": "ai-delivery-framework",
+                    "task_id": "3.1",
+                    "next_task_id": "3.2",
+                    "handoff_mode": "async"
                   }
                 }
               }
@@ -1641,35 +1641,35 @@
                     },
                     "description": "Optional list of lessons learned from the experience"
                   }
+                }
+              },
+              "examples": {
+                "append": {
+                  "summary": "Append new thought with issues and tags",
+                  "value": {
+                    "action": "append",
+                    "repo_name": "ai-delivery-framework",
+                    "task_id": "2.1_model_inputs",
+                    "message": "We encountered retry issues on GitHub PATCH.",
+                    "tags": [
+                      "retry",
+                      "infra"
+                    ],
+                    "issues": [
+                      "GitHub API rate limit caused retry delays"
+                    ],
+                    "lessons": [
+                      "Preload or cache common files",
+                      "Add sleep between commits"
+                    ]
+                  }
                 },
-                "examples": {
-                  "append": {
-                    "summary": "Append new thought with issues and tags",
-                    "value": {
-                      "action": "append",
-                      "repo_name": "ai-delivery-framework",
-                      "task_id": "2.1_model_inputs",
-                      "message": "We encountered retry issues on GitHub PATCH.",
-                      "tags": [
-                        "retry",
-                        "infra"
-                      ],
-                      "issues": [
-                        "GitHub API rate limit caused retry delays"
-                      ],
-                      "lessons": [
-                        "Preload or cache common files",
-                        "Add sleep between commits"
-                      ]
-                    }
-                  },
-                  "fetch": {
-                    "summary": "Fetch existing chain of thought for a task",
-                    "value": {
-                      "action": "fetch",
-                      "repo_name": "ai-delivery-framework",
-                      "task_id": "2.1_model_inputs"
-                    }
+                "fetch": {
+                  "summary": "Fetch existing chain of thought for a task",
+                  "value": {
+                    "action": "fetch",
+                    "repo_name": "ai-delivery-framework",
+                    "task_id": "2.1_model_inputs"
                   }
                 }
               }
@@ -1746,40 +1746,40 @@
                     "type": "string",
                     "description": "**Used in `summary`.** If set to `csv`, returns the reasoning summary as a CSV string. Otherwise, returns JSON."
                   }
+                }
+              },
+              "examples": {
+                "fetch": {
+                  "summary": "Fetch final reasoning trace for a task",
+                  "value": {
+                    "action": "fetch",
+                    "repo_name": "ai-delivery-framework",
+                    "task_id": "2.1_model_inputs",
+                    "full": false
+                  }
                 },
-                "examples": {
-                  "fetch": {
-                    "summary": "Fetch final reasoning trace for a task",
-                    "value": {
-                      "action": "fetch",
-                      "repo_name": "ai-delivery-framework",
-                      "task_id": "2.1_model_inputs",
-                      "full": false
-                    }
-                  },
-                  "fetch_full": {
-                    "summary": "Fetch full trace with prompt and chain_of_thought",
-                    "value": {
-                      "action": "fetch",
-                      "repo_name": "ai-delivery-framework",
-                      "task_id": "2.1_model_inputs",
-                      "full": true
-                    }
-                  },
-                  "summary_json": {
-                    "summary": "Get reasoning summary in JSON",
-                    "value": {
-                      "action": "summary",
-                      "repo_name": "ai-delivery-framework"
-                    }
-                  },
-                  "summary_csv": {
-                    "summary": "Get reasoning summary as CSV",
-                    "value": {
-                      "action": "summary",
-                      "repo_name": "ai-delivery-framework",
-                      "format": "csv"
-                    }
+                "fetch_full": {
+                  "summary": "Fetch full trace with prompt and chain_of_thought",
+                  "value": {
+                    "action": "fetch",
+                    "repo_name": "ai-delivery-framework",
+                    "task_id": "2.1_model_inputs",
+                    "full": true
+                  }
+                },
+                "summary_json": {
+                  "summary": "Get reasoning summary in JSON",
+                  "value": {
+                    "action": "summary",
+                    "repo_name": "ai-delivery-framework"
+                  }
+                },
+                "summary_csv": {
+                  "summary": "Get reasoning summary as CSV",
+                  "value": {
+                    "action": "summary",
+                    "repo_name": "ai-delivery-framework",
+                    "format": "csv"
                   }
                 }
               }
@@ -1849,53 +1849,53 @@
                     "type": "string",
                     "description": "Optional filter for `list` by task category"
                   }
+                }
+              },
+              "examples": {
+                "list_all": {
+                  "summary": "List all tasks",
+                  "value": {
+                    "mode": "list",
+                    "repo_name": "ai-delivery-framework"
+                  }
                 },
-                "examples": {
-                  "list_all": {
-                    "summary": "List all tasks",
-                    "value": {
-                      "mode": "list",
-                      "repo_name": "ai-delivery-framework"
-                    }
-                  },
-                  "list_filtered": {
-                    "summary": "List in-progress tasks for ProductPod",
-                    "value": {
-                      "mode": "list",
-                      "repo_name": "ai-delivery-framework",
-                      "status": "in_progress",
-                      "pod_owner": "ProductPod"
-                    }
-                  },
-                  "list_phases": {
-                    "summary": "Group tasks by SDLC phase",
-                    "value": {
-                      "mode": "list_phases",
-                      "repo_name": "ai-delivery-framework"
-                    }
-                  },
-                  "graph": {
-                    "summary": "Get task dependency graph",
-                    "value": {
-                      "mode": "graph",
-                      "repo_name": "ai-delivery-framework"
-                    }
-                  },
-                  "dependencies": {
-                    "summary": "Show upstream/downstream for a task",
-                    "value": {
-                      "mode": "dependencies",
-                      "repo_name": "ai-delivery-framework",
-                      "task_id": "1.3_define_architecture"
-                    }
-                  },
-                  "get_details": {
-                    "summary": "Get metadata for a task",
-                    "value": {
-                      "mode": "get_details",
-                      "repo_name": "ai-delivery-framework",
-                      "task_id": "3.2_write_tests"
-                    }
+                "list_filtered": {
+                  "summary": "List in-progress tasks for ProductPod",
+                  "value": {
+                    "mode": "list",
+                    "repo_name": "ai-delivery-framework",
+                    "status": "in_progress",
+                    "pod_owner": "ProductPod"
+                  }
+                },
+                "list_phases": {
+                  "summary": "Group tasks by SDLC phase",
+                  "value": {
+                    "mode": "list_phases",
+                    "repo_name": "ai-delivery-framework"
+                  }
+                },
+                "graph": {
+                  "summary": "Get task dependency graph",
+                  "value": {
+                    "mode": "graph",
+                    "repo_name": "ai-delivery-framework"
+                  }
+                },
+                "dependencies": {
+                  "summary": "Show upstream/downstream for a task",
+                  "value": {
+                    "mode": "dependencies",
+                    "repo_name": "ai-delivery-framework",
+                    "task_id": "1.3_define_architecture"
+                  }
+                },
+                "get_details": {
+                  "summary": "Get metadata for a task",
+                  "value": {
+                    "mode": "get_details",
+                    "repo_name": "ai-delivery-framework",
+                    "task_id": "3.2_write_tests"
                   }
                 }
               }
@@ -1993,43 +1993,43 @@
                     "enum": ["open", "closed"],
                     "description": "New status value (used in update_status)"
                   }
+                }
+              },
+              "examples": {
+                "log": {
+                  "summary": "Log a bug",
+                  "value": {
+                    "action": "log",
+                    "repo_name": "ai-delivery-framework",
+                    "scope": "framework",
+                    "type": "bug",
+                    "task_id": "2.1_model_inputs",
+                    "title": "Retry logic failed silently",
+                    "detail": "API returned 200 but file did not update",
+                    "suggested_fix": "Add retry logging visibility",
+                    "tags": ["infra", "retry"],
+                    "status": "open"
+                  }
                 },
-                "examples": {
-                  "log": {
-                    "summary": "Log a bug",
-                    "value": {
-                      "action": "log",
-                      "repo_name": "ai-delivery-framework",
-                      "scope": "framework",
-                      "type": "bug",
-                      "task_id": "2.1_model_inputs",
-                      "title": "Retry logic failed silently",
-                      "detail": "API returned 200 but file did not update",
-                      "suggested_fix": "Add retry logging visibility",
-                      "tags": ["infra", "retry"],
-                      "status": "open"
-                    }
-                  },
-                  "fetch": {
-                    "summary": "Fetch framework enhancements",
-                    "value": {
-                      "action": "fetch",
-                      "repo_name": "ai-delivery-framework",
-                      "scope": "framework",
-                      "type": "enhancement",
-                      "tag": "ui",
-                      "status": "open"
-                    }
-                  },
-                  "update_status": {
-                    "summary": "Mark issue closed",
-                    "value": {
-                      "action": "update_status",
-                      "repo_name": "ai-delivery-framework",
-                      "scope": "project",
-                      "issue_id": "abc123-def456",
-                      "new_status": "closed"
-                    }
+                "fetch": {
+                  "summary": "Fetch framework enhancements",
+                  "value": {
+                    "action": "fetch",
+                    "repo_name": "ai-delivery-framework",
+                    "scope": "framework",
+                    "type": "enhancement",
+                    "tag": "ui",
+                    "status": "open"
+                  }
+                },
+                "update_status": {
+                  "summary": "Mark issue closed",
+                  "value": {
+                    "action": "update_status",
+                    "repo_name": "ai-delivery-framework",
+                    "scope": "project",
+                    "issue_id": "abc123-def456",
+                    "new_status": "closed"
                   }
                 }
               }
@@ -2106,24 +2106,24 @@
                     "type": "string",
                     "description": "New entry text to be appended to the changelog (only for action=update)"
                   }
+                }
+              },
+              "examples": {
+                "validate": {
+                  "summary": "Dry run changelog validation",
+                  "value": {
+                    "action": "validate",
+                    "repo_name": "ai-delivery-framework",
+                    "dry_run": true
+                  }
                 },
-                "examples": {
-                  "validate": {
-                    "summary": "Dry run changelog validation",
-                    "value": {
-                      "action": "validate",
-                      "repo_name": "ai-delivery-framework",
-                      "dry_run": true
-                    }
-                  },
-                  "update": {
-                    "summary": "Add a changelog entry",
-                    "value": {
-                      "action": "update",
-                      "repo_name": "ai-delivery-framework",
-                      "task_id": "2.2_build_and_patch",
-                      "changelog_message": "Added tracing logic and error handling to GitHub push"
-                    }
+                "update": {
+                  "summary": "Add a changelog entry",
+                  "value": {
+                    "action": "update",
+                    "repo_name": "ai-delivery-framework",
+                    "task_id": "2.2_build_and_patch",
+                    "changelog_message": "Added tracing logic and error handling to GitHub push"
                   }
                 }
               }
