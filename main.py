@@ -374,7 +374,12 @@ def copy_framework_baseline(source_repo, destination_repo, source_path, dest_pat
             try:
                 file_content = file_content_bytes.decode('utf-8')
                 destination_path = f"framework/{dest_path}/{item.name}" if dest_path else f"framework/{item.name}"
-                destination_repo.create_file(destination_path, f"Copied {item.name} from framework", file_content, branch=destination_branch)
+                try:
+                    existing_file = destination_repo.get_contents(destination_path, ref=destination_branch)
+                    destination_repo.update_file(destination_path, f"Updated {item.name} from framework", file_content, existing_file.sha, branch=destination_branch)
+                except Exception:
+                    destination_repo.create_file(destination_path, f"Copied {item.name} from framework", file_content, branch=destination_branch)
+
             except UnicodeDecodeError:
                 print(f"⚠️ Skipping binary file during copy: {item.path}")
 

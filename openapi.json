@@ -429,17 +429,102 @@
     "/git/rollback_commit": {
       "post": {
         "operationId": "rollbackCommit",
-        "summary": "Rollback specific files to previous commit",
+        "summary": "Rollback one or more files in a branch to their state before a given commit",
+        "tags": ["Git", "Recovery"],
+        "x-gpt-action": {
+          "name": "Rollback Commit",
+          "instructions": "Use this to undo one or more changes in a given commit. Provide the `commit_sha`, `branch`, and `repo_name`. Optionally list specific `paths` to limit rollback scope. Always include their assigned repo_name and branch. Confirm rollback with a clear message",
+          "summary_keywords": ["rollback", "undo", "revert", "commit"]
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["repo_name", "commit_sha", "branch"],
+                "properties": {
+                  "repo_name": {
+                    "type": "string",
+                    "description": "GitHub repo name (e.g., nhl-predictor)"
+                  },
+                  "commit_sha": {
+                    "type": "string",
+                    "description": "The commit to roll back from"
+                  },
+                  "paths": {
+                    "type": "array",
+                    "items": { "type": "string" },
+                    "description": "Optional list of files to revert (if omitted, reverts all)"
+                  },
+                  "reason": {
+                    "type": "string",
+                    "description": "Optional reason to log with the rollback"
+                  },
+                  "branch": {
+                    "type": "string",
+                    "description": "Git branch where rollback should be applied"
+                  }
+                }
+              },
+              "examples": {
+                "revert_all": {
+                  "summary": "Revert entire commit",
+                  "value": {
+                    "repo_name": "nhl-predictor",
+                    "commit_sha": "abc123",
+                    "branch": "sandbox-emerald-wave"
+                  }
+                },
+                "revert_partial": {
+                  "summary": "Revert only specific files",
+                  "value": {
+                    "repo_name": "nhl-predictor",
+                    "commit_sha": "abc123",
+                    "branch": "sandbox-emerald-wave",
+                    "paths": ["project/memory.yaml"],
+                    "reason": "Bad memory update"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Rollback confirmation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": { "type": "string" },
+                    "reverted_files": {
+                      "type": "array",
+                      "items": { "type": "string" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/git/commit": {
+      "post": {
+        "operationId": "commitChanges",
+        "summary": "Commit changes to a GitHub repository",
         "tags": [
           "Git"
         ],
         "x-gpt-action": {
-          "name": "Rollback Commit",
-          "instructions": "Use this to revert files to a previous commit version. Use with caution. Log a reason for rollback.",
+          "name": "Commit Changes",
+          "instructions": "Use this to commit changes to a GitHub repository. Provide `repo_name`, `branch`, and `message`. Optionally include `paths` to specify files to commit.",
           "summary_keywords": [
-            "git",
-            "rollback",
-            "commit"
+            "commit",
+            "changes",
+            "git"
           ]
         },
         "requestBody": {
@@ -450,31 +535,29 @@
                 "type": "object",
                 "required": [
                   "repo_name",
-                  "commit_sha"
+                  "message"
                 ],
                 "properties": {
                   "repo_name": {
                     "type": "string",
-                    "description": "The name of the GitHub repository (e.g. nhl-predictor)"
+                    "description": "GitHub repository name (e.g., nhl-predictor)"
                   },
                   "branch": {
                     "type": "string",
-                    "description": "Git branch to rollback (default is 'main')"
+                    "description": "Git branch to commit to (default is 'main')"
                   },
-                  "commit_sha": {
+                  "message": {
                     "type": "string",
-                    "description": "The SHA of the commit to rollback from.\n\nHow to find it:\n- Use `git log` locally, or\n- Visit the GitHub repo ➜ Commits tab ➜ Copy the commit hash\n- Or call the `/git/list_commits` tool (if available)"
+                    "description": "Commit message"
                   },
                   "paths": {
-                    "type": "array",
-                    "items": {
-                      "type": "string"
-                    },
-                    "description": "Optional list of file paths to revert. If omitted, all files from the commit will be reverted."
-                  },
-                  "reason": {
-                    "type": "string",
-                    "description": "Why the rollback is being performed (e.g., accidental overwrite, failed auto-index, etc.)"
+                    "type": [
+                      "array",
+                      {
+                        "$ref": "#/components/schemas/FilePath"
+                      }
+                    ],
+                    "$ref": "#/components/schemas/FilePath"
                   }
                 }
               }
@@ -483,25 +566,7 @@
         },
         "responses": {
           "200": {
-            "description": "Rollback result",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    },
-                    "reverted_files": {
-                      "type": "array",
-                      "items": {
-                        "type": "string"
-                      }
-                    }
-                  }
-                }
-              }
-            }
+            "$ref": "#/components/responses/CommitResponse"
           }
         }
       }
