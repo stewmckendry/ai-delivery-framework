@@ -1,0 +1,5 @@
+- timestamp: '2025-05-02T03:51:12.119856'
+  path: .logs/issues/framework.yaml
+  task_id: null
+  committed_by: GPTPod
+  message: Log <class 'type'> in framework scope
