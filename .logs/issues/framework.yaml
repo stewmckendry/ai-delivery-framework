@@ -1,14 +1,14 @@
 - type: !!python/name:builtins.type ''
   scope: framework
   task_id: null
-  title: Memory add fails silently if file not present in GitHub
-  detail: When using /memory/manage with action=add, the tool returns 200 OK even
-    if the target file does not exist in GitHub, leading to downstream failures (update/remove
-    fail due to missing entry).
+  title: Memory index returns misleading message
+  detail: /memory/manage with action=index reports 'Memory indexed with X entries'
+    regardless of change. In our case, it said 38 entries even though no files existed
+    in the specified path.
   suggested_fix: null
   tags:
   - memory
-  - validation
-  - error-handling
+  - usability
+  - indexing
   status: open
-  timestamp: '2025-05-02T03:56:52.531001'
+  timestamp: '2025-05-02T03:56:59.547287'
