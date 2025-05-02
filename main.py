@@ -537,30 +537,50 @@ async def root():
 
 # ---- GitHub File Proxy ----
 
-@app.post("/getFile")
-async def get_file(repo_name: str = Body(...), path: str = Body(...), ref: Optional[str] = Body(None)):
+@app.post("/system/fetch_files")
+async def fetch_files(payload: dict = Body(...)):
+    mode = payload.get("mode")
+    repo_name = payload.get("repo_name")
+
+    if not mode or not repo_name:
+        raise HTTPException(status_code=400, detail="'mode' and 'repo_name' are required")
+
+    if mode == "single":
+        return await handle_get_file(
+            repo_name=repo_name,
+            path=payload.get("path")
+        )
+    elif mode == "batch":
+        return await handle_batch_files(
+            repo_name=repo_name,
+            paths=payload.get("paths")
+        )
+
+    raise HTTPException(status_code=400, detail=f"Unsupported mode: {mode}")
+
+async def handle_get_file(repo_name: str, path: str):
+    """Fetch the contents of a single file from GitHub."""
     try:
         repo = get_repo(repo_name)
-        file = repo.get_contents(path, ref or GITHUB_BRANCH)
+        file = repo.get_contents(path)
         content = file.decoded_content.decode()
         return {
             "path": file.path,
             "sha": file.sha,
-            "content": content,
-            "ref": ref or GITHUB_BRANCH
+            "content": content
         }
     except Exception as e:
         raise HTTPException(status_code=404, detail=str(e))
 
 
-@app.post("/batch-files")
-async def get_batch_files(repo_name: str = Body(...), paths: List[str] = Body(...), ref: Optional[str] = Body(GITHUB_BRANCH)):
+async def handle_batch_files(repo_name: str, paths: List[str]):
+    """Fetch contents of multiple files from GitHub."""
     try:
         repo = get_repo(repo_name)
         results = []
         for path in paths:
             try:
-                file = repo.get_contents(path, ref=ref)
+                file = repo.get_contents(path)
                 results.append({
                     "path": path,
                     "content": base64.b64decode(file.content).decode("utf-8")
@@ -1752,9 +1772,28 @@ async def commit_and_log_output(
     except Exception as e:
         return JSONResponse(status_code=500, content={"detail": f"Commit failed: {str(e)}"})
 
+@app.post("/system/changelog")
+async def manage_changelog(payload: dict = Body(...)):
+    action = payload.get("action")
+    repo_name = payload.get("repo_name")
 
-@app.post("/audit/validate_changelog")
-async def validate_changelog(repo_name: str = Body(...), dry_run: bool = Body(default=False)):
+    if not action or not repo_name:
+        raise HTTPException(status_code=400, detail="'action' and 'repo_name' are required")
+
+    if action == "validate":
+        return await handle_validate_changelog(repo_name=repo_name, dry_run=payload.get("dry_run", False))
+    elif action == "update":
+        return await handle_update_changelog(
+            repo_name=repo_name,
+            task_id=payload.get("task_id"),
+            changelog_message=payload.get("changelog_message")
+        )
+
+    raise HTTPException(status_code=400, detail=f"Unsupported action: {action}")
+
+
+async def handle_validate_changelog(repo_name: str, dry_run: bool):
+    """Validate and optionally backfill missing changelog entries."""
     try:
         repo = get_repo(repo_name)
         task_file = repo.get_contents("project/task.yaml")
@@ -1805,12 +1844,8 @@ async def validate_changelog(repo_name: str = Body(...), dry_run: bool = Body(de
         return JSONResponse(status_code=500, content={"detail": f"Validation error: {str(e)}"})
 
 
-@app.post("/tasks/update_changelog/{task_id}")
-async def update_changelog(
-    task_id: str,
-    repo_name: str = Body(...),
-    changelog_message: str = Body(...)
-):
+async def handle_update_changelog(repo_name: str, task_id: str, changelog_message: str):
+    """Add an entry to the project changelog for a specific task."""
     try:
         github_client = Github(GITHUB_TOKEN)
         repo = github_client.get_repo(f"stewmckendry/{repo_name}")
@@ -2269,8 +2304,25 @@ def handle_get_memory_stats(repo_name: str) -> dict:
 
 # ---- Metrics ----
 
-@app.get("/metrics/summary")
-def get_metrics_summary(repo_name: str = Query(...)):
+@app.post("/system/metrics")
+async def fetch_metrics(payload: dict = Body(...)):
+    mode = payload.get("mode")
+    repo_name = payload.get("repo_name")
+    format = payload.get("format", "json")
+
+    if not mode or not repo_name:
+        raise HTTPException(status_code=400, detail="'mode' and 'repo_name' are required")
+
+    if mode == "summary":
+        return await handle_metrics_summary(repo_name=repo_name)
+    elif mode == "export":
+        return await handle_metrics_export(repo_name=repo_name, format=format)
+
+    raise HTTPException(status_code=400, detail=f"Unsupported mode: {mode}")
+
+
+async def handle_metrics_summary(repo_name: str):
+    """Return high-level metrics summary for reasoning and delivery."""
     summary = generate_metrics_summary(repo_name)
     reasoning_summary = generate_project_reasoning_summary(repo_name)
     summary["reasoning_summary"] = reasoning_summary
@@ -2291,8 +2343,8 @@ def get_metrics_summary(repo_name: str = Query(...)):
 
     return summary
 
-@app.get("/metrics/export")
-def export_metrics(repo_name: str = Query(...)):
+async def handle_metrics_export(repo_name: str, format: str):
+    """Export full metrics report in requested format."""
     trace_paths = list_files_from_github(repo_name, REASONING_FOLDER_PATH)
     exported = []
 

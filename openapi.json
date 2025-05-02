@@ -27,22 +27,15 @@
     "schemas": {}
   },
   "paths": {
-    "/getFile": {
+    "/system/metrics": {
       "post": {
-        "operationId": "getFile",
-        "summary": "Fetch file from GitHub repo (optionally by branch or ref)",
-        "tags": [
-          "GitHub Files"
-        ],
+        "operationId": "getSystemMetrics",
+        "summary": "Retrieve metrics summary or export full report",
+        "tags": ["System", "Metrics"],
         "x-gpt-action": {
-          "name": "Fetch Single GitHub File",
-          "instructions": "Use this to fetch a single file from a GitHub repo. Specify the repo name and file path.",
-          "summary_keywords": [
-            "GitHub",
-            "file",
-            "fetch",
-            "repo"
-          ]
+          "name": "Fetch Delivery or Reasoning Metrics",
+          "instructions": "Use this to get delivery or reasoning metrics. Choose mode: `summary` for aggregated stats, `export` for raw task-level data.",
+          "summary_keywords": ["metrics", "summary", "export", "delivery", "reasoning"]
         },
         "requestBody": {
           "required": true,
@@ -50,20 +43,38 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": [
-                  "repo_name",
-                  "path"
-                ],
+                "required": ["repo_name", "mode"],
                 "properties": {
                   "repo_name": {
-                    "type": "string"
-                  },
-                  "path": {
-                    "type": "string"
-                  },
-                  "ref": {
                     "type": "string",
-                    "description": "Optional Git ref (branch, tag, or commit SHA)"
+                    "description": "Repo name containing task outputs"
+                  },
+                  "mode": {
+                    "type": "string",
+                    "enum": ["summary", "export"],
+                    "description": "Whether to return a summary or full export"
+                  },
+                  "format": {
+                    "type": "string",
+                    "enum": ["json", "csv"],
+                    "description": "Format of export (optional, default is JSON)"
+                  }
+                },
+                "examples": {
+                  "summary": {
+                    "summary": "Get delivery reasoning summary",
+                    "value": {
+                      "repo_name": "ai-delivery-framework",
+                      "mode": "summary"
+                    }
+                  },
+                  "export_csv": {
+                    "summary": "Export reasoning metrics as CSV",
+                    "value": {
+                      "repo_name": "ai-delivery-framework",
+                      "mode": "export",
+                      "format": "csv"
+                    }
                   }
                 }
               }
@@ -72,188 +83,12 @@
         },
         "responses": {
           "200": {
-            "description": "GitHub file response",
+            "description": "Returns metrics summary or full report",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": {
-                    "path": {
-                      "type": "string"
-                    },
-                    "sha": {
-                      "type": "string"
-                    },
-                    "content": {
-                      "type": "string"
-                    },
-                    "ref": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/batch-files": {
-      "post": {
-        "operationId": "getBatchFiles",
-        "summary": "Fetch multiple GitHub files via body input",
-        "tags": [
-          "GitHub Files"
-        ],
-        "x-gpt-action": {
-          "name": "Fetch Multiple GitHub Files",
-          "instructions": "Provide a list of file paths to fetch from the GitHub repo.",
-          "summary_keywords": [
-            "GitHub",
-            "files",
-            "fetch",
-            "batch",
-            "multiple files"
-          ]
-        },
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "repo_name",
-                  "paths"
-                ],
-                "properties": {
-                  "repo_name": {
-                    "type": "string"
-                  },
-                  "paths": {
-                    "type": "array",
-                    "items": {
-                      "type": "string"
-                    }
-                  },
-                  "ref": {
-                    "type": "string"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "File results",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "files": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "path": {
-                            "type": "string"
-                          },
-                          "content": {
-                            "type": "string"
-                          },
-                          "error": {
-                            "type": "string"
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/tasks/activate": {
-      "post": {
-        "operationId": "activateTask",
-        "summary": "Activate one or more tasks by updating their status to planned",
-        "tags": [
-          "Tasks"
-        ],
-        "x-gpt-action": {
-          "name": "Activate Tasks",
-          "instructions": "Use this to activate tasks by updating their status to 'planned'.",
-          "summary_keywords": [
-            "task",
-            "activate",
-            "planned"
-          ]
-        },
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "repo_name",
-                  "task_id"
-                ],
-                "properties": {
-                  "repo_name": {
-                    "type": "string"
-                  },
-                  "task_id": {
-                    "oneOf": [
-                      {
-                        "type": "string"
-                      },
-                      {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        }
-                      }
-                    ]
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Tasks successfully activated",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    },
-                    "planned_tasks": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "task_id": {
-                            "type": "string"
-                          },
-                          "pod_owner": {
-                            "type": "string"
-                          },
-                          "metadata": {
-                            "type": "object"
-                          }
-                        }
-                      }
-                    }
-                  }
+                  "additionalProperties": true
                 }
               }
             }
@@ -325,21 +160,15 @@
         }
       }
     },
-    "/metrics/summary": {
+    "/system/fetch_files": {
       "post": {
-        "operationId": "getMetricsSummary",
-        "summary": "Fetch the current project delivery and reasoning metrics summary",
-        "tags": [
-          "Metrics"
-        ],
+        "operationId": "fetchFiles",
+        "summary": "Fetch one or more files from a GitHub repo",
+        "tags": ["System", "Files"],
         "x-gpt-action": {
-          "name": "Get Delivery Metrics Summary",
-          "instructions": "Retrieve a summary of delivery and reasoning metrics. Includes completion %, cycle time, and AI thinking insights.",
-          "summary_keywords": [
-            "metrics",
-            "summary",
-            "delivery"
-          ]
+          "name": "Fetch Files from Repo",
+          "instructions": "Use this to retrieve one or more files. Set `mode` to `single` or `batch`. Provide `path` for single or `paths` array for batch.",
+          "summary_keywords": ["fetch", "file", "github", "repo"]
         },
         "requestBody": {
           "required": true,
@@ -347,12 +176,46 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": [
-                  "repo_name"
-                ],
+                "required": ["repo_name", "mode"],
                 "properties": {
+                  "mode": {
+                    "type": "string",
+                    "enum": ["single", "batch"],
+                    "description": "Whether to fetch a single file or a list"
+                  },
                   "repo_name": {
-                    "type": "string"
+                    "type": "string",
+                    "description": "GitHub repo name (e.g., ai-delivery-framework)"
+                  },
+                  "path": {
+                    "type": "string",
+                    "description": "Path to a single file (required for mode=single)"
+                  },
+                  "paths": {
+                    "type": "array",
+                    "items": { "type": "string" },
+                    "description": "List of file paths (required for mode=batch)"
+                  }
+                },
+                "examples": {
+                  "single": {
+                    "summary": "Get a single file",
+                    "value": {
+                      "mode": "single",
+                      "repo_name": "ai-delivery-framework",
+                      "path": "framework/prompt_template.md"
+                    }
+                  },
+                  "batch": {
+                    "summary": "Fetch multiple files",
+                    "value": {
+                      "mode": "batch",
+                      "repo_name": "ai-delivery-framework",
+                      "paths": [
+                        "project/task.yaml",
+                        "project/memory.yaml"
+                      ]
+                    }
                   }
                 }
               }
@@ -361,83 +224,12 @@
         },
         "responses": {
           "200": {
-            "description": "Metrics summary retrieved successfully",
-            "content": {
-              "application/json": {
-                "example": {
-                  "timestamp": "2025-04-30T12:00:00Z",
-                  "quantitative": {
-                    "total_tasks": 20,
-                    "completed_tasks": 15,
-                    "completion_rate_percent": 75.0,
-                    "average_cycle_time_days": 2.1,
-                    "patch_success_rate_percent": null
-                  },
-                  "qualitative": {
-                    "average_thought_quality_score": 4.2,
-                    "recall_usage_percent": 65.0,
-                    "novelty_rate_percent": 80.0
-                  },
-                  "reasoning_summary": "Summary of the project’s AI thinking patterns and insights."
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/metrics/export": {
-      "post": {
-        "operationId": "exportReasoningMetrics",
-        "summary": "Export raw reasoning_trace.yaml logs across tasks",
-        "tags": [
-          "Metrics"
-        ],
-        "x-gpt-action": {
-          "name": "Export Reasoning Logs",
-          "instructions": "Export full reasoning_trace logs for all completed tasks in the project.",
-          "summary_keywords": [
-            "metrics",
-            "export",
-            "reasoning"
-          ]
-        },
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "repo_name"
-                ],
-                "properties": {
-                  "repo_name": {
-                    "type": "string"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Consolidated raw reasoning logs",
+            "description": "Returned file content(s)",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": {
-                    "entries": {
-                      "type": "array",
-                      "items": {
-                        "type": "object"
-                      }
-                    },
-                    "count": {
-                      "type": "integer"
-                    }
-                  }
+                  "additionalProperties": true
                 }
               }
             }
@@ -508,76 +300,6 @@
           },
           "400": {
             "description": "Framework folder missing"
-          }
-        }
-      }
-    },
-    "/tasks/update_changelog/{task_id}": {
-      "post": {
-        "operationId": "updateChangelog",
-        "summary": "Update project CHANGELOG with a new task entry",
-        "tags": [
-          "Tasks"
-        ],
-        "x-gpt-action": {
-          "name": "Update Changelog",
-          "instructions": "Use this to add a new entry to the project's CHANGELOG file.",
-          "summary_keywords": [
-            "changelog",
-            "update",
-            "task"
-          ]
-        },
-        "parameters": [
-          {
-            "name": "task_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "repo_name",
-                  "changelog_message"
-                ],
-                "properties": {
-                  "repo_name": {
-                    "type": "string"
-                  },
-                  "changelog_message": {
-                    "type": "string"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Changelog updated",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal server error"
           }
         }
       }
@@ -658,84 +380,6 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/audit/validate_changelog": {
-      "post": {
-        "summary": "Validate and optionally backfill changelog entries for completed tasks",
-        "operationId": "validateChangelog",
-        "tags": [
-          "Audit"
-        ],
-        "x-gpt-action": {
-          "name": "Validate Changelog Entries",
-          "instructions": "Use this to validate and optionally backfill changelog entries for completed tasks.",
-          "summary_keywords": [
-            "changelog",
-            "validate",
-            "backfill"
-          ]
-        },
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "repo_name"
-                ],
-                "properties": {
-                  "repo_name": {
-                    "type": "string"
-                  },
-                  "dry_run": {
-                    "type": "boolean",
-                    "default": false
-                  }
-                },
-                "example": {
-                  "repo_name": "nhl-predictor",
-                  "dry_run": true
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Changelog validation result",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "missing_changelog_entries": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "task_id": {
-                            "type": "string"
-                          },
-                          "path": {
-                            "type": "string"
-                          }
-                        }
-                      }
-                    },
-                    "total_missing": {
-                      "type": "integer"
-                    },
                     "message": {
                       "type": "string"
                     }
@@ -1454,7 +1098,7 @@
     "/tasks/lifecycle": {
       "post": {
         "operationId": "manageTaskLifecycle",
-        "summary": "Manage task lifecycle: start, complete, reopen, next, scale out, or create",
+        "summary": "Manage task lifecycle: activate, start, complete, reopen, next, scale out, or create",
         "tags": [
           "Tasks"
         ],
@@ -2415,6 +2059,99 @@
                   },
                   "example": {
                     "detail": "Entry with issue_id 'abc123' not found."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+   "/system/changelog": {
+      "post": {
+        "operationId": "manageChangelog",
+        "summary": "Validate or update the project changelog",
+        "tags": ["System", "Changelog"],
+        "x-gpt-action": {
+          "name": "Manage Changelog",
+          "instructions": "Use this to validate changelog completeness or to add an entry for a completed task. Use `action=validate` to check for missing entries, and `action=update` to add a new one.",
+          "summary_keywords": ["changelog", "update", "validate"]
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["repo_name", "action"],
+                "properties": {
+                  "action": {
+                    "type": "string",
+                    "enum": ["validate", "update"],
+                    "description": "What to do: validate changelog completeness or add a task-specific entry"
+                  },
+                  "repo_name": {
+                    "type": "string",
+                    "description": "GitHub repo where the changelog is tracked"
+                  },
+                  "dry_run": {
+                    "type": "boolean",
+                    "description": "If true, performs validation without writing changes (only applies to action=validate)"
+                  },
+                  "task_id": {
+                    "type": "string",
+                    "description": "Task ID being added to the changelog (only for action=update)"
+                  },
+                  "changelog_message": {
+                    "type": "string",
+                    "description": "New entry text to be appended to the changelog (only for action=update)"
+                  }
+                },
+                "examples": {
+                  "validate": {
+                    "summary": "Dry run changelog validation",
+                    "value": {
+                      "action": "validate",
+                      "repo_name": "ai-delivery-framework",
+                      "dry_run": true
+                    }
+                  },
+                  "update": {
+                    "summary": "Add a changelog entry",
+                    "value": {
+                      "action": "update",
+                      "repo_name": "ai-delivery-framework",
+                      "task_id": "2.2_build_and_patch",
+                      "changelog_message": "Added tracing logic and error handling to GitHub push"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success message and details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing or invalid input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "detail": {
+                      "type": "string"
+                    }
                   }
                 }
               }
