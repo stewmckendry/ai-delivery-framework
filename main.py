@@ -174,17 +174,25 @@ def describe_file_for_memory(path, content):
     try:
         prompt = f"""
 You are helping index files in an AI-native delivery repository.
+
 Given the following file content from `{path}`, generate:
 1. A short description of what this file contains
 2. A list of 2–4 relevant tags (e.g. 'prompt', 'flow', 'model', 'config')
 3. The pod likely to own or use this file (choose between DevPod, QAPod, ResearchPod, DeliveryPod, or leave blank)
 
+Respond ONLY with a YAML object with these exact fields: `description`, `tags` (list), and `pod_owner`. Do not include explanations or formatting like ```yaml.
+
+Example output:
+description: Script to validate all test cases in the /qa folder and report diffs
+tags: [qa, validation, flow]
+pod_owner: QAPod
+
+Now, analyze this file:
+
 File content:
 ---
 {content[:3000]}
 ---
-
-Respond with a YAML object with fields: description, tags (list), and pod_owner.
 """
         response = openai.chat.completions.create(
             model="gpt-4o",
@@ -1904,7 +1912,7 @@ async def fetch_next_linked_task(
 
 
 @app.post("/memory/manage")
-async def manage_memory(payload: dict = Body(...)):
+async def manage_memory(background_tasks: BackgroundTasks, payload: dict = Body(...)):
     action = payload.get("action")
     if not action:
         raise HTTPException(status_code=400, detail="Missing 'action' field.")
@@ -1912,7 +1920,8 @@ async def manage_memory(payload: dict = Body(...)):
     if action == "add":
         return await handle_add_to_memory(payload)
     elif action == "index":
-        return await handle_index_memory(payload)
+        background_tasks.add_task(handle_index_memory, payload)
+        return {"message": "Indexing started in the background.  Check memory index on GitHub in /project/memory.yaml for updates."}
     elif action == "diff":
         return await handle_diff_memory_files(payload)
     elif action == "validate":
@@ -1972,7 +1981,7 @@ async def manage_memory_entry(payload: dict = Body(...)):
 
     raise HTTPException(status_code=400, detail=f"Unsupported action: {action}")
 
-async def handle_index_memory(payload: dict) -> dict:
+def handle_index_memory(payload: dict) -> dict:
     """Index new files in specified base paths into memory.yaml."""
     repo_name = payload.get("repo_name")
     base_paths = payload.get("base_paths")
@@ -1990,8 +1999,10 @@ async def handle_index_memory(payload: dict) -> dict:
 
         memory_paths = set(entry.get("path") for entry in memory)
         base_paths = base_paths or []
+        new_entries_count = 0  # Counter for new entries
 
         def recurse_files(path):
+            nonlocal new_entries_count
             entries = repo.get_contents(path)
             if not isinstance(entries, list):
                 entries = [entries]
@@ -2014,6 +2025,7 @@ async def handle_index_memory(payload: dict) -> dict:
                             "last_updated": datetime.utcnow().date().isoformat(),
                             "pod_owner": meta["pod_owner"]
                         })
+                        new_entries_count += 1
                     else:
                         for existing in memory:
                             if existing.get("path") == file_path:
@@ -2036,7 +2048,7 @@ async def handle_index_memory(payload: dict) -> dict:
         memory_content = yaml.dump(memory, sort_keys=False)
         commit_and_log(repo, memory_path, memory_content, f"Indexed {len(memory)} memory entries", task_id="memory_index", committed_by="memory_indexer")
 
-        return {"message": f"Memory indexed with {len(memory)} entries."}
+        return {"message": f"Memory indexed with {len(memory)} entries, including {new_entries_count} new entries."}
     except Exception as e:
         return JSONResponse(status_code=500, content={"detail": str(e)})
 
