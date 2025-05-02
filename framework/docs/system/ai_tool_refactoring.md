@@ -383,3 +383,341 @@ Consolidate memory query tools into a single discoverable and extendable endpoin
 - Update OpenAPI schema with x-gpt-action per mode
 - Return consistent JSON structures with mode-specific fields
 
+---
+
+# 🧠 Batch 3: Impact Assessment — `/memory/manage_entry`
+
+## 🎯 Objective
+Consolidate the following memory entry modification routes into a single endpoint:
+
+| Original Route           | New Action | Function Name         |
+|--------------------------|------------|------------------------|
+| `/memory/update_entry`   | `update`   | `handle_update_entry` |
+| `/memory/remove`         | `remove`   | `handle_remove_entry` |
+
+---
+
+## 🧩 Field Comparison
+
+| Field       | `update_entry` | `remove` | Common? | Notes                            |
+|-------------|----------------|----------|---------|----------------------------------|
+| `repo_name` | ✅              | ✅        | ✅       | Always required                  |
+| `path`      | ✅              | ✅        | ✅       | Path of the file to modify       |
+| `description` | ✅            | ❌        | ✴️       | Optional — only for update       |
+| `tags`      | ✅              | ❌        | ✴️       | Optional — only for update       |
+| `pod_owner` | ✅              | ❌        | ✴️       | Optional — only for update       |
+
+---
+
+## 📌 Endpoint Design
+
+- **Route:** `POST /memory/manage_entry`
+- **Param:** `action` with enum: `update` | `remove`
+- **Behavior:** 
+  - `update`: modifies metadata fields of a given path
+  - `remove`: deletes the entry from memory.yaml
+
+---
+
+## ✅ Benefits
+
+- Simplifies the API surface
+- Ensures consistent schema and validation logic
+- Enhances GPT tool discoverability through unified `x-gpt-action` blocks
+
+---
+
+🧠 **`/tasks/` Consolidation Plan**
+
+We’ll group routes by functional intent, preserving discoverability with `action` or `mode` where needed.  
+The goal is to reduce from ~25 routes to ~6–8 multi-mode endpoints.
+
+---
+
+✅ **Group 1: `/tasks/manage_metadata` (Batch 4A)**  
+**Original Route** | **Action**  
+--- | ---  
+`/tasks/update_metadata` | `update_metadata`  
+`/tasks/update_changelog/{task_id}` | `update_changelog`  
+`/tasks/clone` | `clone`  
+
+**New endpoint**: `/tasks/manage_metadata`  
+**Param**: `action` (string), plus `task_id` in body  
+
+---
+
+✅ **Group 2: `/tasks/lifecycle`**  
+**Original Route** | **Action**  
+--- | ---  
+`/tasks/start` | `start`  
+`/tasks/complete` | `complete`  
+`/tasks/reopen` | `reopen`  
+`/tasks/next` | `next`  
+`/tasks/create` | `create`  
+`/tasks/scale_out` | `scale_out`  
+
+**New endpoint**: `/tasks/lifecycle`  
+**Param**: `action` (string), possibly with `task_id`  
+
+---
+
+✅ **Group 3: `/tasks/handoff`**  
+**Original Route** | **Action**  
+--- | ---  
+`/tasks/append_handoff_note/{task_id}` | `append`  
+`/tasks/fetch_handoff_note` | `fetch`  
+`/tasks/auto_generate_handoff/{task_id}` | `generate_auto`  
+`/tasks/auto_handoff` | `execute_auto`  
+
+**New endpoint**: `/tasks/handoff`  
+**Param**: `action` (string), `task_id` in body  
+
+---
+
+✅ **Group 4: `/tasks/chain_of_thought`**  
+**Original Route** | **Action**  
+--- | ---  
+`/tasks/append_chain_of_thought` | `append`  
+`/tasks/fetch_chain_of_thought` | `fetch`  
+
+**New endpoint**: `/tasks/chain_of_thought`  
+**Param**: `action` (string)  
+
+---
+
+✅ **Group 5: `/tasks/reasoning`**  
+**Original Route** | **Action**  
+--- | ---  
+`/tasks/fetch_reasoning_trace` | `trace`  
+`/tasks/reasoning_summary` | `summary`  
+
+**New endpoint**: `/tasks/reasoning`  
+**Param**: `action` (string)  
+
+---
+
+✅ **Group 6: `/tasks/query`**  
+**Original Route** | **Mode / ID**  
+--- | ---  
+`/tasks/list` | `list`  
+`/tasks/list_phases` | `list_phases`  
+`/tasks/graph` | `graph`  
+`/tasks/dependencies/{task_id}` | `dependencies`  
+`/tasks/{task_id}` | `get_details`  
+
+**New endpoint**: `/tasks/query`  
+**Param**: `mode` (string), task-specific actions go in body  
+
+---
+
+✅ **Group 7: `/tasks/artifacts`**  
+**Original Route** | **Notes**  
+--- | ---  
+`/tasks/artifacts/{task_id}` | Standalone  
+
+This could remain standalone or be bundled into `/tasks/query` as `mode=artifacts`.
+
+---
+
+🧭 **Summary Table**
+
+**New Endpoint** | **Param Key** | **Routes Merged**  
+--- | --- | ---  
+`/tasks/manage_metadata` | `action` | `update_metadata`, `update_changelog`, `clone`  
+`/tasks/lifecycle` | `action` | `start`, `complete`, `reopen`, `next`, `create`, `scale_out`  
+`/tasks/handoff` | `action` | `append_handoff_note`, `fetch_handoff_note`, `auto_generate_handoff`, `auto_handoff`  
+`/tasks/chain_of_thought` | `action` | `append_chain_of_thought`, `fetch_chain_of_thought`  
+`/tasks/reasoning` | `action` | `fetch_reasoning_trace`, `reasoning_summary`  
+`/tasks/query` | `mode` | `list`, `list_phases`, `graph`, `dependencies`, `task_id`, *(optional: artifacts)*  
+
+---
+
+🧠 **Revised Batch 4A: `/tasks/manage_metadata`**
+
+🎯 **Consolidates:**
+
+**Original Route** | **Action**  
+--- | ---  
+`/tasks/update_metadata` | `update_metadata`  
+`/tasks/clone` | `clone`  
+
+---
+
+🧠 **Batch 4B: Impact Assessment — `/tasks/lifecycle`**
+
+🎯 **Goal**  
+Unify the following into a single `action`-based route for task lifecycle transitions:
+
+**Original Route** | **Action** | **Summary**  
+--- | --- | ---  
+`/tasks/start` | `start` | Mark task in progress + log prompt  
+`/tasks/complete` | `complete` | Mark done, log outputs & trace  
+`/tasks/reopen` | `reopen` | Undo completion, restart task  
+`/tasks/next` | `next` | Suggest next available task  
+`/tasks/scale_out` | `scale_out` | Fork current task into new one  
+
+---
+
+🧩 **Payload Comparison (by action)**
+
+| **Field**         | **start** | **complete** | **reopen** | **next** | **scale_out** | **Notes**                                  |
+|-------------------|-----------|--------------|------------|----------|----------------|---------------------------------------------|
+| `repo_name`       | ✅        | ✅           | ✅         | ✅       | ✅             | Required for all                            |
+| `task_id`         | ✅        | ✅           | ✅         | ❌       | ✅             | Required for all but `next`                 |
+| `prompt_used`     | ✅        | ❌           | ❌         | ❌       | ❌             | Required only for `start`                   |
+| `outputs`         | ❌        | ✅           | ❌         | ❌       | ❌             | Required for `complete`                     |
+| `reasoning_trace` | ❌        | ✅           | ❌         | ❌       | ❌             | Optional for `complete`                     |
+| `handoff_note`    | ❌        | ✅           | ❌         | ❌       | ✅             | Used by `complete` and `scale_out`          |
+| `reason`          | ❌        | ❌           | ✅         | ❌       | ✅             | Used in `reopen`, `scale_out`               |
+| `pod_owner`       | ❌        | ❌           | ❌         | ✅       | ❌             | Used only for `next`                        |
+
+---
+
+🧠 **Batch 4C: Impact Assessment — `/tasks/handoff`**
+
+🎯 **Goal**  
+Unify the following 4 endpoints into a single multi-action endpoint for task handoffs:
+
+**Original Route** | **Action** | **Summary**  
+--- | --- | ---  
+`/tasks/append_handoff_note/{task_id}` | `append` | Manually append a handoff note to a task  
+`/tasks/fetch_handoff_note` | `fetch` | Retrieve latest upstream handoff note  
+`/tasks/auto_generate_handoff/{task_id}` | `generate_auto` | Auto-generate a handoff note for a task  
+`/tasks/auto_handoff` | `execute_auto` | Automatically log and propagate a full handoff  
+
+---
+
+🧩 **Field Comparison**
+
+| **Field**                  | **append** | **fetch** | **generate_auto** | **execute_auto** | **Notes**                                                  |
+|----------------------------|------------|-----------|-------------------|------------------|-------------------------------------------------------------|
+| `repo_name`                | ✅         | ✅        | ✅                | ✅               | Required for all                                           |
+| `task_id`                  | ✅ (path)  | ✅        | ✅ (path)         | ✅               | Always required                                            |
+| `next_task_id`            | ❌         | ❌        | ❌                | ✅               | For downstream chaining                                    |
+| `handoff_mode`             | ❌         | ❌        | ❌                | ✅               | Used in `execute_auto` to tag sync/async mode              |
+| `from_pod` / `to_pod`      | ✅         | ❌        | *(inferred)*      | ✅               | Manual vs. inferred based on task lineage                  |
+| `token_count`, `next_prompt` | ✅     | ❌        | ❌                | ❌               | Used only in `append` or passed in by GPT                 |
+| `reference_files`, `notes`, `ways_of_working` | ✅ | ❌ | ❌ | ❌ | Enriched metadata captured during manual handoffs          |
+
+---
+
+🚀 **Proposed Design**
+
+**New Route**:  
+`POST /tasks/handoff`  
+**Param**: `"action"` with options:  
+- `"append"` (manual input)  
+- `"fetch"` (lookup from upstream)  
+- `"generate_auto"` (GPT-written)  
+- `"execute_auto"` (auto-log + propagate)  
+
+---
+
+🧠 **Batch 4D: Impact Assessment — `/tasks/chain_of_thought`**
+
+🎯 **Goal**  
+Unify the following two endpoints into a single mode-based route:
+
+**Original Route** | **Action** | **Description**  
+--- | --- | ---  
+`/tasks/append_chain_of_thought` | `append` | Log a message, issue, or lesson  
+`/tasks/fetch_chain_of_thought` | `fetch` | Retrieve all thoughts for a given task  
+
+---
+
+🧩 **Field Comparison**
+
+| **Field**        | **append** | **fetch** | **Notes**                                      |
+|------------------|------------|-----------|------------------------------------------------|
+| `repo_name`      | ✅         | ✅        | Always required                                |
+| `task_id`        | ✅         | ✅        | Always required                                |
+| `message`        | ✅         | ❌        | Required for `append`                          |
+| `tags`           | optional   | ❌        | Optional tagging for `append`                  |
+| `issues`         | optional   | ❌        | List of issues linked to thought               |
+| `lessons`        | optional   | ❌        | Lessons learned                                |
+
+---
+
+🔁 **Recommended API Design**
+
+**New Route**:  
+`POST /tasks/chain_of_thought`  
+
+**Parameter**: `"action"` with values:  
+- `"append"`: add entry to `chain_of_thought.yaml`  
+- `"fetch"`: return all entries for a task  
+
+---
+
+🧠 **Batch 4E: Impact Assessment — `/tasks/reasoning_trace`**
+
+🎯 **Goal**  
+Unify the following reasoning-focused tools under one route:
+
+**Original Route** | **Action** | **Purpose**  
+--- | --- | ---  
+`/tasks/fetch_reasoning_trace` | `fetch` | Get final or full reasoning for a single task  
+`/tasks/reasoning_summary` | `summary` | Generate reasoning quality metrics across all tasks  
+
+---
+
+🧩 **Field Comparison**
+
+| **Field**     | **fetch** | **summary** | **Notes**                          |
+|---------------|-----------|-------------|------------------------------------|
+| `repo_name`   | ✅        | ✅          | Required for both                  |
+| `task_id`     | ✅        | ❌          | Required for `fetch`               |
+| `full`        | ✅        | ❌          | Optional for `fetch`               |
+
+---
+
+🔁 **Recommended API Design**
+
+**New Route**:  
+`POST /tasks/reasoning_trace`  
+
+**Param**: `"action"` with values:  
+- `"fetch"` – get final or full trace for a specific task  
+- `"summary"` – return a quality report across all tasks  
+
+---
+
+🧠 **Batch 6A: Impact Assessment — `/tasks/query`**
+
+🎯 **Goal**  
+Consolidate the following 5 metadata routes into one unified query interface:
+
+**Original Route** | **mode Value** | **Purpose**  
+--- | --- | ---  
+`/tasks/list` | `list` | List tasks (optionally filtered by pod/status/etc.)  
+`/tasks/list_phases` | `list_phases` | List tasks grouped by SDLC phase  
+`/tasks/graph` | `graph` | Task dependency graph (nodes + edges)  
+`/tasks/dependencies/{task}` | `dependencies` | Upstream + downstream dependencies for a task  
+`/tasks/{task}` | `get_details` | Full metadata for a specific task  
+
+---
+
+🔁 **Recommended API Design**
+
+**New Route**:  
+`POST /tasks/query`  
+
+**Required Param**:  
+- `mode`: `list` | `list_phases` | `graph` | `dependencies` | `get_details`  
+
+---
+
+**Input Fields**
+
+| **Field**     | **Type**  | **Used In**               | **Description**                                |
+|---------------|-----------|----------------------------|------------------------------------------------|
+| `mode`        | string    | all                        | Which query to perform (list, graph, etc.)     |
+| `repo_name`   | string    | all                        | GitHub repo to query                           |
+| `task_id`     | string    | `get_details`, `dependencies` | Task to look up if querying specific one    |
+| `status`      | string    | `list`                     | Optional filter (e.g., `in_progress`)          |
+| `pod_owner`   | string    | `list`                     | Optional filter (e.g., `ProductPod`)           |
+| `category`    | string    | `list`                     | Optional filter for category                   |
+
+---
+
+

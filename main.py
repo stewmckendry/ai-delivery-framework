@@ -575,99 +575,368 @@ async def get_batch_files(repo_name: str = Body(...), paths: List[str] = Body(..
         return JSONResponse(status_code=500, content={"detail": str(e)})
 
 # ---- Task Management ----
-@app.get("/tasks/list")
-def list_tasks(
-    status: Optional[str] = Query(None),
-    pod_owner: Optional[str] = Query(None),
-    category: Optional[str] = Query(None)
-):
-    try:
-        task_data = fetch_yaml_from_github(file_path=TASK_FILE_PATH)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error fetching task.yaml: {e}")
 
-    tasks = task_data.get("tasks", {})
-    filtered_tasks = {}
+@app.post("/tasks/manage_metadata")
+async def manage_task_metadata(payload: dict = Body(...)):
+    action = payload.get("action")
+    repo_name = payload.get("repo_name")
 
-    for task_id, task in tasks.items():
-        if status and task.get("status") != status:
-            continue
-        if pod_owner and task.get("pod_owner") != pod_owner:
-            continue
-        if category and task.get("category") != category:
-            continue
-        filtered_tasks[task_id] = task
+    if not action or not repo_name:
+        raise HTTPException(status_code=400, detail="'action' and 'repo_name' are required")
 
-    return {"tasks": filtered_tasks}
+    if action == "update_metadata":
+        return await handle_update_task_metadata(
+            repo_name=repo_name,
+            task_id=payload.get("task_id"),
+            description=payload.get("description"),
+            prompt=payload.get("prompt"),
+            inputs=payload.get("inputs"),
+            outputs=payload.get("outputs"),
+            ready=payload.get("ready"),
+            done=payload.get("done")
+        )
 
-async def list_task_phases(repo_name: str = Query(...)):
-    try:
-        repo = get_repo(repo_name)
-        task_file = repo.get_contents("project/task.yaml")
-        task_data = yaml.safe_load(task_file.decoded_content).get("tasks", {})
+    elif action == "clone":
+        return await handle_clone_task(
+            repo_name=repo_name,
+            original_task_id=payload.get("original_task_id"),
+            descriptor=payload.get("descriptor")
+        )
 
-        phases = {}
-        for task_id, task in task_data.items():
-            if task_id.startswith("0."):
-                continue
-            phase = task.get("phase", "Unspecified Phase")
-            if phase not in phases:
-                phases[phase] = []
-            phases[phase].append({
-                "task_id": task_id,
-                "status": task.get("status"),
-                "pod_owner": task.get("pod_owner"),
-                "description": task.get("description")
-            })
+    raise HTTPException(status_code=400, detail=f"Unsupported action: {action}")
 
-        return {"phases": phases, "total_phases": len(phases)}
+@app.post("/tasks/lifecycle")
+async def manage_task_lifecycle(payload: dict = Body(...)):
+    action = payload.get("action")
+    repo_name = payload.get("repo_name")
 
-    except Exception as e:
-        return JSONResponse(status_code=500, content={"detail": f"Failed to list task phases: {type(e).__name__}: {e}"})
+    if not action or not repo_name:
+        raise HTTPException(status_code=400, detail="'action' and 'repo_name' are required")
 
-@app.post("/tasks/activate")
-async def activate_task(task_id: Union[str, List[str]] = Body(...), repo_name: str = Body(...)):
+    if action == "start":
+        return await handle_start_task(
+            repo_name=repo_name,
+            task_id=payload.get("task_id"),
+            prompt_used=payload.get("prompt_used")
+        )
+
+    elif action == "complete":
+        return await handle_complete_task(
+            repo_name=repo_name,
+            task_id=payload.get("task_id"),
+            outputs=payload.get("outputs"),
+            reasoning_trace=payload.get("reasoning_trace"),
+            handoff_note=payload.get("handoff_note"),
+            handoff_to_same_pod=payload.get("handoff_to_same_pod"),
+            token_count=payload.get("token_count")
+        )
+
+    elif action == "reopen":
+        return await handle_reopen_task(
+            repo_name=repo_name,
+            task_id=payload.get("task_id"),
+            reason=payload.get("reason")
+        )
+
+    elif action == "next":
+        return await handle_next_task(
+            repo_name=repo_name,
+            pod_owner=payload.get("pod_owner")
+        )
+
+    elif action == "scale_out":
+        return await handle_scale_out_task(
+            repo_name=repo_name,
+            task_id=payload.get("task_id"),
+            reason=payload.get("reason"),
+            handoff_note=payload.get("handoff_note")
+        )
+
+    elif action == "create":
+        return await handle_create_task(
+            repo_name=repo_name,
+            phase=payload.get("phase"),
+            task_key=payload.get("task_key"),
+            task_id=payload.get("task_id"),
+            assigned_pod=payload.get("assigned_pod"),
+            prompt_variables=payload.get("prompt_variables")
+        )
+
+    elif action == "activate":
+        return await handle_activate_task(
+            repo_name=repo_name,
+            task_id=payload.get("task_id")
+        )
+
+    raise HTTPException(status_code=400, detail=f"Unsupported action: {action}")
+
+@app.post("/tasks/handoff")
+async def manage_task_handoff(payload: dict = Body(...)):
+    action = payload.get("action")
+    repo_name = payload.get("repo_name")
+
+    if not action or not repo_name:
+        raise HTTPException(status_code=400, detail="'action' and 'repo_name' are required")
+
+    if action == "append":
+        return await handle_append_handoff_note(
+            repo_name=repo_name,
+            task_id=payload.get("task_id"),
+            from_pod=payload.get("from_pod"),
+            to_pod=payload.get("to_pod"),
+            reason=payload.get("reason"),
+            token_count=payload.get("token_count"),
+            next_prompt=payload.get("next_prompt"),
+            reference_files=payload.get("reference_files"),
+            notes=payload.get("notes"),
+            ways_of_working=payload.get("ways_of_working")
+        )
+
+    elif action == "fetch":
+        return await handle_fetch_handoff_note(
+            repo_name=repo_name,
+            task_id=payload.get("task_id")
+        )
+
+    elif action == "generate_auto":
+        return await handle_auto_generate_handoff(
+            repo_name=repo_name,
+            task_id=payload.get("task_id")
+        )
+
+    elif action == "execute_auto":
+        return await handle_auto_handoff(
+            repo_name=repo_name,
+            task_id=payload.get("task_id"),
+            next_task_id=payload.get("next_task_id"),
+            handoff_mode=payload.get("handoff_mode")
+        )
+
+    raise HTTPException(status_code=400, detail=f"Unsupported action: {action}")
+
+@app.post("/tasks/chain_of_thought")
+async def manage_chain_of_thought(payload: dict = Body(...)):
+    action = payload.get("action")
+    repo_name = payload.get("repo_name")
+    task_id = payload.get("task_id")
+
+    if not action or not repo_name or not task_id:
+        raise HTTPException(status_code=400, detail="'action', 'repo_name', and 'task_id' are required")
+
+    if action == "append":
+        return await handle_append_chain_of_thought(
+            repo_name=repo_name,
+            task_id=task_id,
+            message=payload.get("message"),
+            tags=payload.get("tags"),
+            issues=payload.get("issues"),
+            lessons=payload.get("lessons")
+        )
+
+    elif action == "fetch":
+        return await handle_fetch_chain_of_thought(
+            repo_name=repo_name,
+            task_id=task_id
+        )
+
+    raise HTTPException(status_code=400, detail=f"Unsupported action: {action}")
+
+@app.post("/tasks/reasoning_trace")
+async def manage_reasoning_trace(payload: dict = Body(...)):
+    action = payload.get("action")
+    repo_name = payload.get("repo_name")
+
+    if not action or not repo_name:
+        raise HTTPException(status_code=400, detail="'action' and 'repo_name' are required")
+
+    if action == "fetch":
+        return await handle_fetch_reasoning_trace(
+            repo_name=repo_name,
+            task_id=payload.get("task_id"),
+            full=payload.get("full", False)
+        )
+
+    elif action == "summary":
+        return await handle_reasoning_summary(
+            repo_name=repo_name,
+            format=payload.get("format")
+        )
+
+    raise HTTPException(status_code=400, detail=f"Unsupported action: {action}")
+
+@app.post("/tasks/query")
+async def query_tasks(payload: dict = Body(...)):
+    mode = payload.get("mode")
+    repo_name = payload.get("repo_name")
+
+    if not mode or not repo_name:
+        raise HTTPException(status_code=400, detail="'mode' and 'repo_name' are required")
+
+    if mode == "list":
+        return await handle_list_tasks(
+            repo_name=repo_name,
+            status=payload.get("status"),
+            pod_owner=payload.get("pod_owner"),
+            category=payload.get("category")
+        )
+
+    elif mode == "list_phases":
+        return await handle_list_phases(repo_name=repo_name)
+
+    elif mode == "graph":
+        return await handle_task_graph(repo_name=repo_name)
+
+    elif mode == "dependencies":
+        return await handle_task_dependencies(
+            repo_name=repo_name,
+            task_id=payload.get("task_id")
+        )
+
+    elif mode == "get_details":
+        return await handle_get_task_details(
+            repo_name=repo_name,
+            task_id=payload.get("task_id")
+        )
+
+    raise HTTPException(status_code=400, detail=f"Unsupported mode: {mode}")
+
+@app.get("/tasks/artifacts/{task_id}")
+async def get_task_artifacts(task_id: str, repo_name: str = Query(...)):
     try:
         repo = get_repo(repo_name)
         task_path = "project/task.yaml"
+        output_dir = f"project/outputs/{task_id}"
+
         task_file = repo.get_contents(task_path)
         task_data = yaml.safe_load(task_file.decoded_content)
+        task = task_data.get("tasks", {}).get(task_id)
+        if not task:
+            raise HTTPException(status_code=404, detail="Task not found")
 
-        if isinstance(task_id, str):
-            task_ids = [task_id]
-        else:
-            task_ids = task_id
+        # Load prompt
+        prompt_path = f"{output_dir}/prompt_used.txt"
+        try:
+            prompt = repo.get_contents(prompt_path).decoded_content.decode("utf-8")
+        except:
+            prompt = None
 
-        planned_tasks = {}
-        for t_id in task_ids:
-            if t_id not in task_data.get("tasks", {}):
-                raise HTTPException(status_code=400, detail=f"Task {t_id} not found in task.yaml.")
-            task_data["tasks"][t_id]["status"] = "planned"
-            planned_tasks[t_id] = task_data["tasks"][t_id]
+        # Load outputs
+        outputs = {}
+        for path in task.get("outputs", []):
+            try:
+                outputs[path] = repo.get_contents(path).decoded_content.decode("utf-8")
+            except:
+                outputs[path] = None
 
-        pod_owner = get_pod_owner(repo, task_id)
-        commit_and_log(repo, task_path, yaml.dump(task_data), f"Planned tasks {task_ids}", task_id=task_id, committed_by=pod_owner)
+        # Load chain of thought
+        try:
+            cot_path = f"{output_dir}/chain_of_thought.yaml"
+            cot_data = repo.get_contents(cot_path)
+            chain_of_thought = yaml.safe_load(cot_data.decoded_content)
+        except:
+            chain_of_thought = []
 
-        response = {
-            "message": f"Tasks {task_ids} successfully planned.",
-            "planned_tasks": [
-                {
-                    "task_id": t_id,
-                    "pod_owner": planned_tasks[t_id].get("pod_owner"),
-                    "metadata": planned_tasks[t_id]
-                } for t_id in task_ids
-            ]
+        # Load reasoning trace
+        try:
+            rt_path = f"{output_dir}/reasoning_trace.yaml"
+            rt_data = repo.get_contents(rt_path)
+            reasoning_trace = yaml.safe_load(rt_data.decoded_content)
+        except:
+            reasoning_trace = {}
+
+        # Load handoff notes
+        try:
+            hn_path = f"{output_dir}/handoff_notes.yaml"
+            hn_data = repo.get_contents(hn_path)
+            handoff_notes = yaml.safe_load(hn_data.decoded_content).get("handoffs", [])
+        except:
+            handoff_notes = []
+
+        return {
+            "prompt": prompt,
+            "outputs": outputs,
+            "chain_of_thought": chain_of_thought,
+            "reasoning_trace": reasoning_trace,
+            "handoff_notes": handoff_notes
         }
 
-        return response
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"detail": f"Failed to load artifacts for task {task_id}: {type(e).__name__}: {e}"})
+
+
+async def handle_update_task_metadata(
+    repo_name: str,
+    task_id: str,
+    description: Optional[str] = None,
+    prompt: Optional[str] = None,
+    inputs: Optional[List[str]] = None,
+    outputs: Optional[List[str]] = None,
+    ready: Optional[bool] = None,
+    done: Optional[bool] = None
+) -> dict:
+    """Update specific metadata fields for a task."""
+
+    try:
+        repo = get_repo(repo_name)
+        task_path = "project/task.yaml"
+        task_yaml_file = repo.get_contents(task_path)
+        tasks = yaml.safe_load(task_yaml_file.decoded_content)
+
+        if task_id not in tasks["tasks"]:
+            raise HTTPException(status_code=404, detail="Task not found")
+
+        task = tasks["tasks"][task_id]
+        if description: task["description"] = description
+        if prompt: task["prompt"] = prompt
+        if inputs: task["inputs"] = inputs
+        if outputs: task["outputs"] = outputs
+        if ready is not None: task["ready"] = ready
+        if done is not None: task["done"] = done
+        task["updated_at"] = datetime.utcnow().isoformat()
+        pod_owner = task.get("pod_owner", "Unknown")
+
+        updated_yaml = yaml.dump(tasks)
+        commit_and_log(repo, task_path, updated_yaml, f"Update metadata for {task_id}", task_id=task_id, committed_by=pod_owner)
+
+        return {"message": "Task metadata updated", "task_id": task_id, "updated_task_metadata": task}
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to activate task(s): {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to update metadata: {str(e)}")
 
-# PATCHED /tasks/start route: Adds prompt_used.txt logging (cleaned up)
 
-@app.post("/tasks/start")
-async def start_task(task_id: str = Body(...), repo_name: str = Body(...), prompt_used: Optional[str] = Body(default=None)):
+async def handle_clone_task(
+    repo_name: str,
+    original_task_id: str,
+    descriptor: str
+) -> dict:
+    """Clone a task and generate a new task ID and metadata."""    
+    try:
+        repo = get_repo(repo_name)
+        task_path = "project/task.yaml"
+        task_yaml_file = repo.get_contents(task_path)
+        tasks = yaml.safe_load(task_yaml_file.decoded_content)
+
+        if original_task_id not in tasks["tasks"]:
+            raise HTTPException(status_code=404, detail="Original task not found")
+
+        original = tasks["tasks"][original_task_id].copy()
+        new_task_id = f"{original_task_id}_clone_{descriptor}"
+        original["status"] = "backlog"
+        original["created_at"] = datetime.utcnow().isoformat()
+        original["updated_at"] = original["created_at"]
+        tasks["tasks"][new_task_id] = original
+
+        updated_yaml = yaml.dump(tasks)
+        pod_owner = get_pod_owner(repo, original_task_id)
+        commit_and_log(repo, task_path, updated_yaml, f"Clone task {original_task_id} as {new_task_id}", task_id=new_task_id, committed_by=pod_owner)
+
+        return {"message": "Task cloned", "new_task_id": new_task_id, "cloned_task_metadata": original}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to clone task: {str(e)}")
+
+async def handle_start_task(repo_name: str, task_id: str, prompt_used: str) -> dict:
+    """Start a task and log the prompt used."""
     try:
         repo = get_repo(repo_name)
         task_path = "project/task.yaml"
@@ -727,8 +996,77 @@ async def start_task(task_id: str = Body(...), repo_name: str = Body(...), promp
     except Exception as e:
         return JSONResponse(status_code=500, content={"detail": f"Internal Server Error: {type(e).__name__}: {e}"})
 
-@app.post("/tasks/reopen")
-async def reopen_task(repo_name: str = Body(...), task_id: str = Body(...), reason: Optional[str] = Body("Reopening for further work.")):
+async def handle_complete_task(repo_name: str, task_id: str, outputs: List[dict], reasoning_trace: Optional[dict], handoff_note: Optional[dict], handoff_to_same_pod: Optional[bool], token_count: Optional[int]) -> dict:
+    """Complete a task and save outputs, reasoning trace, and handoff."""
+    try:
+        repo = get_repo(repo_name)
+        task_path = "project/task.yaml"
+        task_file = repo.get_contents(task_path)
+        task_data = yaml.safe_load(task_file.decoded_content)
+
+        if task_id not in task_data.get("tasks", {}):
+            raise HTTPException(status_code=404, detail=f"Task ID {task_id} not found.")
+
+        task_data["tasks"][task_id]["status"] = "completed"
+        task_data["tasks"][task_id]["done"] = True
+        task_data["tasks"][task_id]["updated_at"] = datetime.utcnow().isoformat()
+        pod_owner = get_pod_owner(repo, task_id)   
+        
+        output_dir = f"project/outputs/{task_id}"
+        output_paths = []
+        for item in outputs:
+            output_path = item["path"]
+            output_content = item["content"]
+            output_paths.append(output_path)
+            commit_and_log(repo, output_path, output_content, f"Save output for {task_id}", task_id=task_id, committed_by=pod_owner)
+
+        # Update outputs in task.yaml
+        task_data["outputs"] = list(set(task_data.get("outputs", []) + output_paths))
+        commit_and_log(repo, task_path, yaml.dump(task_data), f"Mark task {task_id} as completed and update outputs", task_id=task_id, committed_by=pod_owner)
+
+        if reasoning_trace:
+            trace_path = f"{output_dir}/reasoning_trace.yaml"
+            commit_and_log(repo, trace_path, yaml.dump(reasoning_trace), f"Log reasoning trace for {task_id}", task_id=task_id, committed_by=pod_owner)
+
+        # Auto-generate handoff if not provided
+        if not handoff_note:
+            handoff_note = generate_handoff_note(task_id, repo)
+
+        if handoff_note:
+            handoff_path = f"{output_dir}/handoff_notes.yaml"
+            try:
+                file = repo.get_contents(handoff_path)
+                handoff_data = yaml.safe_load(file.decoded_content) or {}
+            except:
+                handoff_data = {}
+            
+            # Add scale flag if applicable
+            if handoff_to_same_pod:
+                handoff_note["handoff_type"] = "scale"
+                if token_count:
+                    handoff_note["token_count"] = token_count
+
+            handoff_data.setdefault("handoffs", []).append(handoff_note)
+            commit_and_log(repo, handoff_path, yaml.dump(handoff_data, sort_keys=False), f"Log handoff note for {task_id}", task_id=task_id, committed_by=pod_owner)
+
+        # Auto-activate any downstream tasks that depend on this one
+        activated = []
+        for tid, t in task_data.get("tasks", {}).items():
+            if t.get("status") == "unassigned" and t.get("depends_on") and task_id in t["depends_on"]:
+                t["status"] = "planned"
+                t["updated_at"] = datetime.utcnow().isoformat()
+                activated.append(tid)
+
+        if activated:
+            commit_and_log(repo, task_path, yaml.dump(task_data), f"Auto-activated downstream tasks: {', '.join(activated)}", task_id=task_id, committed_by="chaining_bot")
+
+        return {"message": f"Task {task_id} completed and outputs committed. Activated downstream: {activated}"}
+
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"detail": str(e)})
+
+async def handle_reopen_task(repo_name: str, task_id: str, reason: str) -> dict:
+    """Reopen a previously completed task."""
     try:
         repo = get_repo(repo_name)
         task_path = "project/task.yaml"
@@ -761,12 +1099,9 @@ async def reopen_task(repo_name: str = Body(...), task_id: str = Body(...), reas
 
     except Exception as e:
         return JSONResponse(status_code=500, content={"detail": str(e)})
-    
-@app.post("/tasks/next")
-def get_next_task(
-    repo_name: str = Body(...),
-    pod_owner: Optional[str] = Body(default=None)
-):
+
+async def handle_next_task(repo_name: str, pod_owner: Optional[str]) -> dict:
+    """Retrieve next available task(s) for a Pod."""    
     try:
         repo = get_repo(repo_name)
         task_path = "project/task.yaml"
@@ -790,253 +1125,150 @@ def get_next_task(
         }
     except Exception as e:
         return JSONResponse(status_code=500, content={"detail": str(e)})
-    
-    
-@app.post("/tasks/clone")
-async def clone_task(
-    repo_name: str = Body(...),
-    original_task_id: str = Body(...),
-    descriptor: str = Body(...)):
 
+async def handle_scale_out_task(repo_name: str, task_id: str, reason: Optional[str], handoff_note: Optional[dict]) -> dict:
+    """Create a scaled-out instance of a task with optional handoff."""
     try:
         repo = get_repo(repo_name)
-        task_path = "project/task.yaml"
-        task_yaml_file = repo.get_contents(task_path)
-        tasks = yaml.safe_load(task_yaml_file.decoded_content)
+        task_data = fetch_yaml_from_github(repo_name, "project/task.yaml")
 
-        if original_task_id not in tasks["tasks"]:
-            raise HTTPException(status_code=404, detail="Original task not found")
+        if task_id not in task_data.get("tasks", {}):
+            raise HTTPException(status_code=404, detail=f"Task ID {task_id} not found.")
 
-        original = tasks["tasks"][original_task_id].copy()
-        new_task_id = f"{original_task_id}_clone_{descriptor}"
-        original["status"] = "backlog"
-        original["created_at"] = datetime.utcnow().isoformat()
-        original["updated_at"] = original["created_at"]
-        tasks["tasks"][new_task_id] = original
+        original = task_data["tasks"][task_id]
+        pod_owner = original.get("pod_owner", "UnknownPod")
 
-        updated_yaml = yaml.dump(tasks)
-        pod_owner = get_pod_owner(repo, original_task_id)
-        commit_and_log(repo, task_path, updated_yaml, f"Clone task {original_task_id} as {new_task_id}", task_id=new_task_id, committed_by=pod_owner)
+        # Generate a new task ID with suffix _clone_N
+        clone_index = 1
+        while f"{task_id}_clone_{clone_index}" in task_data["tasks"]:
+            clone_index += 1
+        new_task_id = f"{task_id}_clone_{clone_index}"
 
-        return {"message": "Task cloned", "new_task_id": new_task_id, "cloned_task_metadata": original}
+        # Copy task and modify
+        new_task = dict(original)
+        new_task["status"] = "planned"
+        new_task["done"] = False
+        new_task["created_at"] = datetime.utcnow().isoformat()
+        new_task["updated_at"] = None
+        new_task["handoff_from"] = task_id
+        new_task["description"] = f"Scale-out clone of {task_id}"
+        new_task["notes"] = reason
 
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to clone task: {str(e)}")
+        task_data["tasks"][new_task_id] = new_task
+        updated_yaml = yaml.dump(task_data, sort_keys=False)
 
-@app.post("/tasks/commit_and_log_output")
-async def commit_and_log_output(
-    repo_name: str = Body(...),
-    task_id: str = Body(...),
-    file_path: str = Body(...),
-    content: str = Body(...),
-    message: str = Body(...),
-    committed_by: Optional[str] = Body("GPTPod")
-):
-    try:
-        repo = get_repo(repo_name)
-
-        # Update file and changelog
         commit_and_log(
             repo,
-            file_path=file_path,
-            content=content,
-            commit_message=message,
-            task_id=task_id,
-            committed_by=committed_by
+            file_path="project/task.yaml",
+            content=updated_yaml,
+            commit_message=f"Scale out task {task_id} to {new_task_id}",
+            task_id=new_task_id,
+            committed_by=pod_owner
         )
 
-        # Append path to task.yaml[outputs]
-        task_file = repo.get_contents("project/task.yaml")
-        task_data = yaml.safe_load(task_file.decoded_content)
-        task = task_data["tasks"].get(task_id, {})
-        outputs = task.get("outputs", [])
-        if file_path not in outputs:
-            outputs.append(file_path)
-            task["outputs"] = outputs
-            updated_yaml = yaml.dump(task_data, sort_keys=False)
-            commit_and_log(
-                repo,
-                file_path="project/task.yaml",
-                content=updated_yaml,
-                commit_message=f"Append output file to {task_id}",
-                task_id=task_id,
-                committed_by=committed_by
-            )
+        # Use provided handoff_note or generate default
+        if not handoff_note:
+            handoff_note = {
+                "timestamp": datetime.utcnow().isoformat(),
+                "from_pod": pod_owner,
+                "to_pod": pod_owner,
+                "reason": reason,
+                "handoff_type": "scale",
+                "reference_files": original.get("outputs", []),
+                "notes": f"GPT reached context/token limit on {task_id}. Work handed off to {new_task_id}.",
+                "ways_of_working": "Resume mid-task using prior context"
+            }
 
-        return {"message": f"Output file {file_path} committed and logged for task {task_id}."}
-
-    except Exception as e:
-        return JSONResponse(status_code=500, content={"detail": f"Commit failed: {str(e)}"})
-
-
-@app.post("/tasks/append_chain_of_thought")
-async def append_chain_of_thought(
-    repo_name: str = Body(...),
-    task_id: str = Body(...),
-    message: str = Body(...),
-    tags: Optional[List[str]] = Body(default=None),
-    issues: Optional[List[str]] = Body(default=None),
-    lessons: Optional[List[str]] = Body(default=None),
-):
-    try:
-        repo = get_repo(repo_name)
-        path = f"project/outputs/{task_id}/chain_of_thought.yaml"
-
+        # Store handoff note
+        handoff_path = f"project/outputs/{task_id}/handoff_notes.yaml"
         try:
-            file = repo.get_contents(path)
-            data = yaml.safe_load(file.decoded_content) or []
-            sha = file.sha
+            handoff_file = repo.get_contents(handoff_path)
+            handoff_data = yaml.safe_load(handoff_file.decoded_content) or {}
         except:
-            data = []
-            sha = None
+            handoff_data = {}
 
-        entry = {
-            "message": message,
-            "timestamp": datetime.utcnow().isoformat()
-        }
-        if tags:
-            entry["tags"] = tags
-        if issues:
-            entry["issues"] = issues
-        if lessons:
-            entry["lessons"] = lessons
-
-        data.append(entry)
-        content = yaml.dump(data, sort_keys=False)
-
-        pod_owner = get_pod_owner(repo, task_id)
+        handoff_data.setdefault("handoffs", []).append(handoff_note)
         commit_and_log(
             repo,
-            path,
-            content,
-            f"Append chain of thought to task {task_id}",
+            file_path=handoff_path,
+            content=yaml.dump(handoff_data, sort_keys=False),
+            commit_message=f"Log scale handoff from {task_id} to {new_task_id}",
             task_id=task_id,
             committed_by=pod_owner
         )
 
-        return {"message": "Chain of thought appended.", "appended_thought": entry}
-
-    except Exception as e:
-        return JSONResponse(status_code=500, content={"detail": f"Internal Server Error: {type(e).__name__}: {e}"})
-
-@app.get("/tasks/fetch_chain_of_thought")
-async def fetch_chain_of_thought(task_id: str = Query(...), repo_name: str = Query(...)):
-    try:
-        repo = get_repo(repo_name)
-        path = f"project/outputs/{task_id}/chain_of_thought.yaml"
-
-        file = repo.get_contents(path)
-
-        
-        content = yaml.safe_load(file.decoded_content)
-        return {"task_id": task_id, "chain_of_thought": content or []}
-
-    except Exception as e:
-        return JSONResponse(status_code=404, content={"detail": f"Could not fetch chain of thought: {type(e).__name__}: {e}"})
-
-@app.get("/tasks/fetch_reasoning_trace")
-async def fetch_reasoning_trace(
-    task_id: str = Query(...),
-    repo_name: str = Query(...),
-    full: Optional[bool] = Query(False)
-):
-    try:
-        repo = get_repo(repo_name)
-        base_path = f"project/outputs/{task_id}"
-
-        # Always return summary reasoning trace
-        rt_file = repo.get_contents(f"{base_path}/reasoning_trace.yaml")
-        reasoning_trace = yaml.safe_load(rt_file.decoded_content) or {}
-
-        if not full:
-            return {"task_id": task_id, "reasoning_trace": reasoning_trace}
-
-        # If full = true, include prompt and chain of thought
-        prompt_path = f"{base_path}/prompt_used.txt"
-        cot_path = f"{base_path}/chain_of_thought.yaml"
-
-        try:
-            prompt_file = repo.get_contents(prompt_path)
-            prompt_text = prompt_file.decoded_content.decode()
-        except:
-            prompt_text = None
-
-        try:
-            cot_file = repo.get_contents(cot_path)
-            chain_of_thought = yaml.safe_load(cot_file.decoded_content) or []
-        except:
-            chain_of_thought = []
-
         return {
-            "task_id": task_id,
-            "full_reasoning_trace": {
-                "prompt_used": prompt_text,
-                "chain_of_thought": chain_of_thought,
-                "reasoning_trace": reasoning_trace
-            }
+            "message": f"Created new scale-out task {new_task_id}",
+            "new_task_id": new_task_id,
+            "task_metadata": new_task,
+            "next_step": f"Call /tasks/start with task_id: {new_task_id} to continue work.",
+            "inputs": new_task.get("inputs", []),
+            "prior_outputs": original.get("outputs", []),
+            "handoff_note": handoff_note
         }
 
     except Exception as e:
-        return JSONResponse(status_code=404, content={"detail": f"Could not fetch reasoning trace: {type(e).__name__}: {e}"})
+        return JSONResponse(status_code=500, content={"detail": str(e)})
 
-# PATCHED /tasks/reasoning_summary — supports CSV export
-
-@app.get("/tasks/reasoning_summary")
-async def get_reasoning_summary(
-    repo_name: str = Query(...),
-    format: Optional[str] = Query(None)
-):
+async def handle_create_task(repo_name: str, phase: str, task_key: str, task_id: str, assigned_pod: str, prompt_variables: Optional[dict]) -> dict:
+    """Create a new task from a template."""
     try:
         repo = get_repo(repo_name)
         task_path = "project/task.yaml"
-        task_file = repo.get_contents(task_path)
-        task_data = yaml.safe_load(task_file.decoded_content).get("tasks", {})
+        task_data = fetch_yaml_from_github(repo_name, task_path)
 
-        summary = []
-        for task_id in task_data:
-            trace_path = f"project/outputs/{task_id}/reasoning_trace.yaml"
-            try:
-                trace_file = repo.get_contents(trace_path)
-                trace = yaml.safe_load(trace_file.decoded_content) or {}
-                scoring = trace.get("scoring", {})
-                thoughts = trace.get("thoughts", [])
-                entry = {
-                    "task_id": task_id,
-                    "thought_quality": scoring.get("thought_quality"),
-                    "recall_used": scoring.get("recall_used"),
-                    "novel_insight": scoring.get("novel_insight"),
-                    "total_thoughts": len(thoughts),
-                    "improvement_opportunities": "; ".join(trace.get("improvement_opportunities", []))
-                }
-                summary.append(entry)
-            except:
-                continue
+        if task_id in task_data.get("tasks", {}):
+            raise HTTPException(status_code=400, detail=f"Task ID {task_id} already exists")
 
-        if format == "csv":
-            output = io.StringIO()
-            writer = csv.DictWriter(output, fieldnames=list(summary[0].keys()))
-            writer.writeheader()
-            writer.writerows(summary)
-            return Response(content=output.getvalue(), media_type="text/csv")
+        # Load instance_of task template
+        template_path = f"framework/task_templates/{phase}/{task_key}/task.yaml"
+        task_template = fetch_yaml_from_github(repo_name, template_path)
+        new_task = task_template.get("task", {})
 
-        return {"reasoning_summary": summary, "total_tasks_with_trace": len(summary)}
+        # Set metadata
+        new_task["assigned_pod"] = assigned_pod
+        new_task["created_at"] = datetime.utcnow().isoformat()
+        new_task["updated_at"] = None
+        new_task["done"] = False
+        new_task["status"] = "backlog"
+        new_task["instance_of"] = template_path
+        new_task["prompt"] = f"framework/task_templates/{phase}/{task_key}/prompt_template.md"
+
+        # Add to task list
+        task_data.setdefault("tasks", {})[task_id] = new_task
+        updated_yaml = yaml.dump(task_data, sort_keys=False)
+
+        # Commit task.yaml
+        commit_and_log(
+            repo,
+            file_path=task_path,
+            content=updated_yaml,
+            commit_message=f"Create new task {task_id} from template {task_key}",
+            task_id=task_id,
+            committed_by=assigned_pod
+        )
+
+        return {
+            "message": f"Created new task {task_id} for pod {assigned_pod}.",
+            "new_task_id": task_id,
+            "task_metadata": new_task
+        }
 
     except Exception as e:
-        return JSONResponse(status_code=500, content={"detail": f"Failed to summarize reasoning traces: {type(e).__name__}: {e}"})
+        return JSONResponse(status_code=500, content={"detail": str(e)})
 
-@app.post("/tasks/append_handoff_note/{task_id}")
-async def append_handoff_note(
-    task_id: str,
-    repo_name: str = Body(...),
-    from_pod: str = Body(...),
-    to_pod: str = Body(...),
-    reason: str = Body(...),
-    token_count: int = Body(...),
-    next_prompt: str = Body(...),
-    reference_files: list[str] = Body(default=[]),
-    notes: str = Body(default=""),
-    ways_of_working: str = Body(default="")
-):
+async def handle_append_handoff_note(
+        repo_name: str, 
+        task_id: str, 
+        from_pod: str, 
+        to_pod: str, 
+        reason: str, 
+        token_count: int, 
+        next_prompt: str, 
+        reference_files: Optional[List[str]], 
+        notes: Optional[str], 
+        ways_of_working: Optional[str]) -> dict:
+    """Append a manual handoff note to a task."""
     repo = get_repo(repo_name)
     file_path = f"project/outputs/{task_id}/handoff_notes.yaml"
 
@@ -1065,8 +1297,28 @@ async def append_handoff_note(
 
     return {"message": "Handoff note appended", "note": new_entry}
 
-@app.post("/tasks/auto_generate_handoff/{task_id}")
-async def auto_generate_handoff(task_id: str, repo_name: str = Body(...)):
+async def handle_fetch_handoff_note(repo_name: str, task_id: str) -> dict:
+    """Fetch latest upstream handoff note."""
+    repo = get_repo(repo_name)
+    task_path = "project/task.yaml"
+    try:
+        task_file = repo.get_contents(task_path)
+        tasks = yaml.safe_load(task_file.decoded_content)
+        task = tasks.get("tasks", {}).get(task_id, {})
+        handoff_from = task.get("handoff_from")
+        if not handoff_from:
+            return {"message": "No handoff_from reference in task metadata."}
+
+        handoff_path = f"project/outputs/{handoff_from}/handoff_notes.yaml"
+        file = repo.get_contents(handoff_path)
+        notes_data = yaml.safe_load(file.decoded_content)
+        latest_note = notes_data.get("handoffs", [])[-1] if notes_data.get("handoffs") else None
+        return {"handoff_from": handoff_from, "handoff_note": latest_note}
+    except Exception as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+async def handle_auto_generate_handoff(repo_name: str, task_id: str) -> dict:
+    """Auto-generate a handoff note using reasoning summary."""
     try:
         repo = get_repo(repo_name)
         note = generate_handoff_note(task_id, repo)
@@ -1074,13 +1326,13 @@ async def auto_generate_handoff(task_id: str, repo_name: str = Body(...)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to auto-generate handoff note: {str(e)}")
 
-@app.post("/tasks/auto_handoff")
-async def auto_handoff(
-    repo_name: str = Body(...),
-    task_id: str = Body(...),
-    next_task_id: str = Body(...),
-    handoff_mode: Optional[str] = Body("async")
-):
+async def handle_auto_handoff(
+        repo_name: str, 
+        task_id: str, 
+        next_task_id: str, 
+        handoff_mode: Optional[str]
+        ) -> dict:
+    """Execute full handoff between tasks with logging and guidance."""
     try:
         repo = get_repo(repo_name)
         task_file = repo.get_contents("project/task.yaml")
@@ -1149,29 +1401,357 @@ async def auto_handoff(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to complete auto_handoff: {str(e)}")
 
-
-@app.post("/tasks/fetch_handoff_note")
-async def fetch_handoff_note(
-    repo_name: str = Body(...),
-    task_id: str = Body(...)
-):
-    repo = get_repo(repo_name)
-    task_path = "project/task.yaml"
+async def handle_append_chain_of_thought(
+        repo_name: str, 
+        task_id: str, 
+        message: str, 
+        tags: Optional[List[str]], 
+        issues: Optional[List[str]], 
+        lessons: Optional[List[str]]) -> dict:
+    """Append a message, issue, or lesson to the task's chain_of_thought.yaml."""
     try:
-        task_file = repo.get_contents(task_path)
-        tasks = yaml.safe_load(task_file.decoded_content)
-        task = tasks.get("tasks", {}).get(task_id, {})
-        handoff_from = task.get("handoff_from")
-        if not handoff_from:
-            return {"message": "No handoff_from reference in task metadata."}
+        repo = get_repo(repo_name)
+        path = f"project/outputs/{task_id}/chain_of_thought.yaml"
 
-        handoff_path = f"project/outputs/{handoff_from}/handoff_notes.yaml"
-        file = repo.get_contents(handoff_path)
-        notes_data = yaml.safe_load(file.decoded_content)
-        latest_note = notes_data.get("handoffs", [])[-1] if notes_data.get("handoffs") else None
-        return {"handoff_from": handoff_from, "handoff_note": latest_note}
+        try:
+            file = repo.get_contents(path)
+            data = yaml.safe_load(file.decoded_content) or []
+            sha = file.sha
+        except:
+            data = []
+            sha = None
+
+        entry = {
+            "message": message,
+            "timestamp": datetime.utcnow().isoformat()
+        }
+        if tags:
+            entry["tags"] = tags
+        if issues:
+            entry["issues"] = issues
+        if lessons:
+            entry["lessons"] = lessons
+
+        data.append(entry)
+        content = yaml.dump(data, sort_keys=False)
+
+        pod_owner = get_pod_owner(repo, task_id)
+        commit_and_log(
+            repo,
+            path,
+            content,
+            f"Append chain of thought to task {task_id}",
+            task_id=task_id,
+            committed_by=pod_owner
+        )
+
+        return {"message": "Chain of thought appended.", "appended_thought": entry}
+
     except Exception as e:
-        raise HTTPException(status_code=404, detail=str(e))
+        return JSONResponse(status_code=500, content={"detail": f"Internal Server Error: {type(e).__name__}: {e}"})
+
+async def handle_fetch_chain_of_thought(repo_name: str, task_id: str) -> dict:
+    """Fetch the full chain_of_thought.yaml for a task."""
+    try:
+        repo = get_repo(repo_name)
+        path = f"project/outputs/{task_id}/chain_of_thought.yaml"
+
+        file = repo.get_contents(path)
+
+        
+        content = yaml.safe_load(file.decoded_content)
+        return {"task_id": task_id, "chain_of_thought": content or []}
+
+    except Exception as e:
+        return JSONResponse(status_code=404, content={"detail": f"Could not fetch chain of thought: {type(e).__name__}: {e}"})
+
+async def handle_fetch_reasoning_trace(repo_name: str, task_id: str, full: Optional[bool]) -> dict:
+    """Return final or full reasoning trace for a task."""
+    try:
+        repo = get_repo(repo_name)
+        base_path = f"project/outputs/{task_id}"
+
+        # Always return summary reasoning trace
+        rt_file = repo.get_contents(f"{base_path}/reasoning_trace.yaml")
+        reasoning_trace = yaml.safe_load(rt_file.decoded_content) or {}
+
+        if not full:
+            return {"task_id": task_id, "reasoning_trace": reasoning_trace}
+
+        # If full = true, include prompt and chain of thought
+        prompt_path = f"{base_path}/prompt_used.txt"
+        cot_path = f"{base_path}/chain_of_thought.yaml"
+
+        try:
+            prompt_file = repo.get_contents(prompt_path)
+            prompt_text = prompt_file.decoded_content.decode()
+        except:
+            prompt_text = None
+
+        try:
+            cot_file = repo.get_contents(cot_path)
+            chain_of_thought = yaml.safe_load(cot_file.decoded_content) or []
+        except:
+            chain_of_thought = []
+
+        return {
+            "task_id": task_id,
+            "full_reasoning_trace": {
+                "prompt_used": prompt_text,
+                "chain_of_thought": chain_of_thought,
+                "reasoning_trace": reasoning_trace
+            }
+        }
+
+    except Exception as e:
+        return JSONResponse(status_code=404, content={"detail": f"Could not fetch reasoning trace: {type(e).__name__}: {e}"})
+
+async def handle_reasoning_summary(repo_name: str, format: Optional[str]) -> dict:
+    """Return reasoning quality summary across all tasks. Supports 'csv' or JSON format."""
+    try:
+        repo = get_repo(repo_name)
+        task_path = "project/task.yaml"
+        task_file = repo.get_contents(task_path)
+        task_data = yaml.safe_load(task_file.decoded_content).get("tasks", {})
+
+        summary = []
+        for task_id in task_data:
+            trace_path = f"project/outputs/{task_id}/reasoning_trace.yaml"
+            try:
+                trace_file = repo.get_contents(trace_path)
+                trace = yaml.safe_load(trace_file.decoded_content) or {}
+                scoring = trace.get("scoring", {})
+                thoughts = trace.get("thoughts", [])
+                entry = {
+                    "task_id": task_id,
+                    "thought_quality": scoring.get("thought_quality"),
+                    "recall_used": scoring.get("recall_used"),
+                    "novel_insight": scoring.get("novel_insight"),
+                    "total_thoughts": len(thoughts),
+                    "improvement_opportunities": "; ".join(trace.get("improvement_opportunities", []))
+                }
+                summary.append(entry)
+            except:
+                continue
+
+        if format == "csv":
+            output = io.StringIO()
+            writer = csv.DictWriter(output, fieldnames=list(summary[0].keys()))
+            writer.writeheader()
+            writer.writerows(summary)
+            return Response(content=output.getvalue(), media_type="text/csv")
+
+        return {"reasoning_summary": summary, "total_tasks_with_trace": len(summary)}
+
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"detail": f"Failed to summarize reasoning traces: {type(e).__name__}: {e}"})
+
+async def handle_list_tasks(repo_name: str, status: Optional[str], pod_owner: Optional[str], category: Optional[str]) -> dict:
+    """Return filtered list of tasks from task.yaml."""
+    try:
+        task_path = "project/task.yaml"
+        task_data = fetch_yaml_from_github(repo_name, task_path)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error fetching task.yaml: {e}")
+
+    tasks = task_data.get("tasks", {})
+    filtered_tasks = {}
+
+    for task_id, task in tasks.items():
+        if status and task.get("status") != status:
+            continue
+        if pod_owner and task.get("pod_owner") != pod_owner:
+            continue
+        if category and task.get("category") != category:
+            continue
+        filtered_tasks[task_id] = task
+
+    return {"tasks": filtered_tasks}
+
+async def handle_list_phases(repo_name: str) -> dict:
+    """Return all tasks grouped by SDLC phase."""
+    try:
+        repo = get_repo(repo_name)
+        task_file = repo.get_contents("project/task.yaml")
+        task_data = yaml.safe_load(task_file.decoded_content).get("tasks", {})
+
+        phases = {}
+        for task_id, task in task_data.items():
+            if task_id.startswith("0."):
+                continue
+            phase = task.get("phase", "Unspecified Phase")
+            if phase not in phases:
+                phases[phase] = []
+            phases[phase].append({
+                "task_id": task_id,
+                "status": task.get("status"),
+                "pod_owner": task.get("pod_owner"),
+                "description": task.get("description")
+            })
+
+        return {"phases": phases, "total_phases": len(phases)}
+
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"detail": f"Failed to list task phases: {type(e).__name__}: {e}"})
+
+async def handle_task_graph(repo_name: str) -> dict:
+    """Return structured task dependency graph."""
+    try:
+        repo = get_repo(repo_name)
+        task_file = repo.get_contents("project/task.yaml")
+        task_data = yaml.safe_load(task_file.decoded_content).get("tasks", {})
+
+        nodes = []
+        edges = []
+
+        for task_id, task in task_data.items():
+            nodes.append({
+                "id": task_id,
+                "label": f"{task_id} ({task.get('status')})",
+                "pod_owner": task.get("pod_owner"),
+                "description": task.get("description")
+            })
+            for dep in task.get("depends_on", []):
+                edges.append({"source": dep, "target": task_id, "type": "depends_on"})
+            if task.get("handoff_from"):
+                edges.append({"source": task["handoff_from"], "target": task_id, "type": "handoff"})
+
+        return {
+            "graph": {
+                "nodes": nodes,
+                "edges": edges
+            },
+            "total_tasks": len(nodes),
+            "note": "This graph is structured for GPT or client rendering — edges show 'depends_on' and 'handoff' relations."
+        }
+
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"detail": f"Failed to load task graph: {type(e).__name__}: {e}"})
+
+async def handle_task_dependencies(repo_name: str, task_id: str) -> dict:
+    """Return upstream and downstream dependencies for a task."""
+    try:
+        repo = get_repo(repo_name)
+        task_path = "project/task.yaml"
+        task_file = repo.get_contents(task_path)
+        task_data = yaml.safe_load(task_file.decoded_content).get("tasks", {})
+
+        if task_id not in task_data:
+            raise HTTPException(status_code=404, detail="Task not found")
+
+        # Direct upstream
+        upstream = task_data[task_id].get("depends_on", [])
+
+        # Direct downstream: any task that depends on this one
+        downstream = [tid for tid, t in task_data.items() if task_id in t.get("depends_on", [])]
+
+        return {
+            "task_id": task_id,
+            "upstream": upstream,
+            "downstream": downstream
+        }
+
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"detail": f"Failed to get task dependencies: {type(e).__name__}: {e}"})
+
+async def handle_get_task_details(repo_name: str, task_id: str) -> dict:
+    """Return full metadata for a specific task."""
+    try:
+        repo = get_repo(repo_name)
+        task_file = repo.get_contents("project/task.yaml")
+        task_data = yaml.safe_load(task_file.decoded_content)
+        tasks = task_data.get("tasks", {})
+        if task_id not in tasks:
+            raise HTTPException(status_code=404, detail=f"Task ID {task_id} not found.")
+        return {"task_id": task_id, "metadata": tasks[task_id]}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch task details: {type(e).__name__}: {e}")
+
+async def handle_activate_task(repo_name: str, task_id: Union[str, List[str]]) -> dict:
+    """Mark one or more tasks as 'planned' in task.yaml."""
+    try:
+        repo = get_repo(repo_name)
+        task_path = "project/task.yaml"
+        task_file = repo.get_contents(task_path)
+        task_data = yaml.safe_load(task_file.decoded_content)
+
+        if isinstance(task_id, str):
+            task_ids = [task_id]
+        else:
+            task_ids = task_id
+
+        planned_tasks = {}
+        for t_id in task_ids:
+            if t_id not in task_data.get("tasks", {}):
+                raise HTTPException(status_code=400, detail=f"Task {t_id} not found in task.yaml.")
+            task_data["tasks"][t_id]["status"] = "planned"
+            planned_tasks[t_id] = task_data["tasks"][t_id]
+
+        pod_owner = get_pod_owner(repo, task_id)
+        commit_and_log(repo, task_path, yaml.dump(task_data), f"Planned tasks {task_ids}", task_id=task_id, committed_by=pod_owner)
+
+        response = {
+            "message": f"Tasks {task_ids} successfully planned.",
+            "planned_tasks": [
+                {
+                    "task_id": t_id,
+                    "pod_owner": planned_tasks[t_id].get("pod_owner"),
+                    "metadata": planned_tasks[t_id]
+                } for t_id in task_ids
+            ]
+        }
+
+        return response
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to activate task(s): {str(e)}")
+
+
+@app.post("/tasks/commit_and_log_output")
+async def commit_and_log_output(
+    repo_name: str = Body(...),
+    task_id: str = Body(...),
+    file_path: str = Body(...),
+    content: str = Body(...),
+    message: str = Body(...),
+    committed_by: Optional[str] = Body("GPTPod")
+):
+    try:
+        repo = get_repo(repo_name)
+
+        # Update file and changelog
+        commit_and_log(
+            repo,
+            file_path=file_path,
+            content=content,
+            commit_message=message,
+            task_id=task_id,
+            committed_by=committed_by
+        )
+
+        # Append path to task.yaml[outputs]
+        task_file = repo.get_contents("project/task.yaml")
+        task_data = yaml.safe_load(task_file.decoded_content)
+        task = task_data["tasks"].get(task_id, {})
+        outputs = task.get("outputs", [])
+        if file_path not in outputs:
+            outputs.append(file_path)
+            task["outputs"] = outputs
+            updated_yaml = yaml.dump(task_data, sort_keys=False)
+            commit_and_log(
+                repo,
+                file_path="project/task.yaml",
+                content=updated_yaml,
+                commit_message=f"Append output file to {task_id}",
+                task_id=task_id,
+                committed_by=committed_by
+            )
+
+        return {"message": f"Output file {file_path} committed and logged for task {task_id}."}
+
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"detail": f"Commit failed: {str(e)}"})
+
 
 @app.post("/audit/validate_changelog")
 async def validate_changelog(repo_name: str = Body(...), dry_run: bool = Body(default=False)):
@@ -1264,224 +1844,6 @@ async def update_changelog(
         return JSONResponse(status_code=500, content={"detail": f"Internal Server Error: {type(e).__name__}: {e}"})
 
 
-@app.post("/tasks/complete")
-async def complete_task(
-    repo_name: str = Body(...),
-    task_id: str = Body(...),
-    outputs: Optional[List[dict]] = Body(None),
-    reasoning_trace: Optional[dict] = Body(None),
-    handoff_note: Optional[dict] = Body(default={}),
-    handoff_to_same_pod: Optional[bool] = Body(default=False),
-    token_count: Optional[int] = Body(default=None)
-):
-
-    try:
-        repo = get_repo(repo_name)
-        task_path = "project/task.yaml"
-        task_file = repo.get_contents(task_path)
-        task_data = yaml.safe_load(task_file.decoded_content)
-
-        if task_id not in task_data.get("tasks", {}):
-            raise HTTPException(status_code=404, detail=f"Task ID {task_id} not found.")
-
-        task_data["tasks"][task_id]["status"] = "completed"
-        task_data["tasks"][task_id]["done"] = True
-        task_data["tasks"][task_id]["updated_at"] = datetime.utcnow().isoformat()
-        pod_owner = get_pod_owner(repo, task_id)   
-        
-        output_dir = f"project/outputs/{task_id}"
-        output_paths = []
-        for item in outputs:
-            output_path = item["path"]
-            output_content = item["content"]
-            output_paths.append(output_path)
-            commit_and_log(repo, output_path, output_content, f"Save output for {task_id}", task_id=task_id, committed_by=pod_owner)
-
-        # Update outputs in task.yaml
-        task_data["outputs"] = list(set(task_data.get("outputs", []) + output_paths))
-        commit_and_log(repo, task_path, yaml.dump(task_data), f"Mark task {task_id} as completed and update outputs", task_id=task_id, committed_by=pod_owner)
-
-        if reasoning_trace:
-            trace_path = f"{output_dir}/reasoning_trace.yaml"
-            commit_and_log(repo, trace_path, yaml.dump(reasoning_trace), f"Log reasoning trace for {task_id}", task_id=task_id, committed_by=pod_owner)
-
-        # Auto-generate handoff if not provided
-        if not handoff_note:
-            handoff_note = generate_handoff_note(task_id, repo)
-
-        if handoff_note:
-            handoff_path = f"{output_dir}/handoff_notes.yaml"
-            try:
-                file = repo.get_contents(handoff_path)
-                handoff_data = yaml.safe_load(file.decoded_content) or {}
-            except:
-                handoff_data = {}
-            
-            # Add scale flag if applicable
-            if handoff_to_same_pod:
-                handoff_note["handoff_type"] = "scale"
-                if token_count:
-                    handoff_note["token_count"] = token_count
-
-            handoff_data.setdefault("handoffs", []).append(handoff_note)
-            commit_and_log(repo, handoff_path, yaml.dump(handoff_data, sort_keys=False), f"Log handoff note for {task_id}", task_id=task_id, committed_by=pod_owner)
-
-        # Auto-activate any downstream tasks that depend on this one
-        activated = []
-        for tid, t in task_data.get("tasks", {}).items():
-            if t.get("status") == "unassigned" and t.get("depends_on") and task_id in t["depends_on"]:
-                t["status"] = "planned"
-                t["updated_at"] = datetime.utcnow().isoformat()
-                activated.append(tid)
-
-        if activated:
-            commit_and_log(repo, task_path, yaml.dump(task_data), f"Auto-activated downstream tasks: {', '.join(activated)}", task_id=task_id, committed_by="chaining_bot")
-
-        return {"message": f"Task {task_id} completed and outputs committed. Activated downstream: {activated}"}
-
-    except Exception as e:
-        return JSONResponse(status_code=500, content={"detail": str(e)})
-
-@app.get("/tasks/{task_id}")
-def get_task_details(task_id: str):
-    task_data = fetch_yaml_from_github(file_path=TASK_FILE_PATH)
-    tasks = task_data.get("tasks", {})
-
-    if task_id not in tasks:
-        raise HTTPException(status_code=404, detail=f"Task '{task_id}' not found.")
-
-    return {"task_id": task_id, "metadata": tasks[task_id]}  
-
-@app.post("/tasks/create")
-async def create_new_task(
-    repo_name: str = Body(...),
-    phase: str = Body(...),
-    task_key: str = Body(...),
-    task_id: str = Body(...),
-    assigned_pod: str = Body(...),
-    prompt_variables: Optional[dict] = Body(default={})
-):
-    try:
-        repo = get_repo(repo_name)
-        task_path = "project/task.yaml"
-        task_data = fetch_yaml_from_github(repo_name, task_path)
-
-        if task_id in task_data.get("tasks", {}):
-            raise HTTPException(status_code=400, detail=f"Task ID {task_id} already exists")
-
-        # Load instance_of task template
-        template_path = f"framework/task_templates/{phase}/{task_key}/task.yaml"
-        task_template = fetch_yaml_from_github(repo_name, template_path)
-        new_task = task_template.get("task", {})
-
-        # Set metadata
-        new_task["assigned_pod"] = assigned_pod
-        new_task["created_at"] = datetime.utcnow().isoformat()
-        new_task["updated_at"] = None
-        new_task["done"] = False
-        new_task["status"] = "backlog"
-        new_task["instance_of"] = template_path
-        new_task["prompt"] = f"framework/task_templates/{phase}/{task_key}/prompt_template.md"
-
-        # Add to task list
-        task_data.setdefault("tasks", {})[task_id] = new_task
-        updated_yaml = yaml.dump(task_data, sort_keys=False)
-
-        # Commit task.yaml
-        commit_and_log(
-            repo,
-            file_path=task_path,
-            content=updated_yaml,
-            commit_message=f"Create new task {task_id} from template {task_key}",
-            task_id=task_id,
-            committed_by=assigned_pod
-        )
-
-        return {
-            "message": f"Created new task {task_id} for pod {assigned_pod}.",
-            "new_task_id": task_id,
-            "task_metadata": new_task
-        }
-
-    except Exception as e:
-        return JSONResponse(status_code=500, content={"detail": str(e)})
-
-@app.patch("/tasks/update_metadata/{task_id}")
-async def update_task_metadata(task_id: str, 
-                                description: Optional[str] = None,
-                                prompt: Optional[str] = None,
-                                inputs: Optional[list] = None,
-                                outputs: Optional[list] = None,
-                                ready: Optional[bool] = None,
-                                done: Optional[bool] = None):
-    # Load task.yaml
-    with open("task.yaml", "r") as f:
-        tasks = yaml.safe_load(f)
-
-    if task_id not in tasks["tasks"]:
-        raise HTTPException(status_code=404, detail="Task not found")
-
-    task = tasks["tasks"][task_id]
-    # Update fields
-    if description: task["description"] = description
-    if prompt: task["prompt"] = prompt
-    if inputs: task["inputs"] = inputs
-    if outputs: task["outputs"] = outputs
-    if ready is not None: task["ready"] = ready
-    if done is not None: task["done"] = done
-    task["updated_at"] = datetime.utcnow().isoformat()
-
-    # Save task.yaml
-    with open("task.yaml", "w") as f:
-        yaml.dump(tasks, f)
-
-    # Auto-commit update
-    await auto_commit({
-        "repo_name": "nhl-predictor",
-        "commit_message": f"Update task metadata: {task_id}",
-        "updates": [{"file": "task.yaml", "content": yaml.dump(tasks)}]
-    })
-
-    return {"message": "Task metadata updated", "task_id": task_id, "updated_task_metadata": task}
-
-@app.patch("/tasks/update_metadata")
-async def update_task_metadata(
-    repo_name: str = Body(...),
-    task_id: str = Body(...),
-    description: Optional[str] = None,
-    prompt: Optional[str] = None,
-    inputs: Optional[list] = None,
-    outputs: Optional[list] = None,
-    ready: Optional[bool] = None,
-    done: Optional[bool] = None):
-
-    try:
-        repo = get_repo(repo_name)
-        task_path = "project/task.yaml"
-        task_yaml_file = repo.get_contents(task_path)
-        tasks = yaml.safe_load(task_yaml_file.decoded_content)
-
-        if task_id not in tasks["tasks"]:
-            raise HTTPException(status_code=404, detail="Task not found")
-
-        task = tasks["tasks"][task_id]
-        if description: task["description"] = description
-        if prompt: task["prompt"] = prompt
-        if inputs: task["inputs"] = inputs
-        if outputs: task["outputs"] = outputs
-        if ready is not None: task["ready"] = ready
-        if done is not None: task["done"] = done
-        task["updated_at"] = datetime.utcnow().isoformat()
-        pod_owner = task.get("pod_owner", "Unknown")
-
-        updated_yaml = yaml.dump(tasks)
-        commit_and_log(repo, task_path, updated_yaml, f"Update metadata for {task_id}", task_id=task_id, committed_by=pod_owner)
-
-        return {"message": "Task metadata updated", "task_id": task_id, "updated_task_metadata": task}
-
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to update metadata: {str(e)}")
-
 @app.post("/tasks/fetch_next_linked_task")
 async def fetch_next_linked_task(
     task_id: str = Body(...),
@@ -1501,129 +1863,6 @@ async def fetch_next_linked_task(
 
     except Exception as e:
         return JSONResponse(status_code=500, content={"detail": f"Could not fetch next linked task: {type(e).__name__}: {e}"})
-
-@app.get("/tasks/artifacts/{task_id}")
-async def get_task_artifacts(task_id: str, repo_name: str = Query(...)):
-    try:
-        repo = get_repo(repo_name)
-        task_path = "project/task.yaml"
-        output_dir = f"project/outputs/{task_id}"
-
-        task_file = repo.get_contents(task_path)
-        task_data = yaml.safe_load(task_file.decoded_content)
-        task = task_data.get("tasks", {}).get(task_id)
-        if not task:
-            raise HTTPException(status_code=404, detail="Task not found")
-
-        # Load prompt
-        prompt_path = f"{output_dir}/prompt_used.txt"
-        try:
-            prompt = repo.get_contents(prompt_path).decoded_content.decode("utf-8")
-        except:
-            prompt = None
-
-        # Load outputs
-        outputs = {}
-        for path in task.get("outputs", []):
-            try:
-                outputs[path] = repo.get_contents(path).decoded_content.decode("utf-8")
-            except:
-                outputs[path] = None
-
-        # Load chain of thought
-        try:
-            cot_path = f"{output_dir}/chain_of_thought.yaml"
-            cot_data = repo.get_contents(cot_path)
-            chain_of_thought = yaml.safe_load(cot_data.decoded_content)
-        except:
-            chain_of_thought = []
-
-        # Load reasoning trace
-        try:
-            rt_path = f"{output_dir}/reasoning_trace.yaml"
-            rt_data = repo.get_contents(rt_path)
-            reasoning_trace = yaml.safe_load(rt_data.decoded_content)
-        except:
-            reasoning_trace = {}
-
-        # Load handoff notes
-        try:
-            hn_path = f"{output_dir}/handoff_notes.yaml"
-            hn_data = repo.get_contents(hn_path)
-            handoff_notes = yaml.safe_load(hn_data.decoded_content).get("handoffs", [])
-        except:
-            handoff_notes = []
-
-        return {
-            "prompt": prompt,
-            "outputs": outputs,
-            "chain_of_thought": chain_of_thought,
-            "reasoning_trace": reasoning_trace,
-            "handoff_notes": handoff_notes
-        }
-
-    except Exception as e:
-        return JSONResponse(status_code=500, content={"detail": f"Failed to load artifacts for task {task_id}: {type(e).__name__}: {e}"})
-
-@app.get("/tasks/dependencies/{task_id}")
-async def get_task_dependencies(task_id: str, repo_name: str = Query(...)):
-    try:
-        repo = get_repo(repo_name)
-        task_path = "project/task.yaml"
-        task_file = repo.get_contents(task_path)
-        task_data = yaml.safe_load(task_file.decoded_content).get("tasks", {})
-
-        if task_id not in task_data:
-            raise HTTPException(status_code=404, detail="Task not found")
-
-        # Direct upstream
-        upstream = task_data[task_id].get("depends_on", [])
-
-        # Direct downstream: any task that depends on this one
-        downstream = [tid for tid, t in task_data.items() if task_id in t.get("depends_on", [])]
-
-        return {
-            "task_id": task_id,
-            "upstream": upstream,
-            "downstream": downstream
-        }
-
-    except Exception as e:
-        return JSONResponse(status_code=500, content={"detail": f"Failed to get task dependencies: {type(e).__name__}: {e}"})
-
-@app.get("/tasks/graph")
-async def get_task_dependency_graph(repo_name: str = Query(...)):
-    try:
-        repo = get_repo(repo_name)
-        task_file = repo.get_contents("project/task.yaml")
-        task_data = yaml.safe_load(task_file.decoded_content).get("tasks", {})
-
-        nodes = []
-        edges = []
-
-        for task_id, task in task_data.items():
-            nodes.append({
-                "id": task_id,
-                "label": f"{task_id} ({task.get('status')})",
-                "pod_owner": task.get("pod_owner"),
-                "description": task.get("description")
-            })
-            for dep in task.get("depends_on", []):
-                edges.append({"source": dep, "target": task_id, "type": "depends_on"})
-            if task.get("handoff_from"):
-                edges.append({"source": task["handoff_from"], "target": task_id, "type": "handoff"})
-
-        return {
-            "graph": {
-                "nodes": nodes,
-                "edges": edges
-            },
-            "total_tasks": len(nodes),
-            "note": "This graph is structured for GPT or client rendering — edges show 'depends_on' and 'handoff' relations."
-        }
-
-    except Exception as e:
-        return JSONResponse(status_code=500, content={"detail": f"Failed to load task graph: {type(e).__name__}: {e}"})
 
 # ---- Memory Management ----
 
@@ -2138,96 +2377,7 @@ def rollback_commit(
     except Exception as e:
         return JSONResponse(status_code=500, content={"detail": f"Rollback failed: {str(e)}"})
 
-# ---- Scale Out When GPT Chat Reaches Limit ----
 
-@app.post("/tasks/scale_out")
-async def scale_out_task(
-    repo_name: str = Body(...),
-    task_id: str = Body(...),
-    reason: Optional[str] = Body("Scaling due to context/token limits"),
-    handoff_note: Optional[dict] = Body(default=None)
-):
-    try:
-        repo = get_repo(repo_name)
-        task_data = fetch_yaml_from_github(repo_name, "project/task.yaml")
-
-        if task_id not in task_data.get("tasks", {}):
-            raise HTTPException(status_code=404, detail=f"Task ID {task_id} not found.")
-
-        original = task_data["tasks"][task_id]
-        pod_owner = original.get("pod_owner", "UnknownPod")
-
-        # Generate a new task ID with suffix _clone_N
-        clone_index = 1
-        while f"{task_id}_clone_{clone_index}" in task_data["tasks"]:
-            clone_index += 1
-        new_task_id = f"{task_id}_clone_{clone_index}"
-
-        # Copy task and modify
-        new_task = dict(original)
-        new_task["status"] = "planned"
-        new_task["done"] = False
-        new_task["created_at"] = datetime.utcnow().isoformat()
-        new_task["updated_at"] = None
-        new_task["handoff_from"] = task_id
-        new_task["description"] = f"Scale-out clone of {task_id}"
-        new_task["notes"] = reason
-
-        task_data["tasks"][new_task_id] = new_task
-        updated_yaml = yaml.dump(task_data, sort_keys=False)
-
-        commit_and_log(
-            repo,
-            file_path="project/task.yaml",
-            content=updated_yaml,
-            commit_message=f"Scale out task {task_id} to {new_task_id}",
-            task_id=new_task_id,
-            committed_by=pod_owner
-        )
-
-        # Use provided handoff_note or generate default
-        if not handoff_note:
-            handoff_note = {
-                "timestamp": datetime.utcnow().isoformat(),
-                "from_pod": pod_owner,
-                "to_pod": pod_owner,
-                "reason": reason,
-                "handoff_type": "scale",
-                "reference_files": original.get("outputs", []),
-                "notes": f"GPT reached context/token limit on {task_id}. Work handed off to {new_task_id}.",
-                "ways_of_working": "Resume mid-task using prior context"
-            }
-
-        # Store handoff note
-        handoff_path = f"project/outputs/{task_id}/handoff_notes.yaml"
-        try:
-            handoff_file = repo.get_contents(handoff_path)
-            handoff_data = yaml.safe_load(handoff_file.decoded_content) or {}
-        except:
-            handoff_data = {}
-
-        handoff_data.setdefault("handoffs", []).append(handoff_note)
-        commit_and_log(
-            repo,
-            file_path=handoff_path,
-            content=yaml.dump(handoff_data, sort_keys=False),
-            commit_message=f"Log scale handoff from {task_id} to {new_task_id}",
-            task_id=task_id,
-            committed_by=pod_owner
-        )
-
-        return {
-            "message": f"Created new scale-out task {new_task_id}",
-            "new_task_id": new_task_id,
-            "task_metadata": new_task,
-            "next_step": f"Call /tasks/start with task_id: {new_task_id} to continue work.",
-            "inputs": new_task.get("inputs", []),
-            "prior_outputs": original.get("outputs", []),
-            "handoff_note": handoff_note
-        }
-
-    except Exception as e:
-        return JSONResponse(status_code=500, content={"detail": str(e)})
 
 # ---- Project Initialization ----
 
@@ -2335,18 +2485,59 @@ def get_onboarding_guide(
     
 # ---- Bug & Enhancements ------
 
-@app.post("/system/log_issue_or_enhancement")
-async def log_issue_or_enhancement(
-    repo_name: str = Body(...),
-    scope: str = Body(...),  # 'framework' or 'project'
-    type: str = Body(...),   # 'bug' or 'enhancement'
-    task_id: Optional[str] = Body(default=None),
-    title: str = Body(...),
-    detail: Optional[str] = Body(default=None),
-    suggested_fix: Optional[str] = Body(default=None),
-    tags: Optional[List[str]] = Body(default=[]),
-    status: str = Body(default="open")  # 'open' or 'closed'
-):
+@app.post("/system/manage_issues")
+async def manage_issues(payload: dict = Body(...)):
+    action = payload.get("action")
+    repo_name = payload.get("repo_name")
+
+    if not action or not repo_name:
+        raise HTTPException(status_code=400, detail="'action' and 'repo_name' are required")
+
+    if action == "log":
+        return await handle_log_issue(
+            repo_name=repo_name,
+            scope=payload.get("scope"),
+            type_=payload.get("type"),
+            task_id=payload.get("task_id"),
+            title=payload.get("title"),
+            detail=payload.get("detail"),
+            suggested_fix=payload.get("suggested_fix"),
+            tags=payload.get("tags"),
+            status=payload.get("status", "open")
+        )
+
+    elif action == "fetch":
+        return await handle_fetch_issues(
+            repo_name=repo_name,
+            scope=payload.get("scope"),
+            type_=payload.get("type"),
+            issue_id=payload.get("issue_id"),
+            task_id=payload.get("task_id"),
+            tag=payload.get("tag"),
+            status=payload.get("status")
+        )
+
+    elif action == "update_status":
+        return await handle_update_issue_status(
+            repo_name=repo_name,
+            scope=payload.get("scope"),
+            issue_id=payload.get("issue_id"),
+            new_status=payload.get("new_status")
+        )
+
+    raise HTTPException(status_code=400, detail=f"Unsupported action: {action}")
+
+async def handle_log_issue(
+        repo_name: str, 
+        scope: str, 
+        type_: str, 
+        task_id: Optional[str], 
+        title: str, 
+        detail: Optional[str], 
+        suggested_fix: Optional[str], 
+        tags: Optional[List[str]], 
+        status: str):
+    """Log a new bug or enhancement entry."""
     try:
         repo = get_repo(repo_name)
         path = f".logs/issues/{scope}.yaml"
@@ -2378,62 +2569,16 @@ async def log_issue_or_enhancement(
     except Exception as e:
         return JSONResponse(status_code=500, content={"detail": f"Internal Server Error: {type(e).__name__}: {e}"})
     
-@app.post("/system/log_issue_or_enhancement")
-async def log_issue_or_enhancement(
-    repo_name: str = Body(...),
-    scope: str = Body(...),  # 'framework' or 'project'
-    type: str = Body(...),   # 'bug' or 'enhancement'
-    task_id: Optional[str] = Body(default=None),
-    title: str = Body(...),
-    detail: Optional[str] = Body(default=None),
-    suggested_fix: Optional[str] = Body(default=None),
-    tags: Optional[List[str]] = Body(default=[]),
-    status: str = Body(default="open")  # 'open' or 'closed'
-):
-    try:
-        import uuid
-        repo = get_repo(repo_name)
-        path = f".logs/issues/{scope}.yaml"
 
-        try:
-            file = repo.get_contents(path)
-            data = yaml.safe_load(file.decoded_content) or []
-        except:
-            data = []
-
-        issue_id = str(uuid.uuid4())
-        entry = {
-            "issue_id": issue_id,
-            "type": type,
-            "scope": scope,
-            "task_id": task_id,
-            "title": title,
-            "detail": detail,
-            "suggested_fix": suggested_fix,
-            "tags": tags,
-            "status": status,
-            "timestamp": datetime.utcnow().isoformat()
-        }
-
-        data.append(entry)
-        content = yaml.dump(data, sort_keys=False)
-
-        commit_and_log(repo, path, content, f"Log {type} in {scope} scope", committed_by="GPTPod")
-        return {"message": "Issue or enhancement logged", "entry": entry}
-
-    except Exception as e:
-        return JSONResponse(status_code=500, content={"detail": f"Internal Server Error: {type(e).__name__}: {e}"})
-
-@app.get("/system/fetch_issues_or_enhancements")
-async def fetch_issues_or_enhancements(
-    repo_name: str = Query(...),
-    scope: Optional[str] = Query(None),  # framework, project, or None for both
-    issue_id: Optional[str] = Query(None),
-    type: Optional[str] = Query(None),
-    task_id: Optional[str] = Query(None),
-    tag: Optional[str] = Query(None),
-    status: Optional[str] = Query(None)
-):
+async def handle_fetch_issues(
+        repo_name: str, 
+        scope: Optional[str], 
+        type_: Optional[str], 
+        issue_id: Optional[str], 
+        task_id: Optional[str], 
+        tag: Optional[str], 
+        status: Optional[str]):
+    """Fetch issues or enhancements with optional filters."""
     try:
         repo = get_repo(repo_name)
         scopes = ["framework", "project"] if not scope else [scope]
@@ -2460,14 +2605,8 @@ async def fetch_issues_or_enhancements(
     except Exception as e:
         return JSONResponse(status_code=404, content={"detail": f"Could not fetch issues or enhancements: {type(e).__name__}: {e}"})
 
-
-@app.post("/system/update_issue_status")
-async def update_issue_status(
-    repo_name: str = Body(...),
-    scope: str = Body(...),
-    issue_id: str = Body(...),
-    new_status: str = Body(...)
-):
+async def handle_update_issue_status(repo_name: str, scope: str, issue_id: str, new_status: str):
+    """Update status of an issue or enhancement."""
     try:
         repo = get_repo(repo_name)
         path = f".logs/issues/{scope}.yaml"

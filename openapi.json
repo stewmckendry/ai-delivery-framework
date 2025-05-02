@@ -177,164 +177,6 @@
         }
       }
     },
-    "/tasks/update_metadata": {
-      "patch": {
-        "operationId": "updateTaskMetadata",
-        "summary": "Update metadata fields for a task",
-        "tags": [
-          "Tasks"
-        ],
-        "x-gpt-action": {
-          "name": "Update Task Metadata",
-          "instructions": "Use this to update specific metadata fields for a task.",
-          "summary_keywords": [
-            "task",
-            "metadata",
-            "update"
-          ]
-        },
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "repo_name",
-                  "task_id"
-                ],
-                "properties": {
-                  "repo_name": {
-                    "type": "string"
-                  },
-                  "task_id": {
-                    "type": "string"
-                  },
-                  "description": {
-                    "type": "string"
-                  },
-                  "prompt": {
-                    "type": "string"
-                  },
-                  "inputs": {
-                    "type": "array",
-                    "items": {
-                      "type": "string"
-                    }
-                  },
-                  "outputs": {
-                    "type": "array",
-                    "items": {
-                      "type": "string"
-                    }
-                  },
-                  "ready": {
-                    "type": "boolean"
-                  },
-                  "done": {
-                    "type": "boolean"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Task metadata updated successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    },
-                    "task_id": {
-                      "type": "string"
-                    },
-                    "updated_task_metadata": {
-                      "type": "object"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Task not found"
-          }
-        }
-      }
-    },
-    "/tasks/list": {
-      "get": {
-        "operationId": "listTasks",
-        "summary": "List tasks from GitHub task.yaml",
-        "tags": [
-          "Tasks"
-        ],
-        "x-gpt-action": {
-          "name": "List All Tasks",
-          "instructions": "Fetch all tasks from the task.yaml file in the GitHub repo.",
-          "summary_keywords": [
-            "task",
-            "list",
-            "tasks",
-            "metadata"
-          ]
-        },
-        "parameters": [
-          {
-            "name": "status",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "pod_owner",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "category",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "List of tasks",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "tasks": {
-                      "type": "object",
-                      "additionalProperties": {
-                        "type": "object"
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Error fetching task.yaml"
-          }
-        }
-      }
-    },
     "/tasks/activate": {
       "post": {
         "operationId": "activateTask",
@@ -410,221 +252,6 @@
                           }
                         }
                       }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/tasks/clone": {
-      "post": {
-        "operationId": "cloneTask",
-        "summary": "Clone an existing task and generate a new task ID and metadata",
-        "tags": [
-          "Tasks"
-        ],
-        "x-gpt-action": {
-          "name": "Clone Task",
-          "instructions": "Use this to clone an existing task and generate a new task ID.",
-          "summary_keywords": [
-            "task",
-            "clone",
-            "metadata"
-          ]
-        },
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "repo_name",
-                  "original_task_id",
-                  "descriptor"
-                ],
-                "properties": {
-                  "repo_name": {
-                    "type": "string"
-                  },
-                  "original_task_id": {
-                    "type": "string"
-                  },
-                  "descriptor": {
-                    "type": "string"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Task cloned and new task ID generated",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    },
-                    "new_task_id": {
-                      "type": "string"
-                    },
-                    "cloned_task_metadata": {
-                      "type": "object"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/tasks/{task_id}": {
-      "get": {
-        "operationId": "getTaskDetails",
-        "summary": "Return full metadata for a task",
-        "tags": [
-          "Tasks"
-        ],
-        "x-gpt-action": {
-          "name": "Get Task Details",
-          "instructions": "Call this to get the full metadata for a specific task.",
-          "summary_keywords": [
-            "task",
-            "metadata",
-            "details"
-          ]
-        },
-        "parameters": [
-          {
-            "name": "task_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Metadata for a single task",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "task_id": {
-                      "type": "string"
-                    },
-                    "metadata": {
-                      "type": "object"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Task not found"
-          }
-        }
-      }
-    },
-    "/tasks/create": {
-      "post": {
-        "operationId": "createNewTask",
-        "summary": "Create a new task from a structured template",
-        "tags": [
-          "Tasks"
-        ],
-        "x-gpt-action": {
-          "name": "Create New Task",
-          "instructions": "Use this to create a new task using a template defined in /framework/task_templates/<phase>/<task>.",
-          "summary_keywords": [
-            "task",
-            "create",
-            "template"
-          ]
-        },
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "repo_name",
-                  "phase",
-                  "task_key",
-                  "task_id",
-                  "assigned_pod"
-                ],
-                "properties": {
-                  "repo_name": {
-                    "type": "string",
-                    "description": "GitHub repo name"
-                  },
-                  "phase": {
-                    "type": "string",
-                    "description": "The SDLC phase (e.g., phase2)"
-                  },
-                  "task_key": {
-                    "type": "string",
-                    "description": "Task folder name inside the phase template"
-                  },
-                  "task_id": {
-                    "type": "string",
-                    "description": "Unique identifier for the new task"
-                  },
-                  "assigned_pod": {
-                    "type": "string",
-                    "description": "Which Pod owns this task (e.g., DevPod)"
-                  },
-                  "prompt_variables": {
-                    "type": "object",
-                    "description": "Optional variable values to inject into the prompt"
-                  }
-                },
-                "example": {
-                  "repo_name": "nhl-predictor",
-                  "phase": "phase2",
-                  "task_key": "2.4a_fix_bugs_from_qa",
-                  "task_id": "2.4a",
-                  "assigned_pod": "DevPod",
-                  "prompt_variables": {
-                    "bug_ids": [
-                      "BUG-22",
-                      "BUG-31"
-                    ]
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Task creation successful",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    },
-                    "new_task_id": {
-                      "type": "string"
-                    },
-                    "task_metadata": {
-                      "type": "object"
                     }
                   }
                 }
@@ -885,538 +512,6 @@
         }
       }
     },
-    "/tasks/start": {
-      "post": {
-        "operationId": "startTask",
-        "summary": "Start a task and mark it in progress",
-        "tags": [
-          "Tasks"
-        ],
-        "x-gpt-action": {
-          "name": "Start Task",
-          "instructions": "Use this to mark a task as in progress, log the prompt_used, and prepare for chain-of-thought.",
-          "summary_keywords": [
-            "task",
-            "start",
-            "in progress"
-          ]
-        },
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "repo_name",
-                  "task_id"
-                ],
-                "properties": {
-                  "repo_name": {
-                    "type": "string",
-                    "description": "The name of the GitHub repository (e.g., nhl-predictor)"
-                  },
-                  "task_id": {
-                    "type": "string",
-                    "description": "The task identifier to start (e.g., 1.3_define_architecture)"
-                  },
-                  "prompt_used": {
-                    "type": "string",
-                    "description": "The full prompt sent to GPT for this task. Will be saved to prompt_used.txt"
-                  }
-                },
-                "example": {
-                  "repo_name": "nhl-predictor",
-                  "task_id": "1.3_define_architecture",
-                  "prompt_used": "Please design the system architecture using the following constraints and personas..."
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Task successfully started and prompt logged",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string",
-                      "description": "Confirmation message that task was started"
-                    },
-                    "inputs": {
-                      "type": "array",
-                      "description": "Input files listed in task metadata",
-                      "items": {
-                        "type": "string"
-                      }
-                    },
-                    "handoff_note": {
-                      "type": "object",
-                      "description": "Latest handoff note from upstream task, if any"
-                    },
-                    "reasoning_summary": {
-                      "type": "string",
-                      "description": "Summary of the reasoning trace from the upstream task, if available"
-                    },
-                    "next_step": {
-                      "type": "string",
-                      "description": "Suggested next step in the workflow (e.g., append chain of thought)"
-                    }
-                  },
-                  "example": {
-                    "message": "Task 1.3_define_architecture started successfully.",
-                    "inputs": [
-                      "docs/personas/user_roles.md",
-                      "docs/workflows/delivery_flow.md"
-                    ],
-                    "handoff_note": {
-                      "from_pod": "ProductPod",
-                      "to_pod": "DevPod",
-                      "notes": "Ready to implement architecture."
-                    },
-                    "reasoning_summary": "Upstream team outlined constraints and goals. Focus is on modular design.",
-                    "next_step": "Call /tasks/append_chain_of_thought to log 2–3 initial thoughts from GPT Pod."
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/tasks/append_chain_of_thought": {
-      "post": {
-        "operationId": "appendChainOfThought",
-        "summary": "Append a message, tags, issues, or lessons to a task's chain_of_thought.yaml file",
-        "tags": [
-          "Tasks"
-        ],
-        "x-gpt-action": {
-          "name": "Append to Chain of Thought",
-          "instructions": "Use this to append a thought, issue, or lesson learned for a specific task.",
-          "summary_keywords": [
-            "task",
-            "append",
-            "chain of thought"
-          ]
-        },
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "repo_name",
-                  "task_id",
-                  "message"
-                ],
-                "properties": {
-                  "repo_name": {
-                    "type": "string",
-                    "description": "Name of the GitHub repository"
-                  },
-                  "task_id": {
-                    "type": "string",
-                    "description": "The task ID to which this thought applies"
-                  },
-                  "message": {
-                    "type": "string",
-                    "description": "Main thought or observation to log"
-                  },
-                  "tags": {
-                    "type": "array",
-                    "description": "Optional list of freeform tags (e.g., phase, topic, tool)",
-                    "items": {
-                      "type": "string"
-                    }
-                  },
-                  "issues": {
-                    "type": "array",
-                    "description": "Optional list of issues encountered during the task",
-                    "items": {
-                      "type": "string"
-                    }
-                  },
-                  "lessons": {
-                    "type": "array",
-                    "description": "Optional list of lessons learned",
-                    "items": {
-                      "type": "string"
-                    }
-                  }
-                },
-                "example": {
-                  "repo_name": "nhl-predictor",
-                  "task_id": "2.1_model_inputs",
-                  "message": "We encountered retry issues on GitHub PATCH.",
-                  "tags": [
-                    "retry",
-                    "infra"
-                  ],
-                  "issues": [
-                    "GitHub API rate limit caused 2 retry delays"
-                  ],
-                  "lessons": [
-                    "Preload or cache common files where possible",
-                    "Consider adding a sleep between commits"
-                  ]
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successfully appended to chain_of_thought",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string",
-                      "description": "Success confirmation"
-                    },
-                    "appended_thought": {
-                      "type": "object",
-                      "description": "The full entry appended to the YAML",
-                      "properties": {
-                        "message": {
-                          "type": "string"
-                        },
-                        "timestamp": {
-                          "type": "string"
-                        },
-                        "tags": {
-                          "type": "array",
-                          "items": {
-                            "type": "string"
-                          }
-                        },
-                        "issues": {
-                          "type": "array",
-                          "items": {
-                            "type": "string"
-                          }
-                        },
-                        "lessons": {
-                          "type": "array",
-                          "items": {
-                            "type": "string"
-                          }
-                        }
-                      }
-                    }
-                  },
-                  "example": {
-                    "message": "Chain of thought appended.",
-                    "appended_thought": {
-                      "message": "We encountered retry issues on GitHub PATCH.",
-                      "timestamp": "2025-04-30T22:30:00Z",
-                      "tags": [
-                        "retry",
-                        "infra"
-                      ],
-                      "issues": [
-                        "GitHub API rate limit caused 2 retry delays"
-                      ],
-                      "lessons": [
-                        "Preload or cache common files where possible"
-                      ]
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/tasks/fetch_chain_of_thought": {
-      "get": {
-        "operationId": "fetchChainOfThought",
-        "summary": "Fetch the chain_of_thought.yaml for a given task",
-        "tags": [
-          "Tasks"
-        ],
-        "x-gpt-action": {
-          "name": "Fetch Chain of Thought",
-          "instructions": "Use this to retrieve any thoughts, issues, or lessons logged for a task.",
-          "summary_keywords": [
-            "task",
-            "chain of thought",
-            "fetch"
-          ]
-        },
-        "parameters": [
-          {
-            "name": "task_id",
-            "in": "query",
-            "required": true,
-            "description": "The task ID (e.g., 2.1_model_inputs)",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "repo_name",
-            "in": "query",
-            "required": true,
-            "description": "The name of the GitHub repository",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successfully retrieved the chain of thought",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "task_id": {
-                      "type": "string"
-                    },
-                    "chain_of_thought": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "message": {
-                            "type": "string"
-                          },
-                          "timestamp": {
-                            "type": "string"
-                          },
-                          "tags": {
-                            "type": "array",
-                            "items": {
-                              "type": "string"
-                            }
-                          },
-                          "issues": {
-                            "type": "array",
-                            "items": {
-                              "type": "string"
-                            }
-                          },
-                          "lessons": {
-                            "type": "array",
-                            "items": {
-                              "type": "string"
-                            }
-                          }
-                        }
-                      }
-                    }
-                  },
-                  "example": {
-                    "task_id": "2.1_model_inputs",
-                    "chain_of_thought": [
-                      {
-                        "message": "We encountered retry issues with GitHub PATCH.",
-                        "timestamp": "2025-04-30T21:15:00Z",
-                        "tags": [
-                          "infra"
-                        ],
-                        "issues": [
-                          "API retries slowed task start"
-                        ],
-                        "lessons": [
-                          "Add visibility into retry attempts"
-                        ]
-                      }
-                    ]
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/tasks/fetch_reasoning_trace": {
-      "get": {
-        "operationId": "fetchReasoningTrace",
-        "summary": "Fetch the reasoning_trace.yaml or full trace including prompt and chain of thought",
-        "tags": [
-          "Tasks"
-        ],
-        "x-gpt-action": {
-          "name": "Fetch Reasoning Trace",
-          "instructions": "Use this to retrieve the final reasoning trace or the full context of how the task was reasoned through.",
-          "summary_keywords": [
-            "task",
-            "reasoning",
-            "trace"
-          ]
-        },
-        "parameters": [
-          {
-            "name": "task_id",
-            "in": "query",
-            "required": true,
-            "description": "The ID of the task (e.g. 2.1_model_inputs)",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "repo_name",
-            "in": "query",
-            "required": true,
-            "description": "The GitHub repository name",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "full",
-            "in": "query",
-            "required": false,
-            "description": "If true, returns the full trace including prompt and chain of thought",
-            "schema": {
-              "type": "boolean"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Returns the reasoning trace or the full set of reasoning artifacts",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "oneOf": [
-                    {
-                      "type": "object",
-                      "properties": {
-                        "task_id": {
-                          "type": "string"
-                        },
-                        "reasoning_trace": {
-                          "type": "object",
-                          "description": "Structured reasoning trace from the GPT pod for this task",
-                          "properties": {
-                            "task_id": {
-                              "type": "string"
-                            },
-                            "thoughts": {
-                              "type": "array",
-                              "items": {
-                                "type": "object",
-                                "properties": {
-                                  "thought": {
-                                    "type": "string"
-                                  },
-                                  "tags": {
-                                    "type": "array",
-                                    "items": {
-                                      "type": "string"
-                                    }
-                                  }
-                                }
-                              }
-                            },
-                            "scoring": {
-                              "type": "object",
-                              "properties": {
-                                "thought_quality": {
-                                  "type": "integer",
-                                  "minimum": 1,
-                                  "maximum": 5
-                                },
-                                "recall_used": {
-                                  "type": "boolean"
-                                },
-                                "novel_insight": {
-                                  "type": "boolean"
-                                }
-                              }
-                            },
-                            "summary": {
-                              "type": "string"
-                            },
-                            "improvement_opportunities": {
-                              "type": "array",
-                              "items": {
-                                "type": "string"
-                              }
-                            },
-                            "alternatives": {
-                              "type": "array",
-                              "items": {
-                                "type": "string"
-                              }
-                            }
-                          }
-                        }
-                      }
-                    },
-                    {
-                      "type": "object",
-                      "properties": {
-                        "task_id": {
-                          "type": "string"
-                        },
-                        "full_reasoning_trace": {
-                          "type": "object",
-                          "properties": {
-                            "prompt_used": {
-                              "type": "string"
-                            },
-                            "chain_of_thought": {
-                              "type": "array",
-                              "items": {
-                                "type": "object",
-                                "properties": {
-                                  "message": {
-                                    "type": "string"
-                                  },
-                                  "timestamp": {
-                                    "type": "string"
-                                  },
-                                  "tags": {
-                                    "type": "array",
-                                    "items": {
-                                      "type": "string"
-                                    }
-                                  },
-                                  "issues": {
-                                    "type": "array",
-                                    "items": {
-                                      "type": "string"
-                                    }
-                                  },
-                                  "lessons": {
-                                    "type": "array",
-                                    "items": {
-                                      "type": "string"
-                                    }
-                                  }
-                                }
-                              }
-                            },
-                            "reasoning_trace": {
-                              "$ref": "#/components/schemas/ReasoningTrace"
-                            }
-                          }
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/tasks/update_changelog/{task_id}": {
       "post": {
         "operationId": "updateChangelog",
@@ -1483,602 +578,6 @@
           },
           "500": {
             "description": "Internal server error"
-          }
-        }
-      }
-    },
-    "/tasks/complete": {
-      "post": {
-        "summary": "Mark task complete and log outputs, trace, and handoff",
-        "operationId": "completeTask",
-        "tags": [
-          "Tasks"
-        ],
-        "x-gpt-action": {
-          "name": "Complete Task",
-          "instructions": "Use this to mark a task as complete and log outputs, trace, and handoff.",
-          "summary_keywords": [
-            "task",
-            "complete",
-            "handoff"
-          ]
-        },
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "repo_name",
-                  "task_id"
-                ],
-                "properties": {
-                  "repo_name": {
-                    "type": "string",
-                    "description": "The name of the GitHub repository (e.g. nhl-predictor)"
-                  },
-                  "task_id": {
-                    "type": "string",
-                    "description": "The ID of the task being completed"
-                  },
-                  "outputs": {
-                    "type": "array",
-                    "description": "List of output files created by the task",
-                    "items": {
-                      "type": "object",
-                      "required": [
-                        "path",
-                        "content"
-                      ],
-                      "properties": {
-                        "path": {
-                          "type": "string"
-                        },
-                        "content": {
-                          "type": "string"
-                        }
-                      }
-                    }
-                  },
-                  "reasoning_trace": {
-                    "type": "object",
-                    "description": "Structured reasoning trace from the GPT pod for this task",
-                    "properties": {
-                      "task_id": {
-                        "type": "string"
-                      },
-                      "thoughts": {
-                        "type": "array",
-                        "items": {
-                          "type": "object",
-                          "properties": {
-                            "thought": {
-                              "type": "string"
-                            },
-                            "tags": {
-                              "type": "array",
-                              "items": {
-                                "type": "string"
-                              }
-                            }
-                          }
-                        }
-                      },
-                      "scoring": {
-                        "type": "object",
-                        "properties": {
-                          "thought_quality": {
-                            "type": "integer",
-                            "minimum": 1,
-                            "maximum": 5
-                          },
-                          "recall_used": {
-                            "type": "boolean"
-                          },
-                          "novel_insight": {
-                            "type": "boolean"
-                          }
-                        }
-                      },
-                      "summary": {
-                        "type": "string"
-                      },
-                      "improvement_opportunities": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        }
-                      },
-                      "alternatives": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        }
-                      }
-                    }
-                  },
-                  "handoff_note": {
-                    "type": "object",
-                    "description": "Optional handoff note to the next pod or teammate"
-                  },
-                  "handoff_to_same_pod": {
-                    "type": "boolean",
-                    "description": "Set to true to trigger a scale handoff to a new GPT of the same pod type"
-                  },
-                  "token_count": {
-                    "type": "integer",
-                    "description": "Approximate token usage so far, used to inform scale-out decisions"
-                  }
-                },
-                "example": {
-                  "repo_name": "nhl-predictor",
-                  "task_id": "2.2",
-                  "outputs": [
-                    {
-                      "path": "project/outputs/2.2/summary.md",
-                      "content": "All implementation steps are complete."
-                    }
-                  ],
-                  "reasoning_trace": {
-                    "task_id": "2.2",
-                    "thoughts": [
-                      {
-                        "thought": "Used prior implementation spec to generate updated plan.",
-                        "tags": [
-                          "recall_used",
-                          "planning"
-                        ]
-                      },
-                      {
-                        "thought": "Added validation step to reduce future QA workload.",
-                        "tags": [
-                          "novel_insight",
-                          "efficiency"
-                        ]
-                      }
-                    ],
-                    "scoring": {
-                      "thought_quality": 4,
-                      "recall_used": true,
-                      "novel_insight": true
-                    },
-                    "summary": "Clear reasoning with useful reuse and small innovation.",
-                    "improvement_opportunities": [
-                      "Could reference QA criteria directly",
-                      "Explain tradeoffs of alternate approaches"
-                    ],
-                    "alternatives": [
-                      "Could have used fixed schedule instead of retriggering after updates"
-                    ]
-                  },
-                  "handoff_note": {
-                    "timestamp": "2025-04-30T12:00:00Z",
-                    "from_pod": "DevPod",
-                    "to_pod": "QAPod",
-                    "reason": "Code complete, ready for QA",
-                    "token_count": 14500,
-                    "next_prompt": "Start with test plan for module A",
-                    "reference_files": [
-                      "src/module_a.py"
-                    ],
-                    "notes": "Some edge cases still need coverage.",
-                    "ways_of_working": "Follow async feedback loop via chain_of_thought."
-                  },
-                  "handoff_to_same_pod": false,
-                  "token_count": 14800
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Task completion confirmed",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/tasks/next": {
-      "post": {
-        "operationId": "getNextTask",
-        "summary": "Retrieve the next available task(s) for a Pod",
-        "tags": [
-          "Tasks"
-        ],
-        "x-gpt-action": {
-          "name": "Get Next Task",
-          "instructions": "Find the next task(s) available for a specific pod_owner. Call /tasks/start to begin working.",
-          "summary_keywords": [
-            "task",
-            "next",
-            "available"
-          ]
-        },
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "repo_name"
-                ],
-                "properties": {
-                  "repo_name": {
-                    "type": "string"
-                  },
-                  "pod_owner": {
-                    "type": "string"
-                  }
-                },
-                "example": {
-                  "repo_name": "nhl-predictor",
-                  "pod_owner": "DevPod"
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "List of ready tasks for this Pod",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    },
-                    "tasks": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "task_id": {
-                            "type": "string"
-                          },
-                          "description": {
-                            "type": "string"
-                          },
-                          "status": {
-                            "type": "string"
-                          }
-                        }
-                      }
-                    },
-                    "next_step": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/tasks/reopen": {
-      "post": {
-        "operationId": "reopenTask",
-        "summary": "Reopen a completed task and mark as in progress",
-        "tags": [
-          "Tasks"
-        ],
-        "x-gpt-action": {
-          "name": "Reopen Task",
-          "instructions": "Use this to reopen a task that was previously marked as complete.",
-          "summary_keywords": [
-            "task",
-            "reopen",
-            "in progress"
-          ]
-        },
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "repo_name",
-                  "task_id"
-                ],
-                "properties": {
-                  "repo_name": {
-                    "type": "string"
-                  },
-                  "task_id": {
-                    "type": "string"
-                  },
-                  "reason": {
-                    "type": "string"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Task reopened and COT updated",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/tasks/append_handoff_note/{task_id}": {
-      "post": {
-        "summary": "Append a handoff note to a task",
-        "operationId": "appendHandoffNote",
-        "tags": [
-          "Tasks"
-        ],
-        "x-gpt-action": {
-          "name": "Append Handoff Note",
-          "instructions": "Use this to append a handoff note to a task's metadata.",
-          "summary_keywords": [
-            "handoff",
-            "note",
-            "append"
-          ]
-        },
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "repo_name",
-                  "from_pod",
-                  "to_pod",
-                  "reason",
-                  "token_count",
-                  "next_prompt"
-                ],
-                "properties": {
-                  "repo_name": {
-                    "type": "string",
-                    "description": "The name of the GitHub repository (e.g. nhl-predictor)"
-                  },
-                  "from_pod": {
-                    "type": "string",
-                    "description": "The name of the pod from which the task is being handed off (eg DevPod, QAPod, ResearchPod, DeliveryPod)"
-                  },
-                  "to_pod": {
-                    "type": "string",
-                    "description": "The name of the pod to which the task is being handed off (eg DevPod, QAPod, ResearchPod, DeliveryPod)"
-                  },
-                  "reason": {
-                    "type": "string",
-                    "description": "The reason for the handoff"
-                  },
-                  "token_count": {
-                    "type": "integer",
-                    "description": "The number of tokens used so far in the chat session"
-                  },
-                  "next_prompt": {
-                    "type": "string",
-                    "description": "The next prompt for the task"
-                  },
-                  "reference_files": {
-                    "type": "array",
-                    "description": "A list of reference files related to the task",
-                    "items": {
-                      "type": "string"
-                    }
-                  },
-                  "notes": {
-                    "type": "string",
-                    "description": "Additional notes regarding the task"
-                  },
-                  "ways_of_working": {
-                    "type": "string",
-                    "description": "Description of the ways of working between gpt and user for the task"
-                  }
-                },
-                "example": {
-                  "repo_name": "nhl-predictor",
-                  "from_pod": "DevPod",
-                  "to_pod": "QAPod",
-                  "reason": "Feature complete, ready for QA",
-                  "token_count": 13200,
-                  "next_prompt": "Please test component A and validate edge case B",
-                  "reference_files": [
-                    "src/main.py",
-                    "test/test_main.py"
-                  ],
-                  "notes": "Watch out for flakiness in test X",
-                  "ways_of_working": "Continue async updates via chain_of_thought.yaml"
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Handoff note appended successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    },
-                    "note": {
-                      "type": "object"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/tasks/fetch_handoff_note": {
-      "post": {
-        "summary": "Retrieve latest handoff note from upstream task",
-        "operationId": "fetchHandoffNote",
-        "tags": [
-          "Tasks"
-        ],
-        "x-gpt-action": {
-          "name": "Fetch Handoff Note",
-          "instructions": "Use this to retrieve the latest handoff note from an upstream task.",
-          "summary_keywords": [
-            "handoff",
-            "note",
-            "fetch"
-          ]
-        },
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "repo_name",
-                  "task_id"
-                ],
-                "properties": {
-                  "repo_name": {
-                    "type": "string"
-                  },
-                  "task_id": {
-                    "type": "string"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Handoff note found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "handoff_from": {
-                      "type": "string"
-                    },
-                    "handoff_note": {
-                      "type": "object"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/tasks/auto_generate_handoff/{task_id}": {
-      "post": {
-        "summary": "Auto-generate a handoff note for a completed task",
-        "operationId": "autoGenerateHandoff",
-        "tags": [
-          "Tasks"
-        ],
-        "x-gpt-action": {
-          "name": "Auto-Generate Handoff Note",
-          "instructions": "Use this to auto-generate a handoff note for a completed task.",
-          "summary_keywords": [
-            "handoff",
-            "note",
-            "auto-generate"
-          ]
-        },
-        "parameters": [
-          {
-            "name": "task_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "repo_name"
-                ],
-                "properties": {
-                  "repo_name": {
-                    "type": "string"
-                  }
-                },
-                "example": {
-                  "repo_name": "nhl-predictor"
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Handoff note generated",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "handoff_note": {
-                      "type": "object"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Server error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "detail": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
           }
         }
       }
@@ -2378,565 +877,6 @@
         }
       }
     },
-    "/tasks/auto_handoff": {
-      "post": {
-        "operationId": "autoHandoff",
-        "summary": "Configure a handoff from one task to the next with enriched metadata",
-        "tags": [
-          "Tasks",
-          "Handoff"
-        ],
-        "x-gpt-action": {
-          "name": "Auto Handoff Between Tasks",
-          "instructions": "Use this to set up a handoff from one task to another. It logs the handoff, updates downstream metadata, and suggests the next step."
-        },
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "repo_name": {
-                    "type": "string",
-                    "example": "ai-delivery-framework"
-                  },
-                  "task_id": {
-                    "type": "string",
-                    "description": "ID of the source (handoff origin) task",
-                    "example": "2.3_write_api_spec"
-                  },
-                  "next_task_id": {
-                    "type": "string",
-                    "description": "ID of the downstream task to receive the handoff",
-                    "example": "3.1_write_tests"
-                  },
-                  "handoff_mode": {
-                    "type": "string",
-                    "description": "Mode of the handoff (e.g., async or sync)",
-                    "example": "async"
-                  }
-                },
-                "required": [
-                  "repo_name",
-                  "task_id",
-                  "next_task_id"
-                ]
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Confirmation of the auto handoff, with guidance on the next step",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    },
-                    "next_step": {
-                      "type": "string"
-                    },
-                    "handoff_note": {
-                      "type": "object",
-                      "properties": {
-                        "note": {
-                          "type": "string"
-                        },
-                        "origin_pod": {
-                          "type": "string"
-                        },
-                        "target_pod": {
-                          "type": "string"
-                        },
-                        "timestamp": {
-                          "type": "string"
-                        },
-                        "mode": {
-                          "type": "string"
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/tasks/scale_out": {
-      "post": {
-        "operationId": "scaleOutTask",
-        "summary": "Create a new scaled-out task instance and optionally log a handoff note",
-        "tags": [
-          "Tasks"
-        ],
-        "x-gpt-action": {
-          "name": "Scale Out Task",
-          "instructions": "Use this to clone a task into a new one when the current pod reaches token/context limits. Optionally provide a handoff note to carry over.",
-          "summary_keywords": [
-            "scale",
-            "out",
-            "task",
-            "capacity",
-            "new chat"
-          ]
-        },
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "repo_name",
-                  "task_id"
-                ],
-                "properties": {
-                  "repo_name": {
-                    "type": "string",
-                    "description": "The GitHub repo name where the task lives"
-                  },
-                  "task_id": {
-                    "type": "string",
-                    "description": "The original task to scale out"
-                  },
-                  "reason": {
-                    "type": "string",
-                    "description": "Why the scale-out is occurring (e.g., context/token overflow)"
-                  },
-                  "handoff_note": {
-                    "type": "object",
-                    "description": "Optional structured handoff note to attach to the previous task"
-                  }
-                },
-                "example": {
-                  "repo_name": "nhl-predictor",
-                  "task_id": "2.3",
-                  "reason": "Reached token limit while processing test cases.",
-                  "handoff_note": {
-                    "from_pod": "DevPod",
-                    "to_pod": "DevPod",
-                    "reason": "Continuing due to scale out",
-                    "reference_files": [
-                      "project/outputs/2.3/test_plan.md"
-                    ],
-                    "notes": "Test case generation in progress",
-                    "ways_of_working": "Start with what's left in reasoning trace",
-                    "handoff_type": "scale"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Returns new task ID and continuation context",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    },
-                    "new_task_id": {
-                      "type": "string"
-                    },
-                    "task_metadata": {
-                      "type": "object"
-                    },
-                    "next_step": {
-                      "type": "string"
-                    },
-                    "inputs": {
-                      "type": "array",
-                      "items": {
-                        "type": "string"
-                      }
-                    },
-                    "prior_outputs": {
-                      "type": "array",
-                      "items": {
-                        "type": "string"
-                      }
-                    },
-                    "handoff_note": {
-                      "type": "object"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/system/log_issue_or_enhancement": {
-      "post": {
-        "operationId": "logIssueOrEnhancement",
-        "summary": "Log a bug or enhancement to the issue tracker",
-        "tags": [
-          "System"
-        ],
-        "x-gpt-action": {
-          "name": "Log Issue or Enhancement",
-          "instructions": "Use this to report a bug or suggest an enhancement. Each entry includes scope, status, and optional task linkage."
-        },
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "repo_name",
-                  "scope",
-                  "type",
-                  "title"
-                ],
-                "properties": {
-                  "repo_name": {
-                    "type": "string",
-                    "description": "Target GitHub repo (e.g. ai-delivery-framework)"
-                  },
-                  "scope": {
-                    "type": "string",
-                    "enum": [
-                      "framework",
-                      "project"
-                    ],
-                    "description": "Where the issue applies"
-                  },
-                  "type": {
-                    "type": "string",
-                    "enum": [
-                      "bug",
-                      "enhancement"
-                    ],
-                    "description": "Type of entry"
-                  },
-                  "task_id": {
-                    "type": "string",
-                    "description": "Optional task ID related to this entry"
-                  },
-                  "title": {
-                    "type": "string",
-                    "description": "Title of the issue or enhancement"
-                  },
-                  "detail": {
-                    "type": "string",
-                    "description": "Optional detailed description"
-                  },
-                  "suggested_fix": {
-                    "type": "string",
-                    "description": "Optional fix or improvement"
-                  },
-                  "tags": {
-                    "type": "array",
-                    "items": {
-                      "type": "string"
-                    },
-                    "description": "Optional categorization tags"
-                  },
-                  "status": {
-                    "type": "string",
-                    "enum": [
-                      "open",
-                      "closed"
-                    ],
-                    "default": "open",
-                    "description": "Tracking status"
-                  }
-                },
-                "example": {
-                  "repo_name": "ai-delivery-framework",
-                  "scope": "framework",
-                  "type": "bug",
-                  "task_id": "2.1_model_inputs",
-                  "title": "Retry logic failed silently",
-                  "detail": "API returned 200 but file did not update",
-                  "suggested_fix": "Add retry logging visibility",
-                  "tags": [
-                    "infra",
-                    "retry"
-                  ],
-                  "status": "open"
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Logged successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    },
-                    "entry": {
-                      "type": "object"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/system/fetch_issues_or_enhancements": {
-      "get": {
-        "operationId": "fetchIssuesOrEnhancements",
-        "summary": "Fetch issues and enhancements by scope, tag, type, or task",
-        "tags": [
-          "System"
-        ],
-        "x-gpt-action": {
-          "name": "Fetch Issues or Enhancements",
-          "instructions": "Use this to search the project or framework issue tracker. You can filter by scope, status, tag, etc."
-        },
-        "parameters": [
-          {
-            "name": "repo_name",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "scope",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "enum": [
-                "framework",
-                "project"
-              ]
-            }
-          },
-          {
-            "name": "type",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "enum": [
-                "bug",
-                "enhancement"
-              ]
-            }
-          },
-          {
-            "name": "issue_id",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "task_id",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "tag",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "status",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "enum": [
-                "open",
-                "closed"
-              ]
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Filtered issue/enhancement list",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "scope": {
-                      "type": "string"
-                    },
-                    "results": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "type": {
-                            "type": "string"
-                          },
-                          "scope": {
-                            "type": "string"
-                          },
-                          "task_id": {
-                            "type": "string"
-                          },
-                          "title": {
-                            "type": "string"
-                          },
-                          "detail": {
-                            "type": "string"
-                          },
-                          "suggested_fix": {
-                            "type": "string"
-                          },
-                          "tags": {
-                            "type": "array",
-                            "items": {
-                              "type": "string"
-                            }
-                          },
-                          "status": {
-                            "type": "string"
-                          },
-                          "timestamp": {
-                            "type": "string"
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/system/update_issue_status": {
-      "post": {
-        "operationId": "updateIssueStatus",
-        "summary": "Update the status of a logged issue or enhancement",
-        "tags": [
-          "System"
-        ],
-        "x-gpt-action": {
-          "name": "Update Issue Status",
-          "instructions": "Use this to mark an issue or enhancement as resolved or reopen it. Reference the entry using issue_id.",
-          "summary_keywords": [
-            "issue",
-            "enhancement",
-            "status",
-            "update"
-          ]
-        },
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "repo_name",
-                  "scope",
-                  "issue_id",
-                  "new_status"
-                ],
-                "properties": {
-                  "repo_name": {
-                    "type": "string",
-                    "description": "Target repository (e.g., ai-delivery-framework)"
-                  },
-                  "scope": {
-                    "type": "string",
-                    "description": "Where the issue is logged",
-                    "enum": [
-                      "framework",
-                      "project"
-                    ]
-                  },
-                  "issue_id": {
-                    "type": "string",
-                    "description": "The unique ID of the issue to update"
-                  },
-                  "new_status": {
-                    "type": "string",
-                    "description": "The new status value (e.g., open, closed)",
-                    "enum": [
-                      "open",
-                      "closed"
-                    ]
-                  }
-                },
-                "example": {
-                  "repo_name": "ai-delivery-framework",
-                  "scope": "framework",
-                  "issue_id": "a12b3c4d-567e-89f0-gh12-ijk345lmno67",
-                  "new_status": "closed"
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Status updated successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "example": {
-                    "message": "Status updated to closed for: a12b3c4d-567e-89f0-gh12-ijk345lmno67"
-                  }
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Issue not found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "detail": {
-                      "type": "string"
-                    }
-                  },
-                  "example": {
-                    "detail": "Entry with issue_id 'XYZ' not found."
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/tasks/artifacts/{task_id}": {
       "get": {
         "operationId": "getTaskArtifacts",
@@ -3025,311 +965,6 @@
                       "items": {
                         "type": "object"
                       }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/tasks/dependencies/{task_id}": {
-      "get": {
-        "operationId": "getTaskDependencies",
-        "summary": "Get upstream and downstream dependencies for a task",
-        "tags": [
-          "Tasks"
-        ],
-        "x-gpt-action": {
-          "name": "Get Task Dependencies",
-          "instructions": "Use this to find all tasks that this task depends on, and tasks that depend on it."
-        },
-        "parameters": [
-          {
-            "name": "task_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "The task ID to analyze",
-            "example": "1.3_define_architecture"
-          },
-          {
-            "name": "repo_name",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "The name of the GitHub repository",
-            "example": "ai-delivery-framework"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Upstream and downstream tasks for the given task ID",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "task_id": {
-                      "type": "string"
-                    },
-                    "upstream": {
-                      "type": "array",
-                      "items": {
-                        "type": "string"
-                      },
-                      "description": "Task IDs this task depends on"
-                    },
-                    "downstream": {
-                      "type": "array",
-                      "items": {
-                        "type": "string"
-                      },
-                      "description": "Task IDs that depend on this task"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/tasks/reasoning_summary": {
-      "get": {
-        "operationId": "getReasoningSummary",
-        "summary": "Summarize reasoning quality across all tasks",
-        "tags": [
-          "Tasks",
-          "Metrics"
-        ],
-        "x-gpt-action": {
-          "name": "Get Reasoning Summary",
-          "instructions": "Use this to get a high-level reasoning quality report across all tasks, including thought quality scores, insights, and areas for improvement."
-        },
-        "parameters": [
-          {
-            "name": "repo_name",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "example": "ai-delivery-framework",
-            "description": "The GitHub repository to analyze"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Reasoning summary for each task that has a trace",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "reasoning_summary": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "task_id": {
-                            "type": "string"
-                          },
-                          "thought_quality": {
-                            "type": "integer",
-                            "minimum": 1,
-                            "maximum": 5
-                          },
-                          "recall_used": {
-                            "type": "boolean"
-                          },
-                          "novel_insight": {
-                            "type": "boolean"
-                          },
-                          "total_thoughts": {
-                            "type": "integer"
-                          },
-                          "improvement_opportunities": {
-                            "type": "array",
-                            "items": {
-                              "type": "string"
-                            }
-                          }
-                        }
-                      }
-                    },
-                    "total_tasks_with_trace": {
-                      "type": "integer",
-                      "description": "Total number of tasks that had reasoning trace files"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/tasks/graph": {
-      "get": {
-        "operationId": "getTaskGraph",
-        "summary": "Get structured graph of task dependencies",
-        "tags": [
-          "Tasks"
-        ],
-        "x-gpt-action": {
-          "name": "Get Task Graph",
-          "instructions": "Use this to retrieve all tasks and their dependency relationships in graph format. Each task is a node. Edges show 'depends_on' or 'handoff_from' links."
-        },
-        "parameters": [
-          {
-            "name": "repo_name",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "GitHub repo name containing task.yaml",
-            "example": "ai-delivery-framework"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Structured graph of task relationships",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "graph": {
-                      "type": "object",
-                      "properties": {
-                        "nodes": {
-                          "type": "array",
-                          "items": {
-                            "type": "object",
-                            "properties": {
-                              "id": {
-                                "type": "string"
-                              },
-                              "label": {
-                                "type": "string"
-                              },
-                              "pod_owner": {
-                                "type": "string"
-                              },
-                              "description": {
-                                "type": "string"
-                              }
-                            }
-                          }
-                        },
-                        "edges": {
-                          "type": "array",
-                          "items": {
-                            "type": "object",
-                            "properties": {
-                              "source": {
-                                "type": "string"
-                              },
-                              "target": {
-                                "type": "string"
-                              },
-                              "type": {
-                                "type": "string",
-                                "enum": [
-                                  "depends_on",
-                                  "handoff"
-                                ]
-                              }
-                            }
-                          }
-                        }
-                      }
-                    },
-                    "total_tasks": {
-                      "type": "integer"
-                    },
-                    "note": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/tasks/list_phases": {
-      "get": {
-        "operationId": "listTaskPhases",
-        "summary": "List all user-defined tasks grouped by SDLC phase",
-        "tags": [
-          "Tasks",
-          "Organization"
-        ],
-        "x-gpt-action": {
-          "name": "List Tasks by Phase",
-          "instructions": "Use this to retrieve all user tasks grouped by phase. Ignores system-level tasks like 0.x.",
-          "summary_keywords": [
-            "tasks",
-            "phases",
-            "sdlc"
-          ]
-        },
-        "parameters": [
-          {
-            "name": "repo_name",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Name of the GitHub repo containing the task.yaml file",
-            "example": "ai-delivery-framework"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Tasks grouped by SDLC phase",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "phases": {
-                      "type": "object",
-                      "additionalProperties": {
-                        "type": "array",
-                        "items": {
-                          "type": "object",
-                          "properties": {
-                            "task_id": {
-                              "type": "string"
-                            },
-                            "status": {
-                              "type": "string"
-                            },
-                            "pod_owner": {
-                              "type": "string"
-                            },
-                            "description": {
-                              "type": "string"
-                            }
-                          }
-                        }
-                      },
-                      "description": "Mapping of phase names to lists of task summaries"
-                    },
-                    "total_phases": {
-                      "type": "integer",
-                      "description": "Number of unique phases detected"
                     }
                   }
                 }
@@ -3595,11 +1230,18 @@
       "post": {
         "operationId": "manageMemoryEntry",
         "summary": "Update or remove a memory entry",
-        "tags": ["Memory"],
+        "tags": [
+          "Memory"
+        ],
         "x-gpt-action": {
           "name": "Manage Memory Entry",
           "instructions": "Use this to update or remove a memory entry. Set `action` to `update` or `remove`, and include `repo_name` and `path`. For updates, include optional fields to modify.",
-          "summary_keywords": ["memory", "entry", "update", "remove"]
+          "summary_keywords": [
+            "memory",
+            "entry",
+            "update",
+            "remove"
+          ]
         },
         "requestBody": {
           "required": true,
@@ -3607,7 +1249,11 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["repo_name", "path", "action"],
+                "required": [
+                  "repo_name",
+                  "path",
+                  "action"
+                ],
                 "properties": {
                   "repo_name": {
                     "type": "string",
@@ -3619,7 +1265,10 @@
                   },
                   "action": {
                     "type": "string",
-                    "enum": ["update", "remove"],
+                    "enum": [
+                      "update",
+                      "remove"
+                    ],
                     "description": "`update` to change metadata, `remove` to delete entry"
                   },
                   "description": {
@@ -3628,7 +1277,9 @@
                   },
                   "tags": {
                     "type": "array",
-                    "items": { "type": "string" },
+                    "items": {
+                      "type": "string"
+                    },
                     "description": "New tags (for update only)"
                   },
                   "pod_owner": {
@@ -3644,7 +1295,10 @@
                       "path": "project/outputs/task.yaml",
                       "action": "update",
                       "description": "Tracks task definitions",
-                      "tags": ["tasks", "config"],
+                      "tags": [
+                        "tasks",
+                        "config"
+                      ],
                       "pod_owner": "DeliveryPod"
                     }
                   },
@@ -3669,7 +1323,1098 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "message": { "type": "string" }
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tasks/manage_metadata": {
+      "post": {
+        "operationId": "manageTaskMetadata",
+        "summary": "Update or clone task metadata",
+        "tags": [
+          "Tasks"
+        ],
+        "x-gpt-action": {
+          "name": "Manage Task Metadata",
+          "instructions": "Use this to update a task’s metadata or to clone a task. Set `action` to `update_metadata` or `clone`.",
+          "summary_keywords": [
+            "task",
+            "update",
+            "metadata",
+            "clone"
+          ]
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "repo_name",
+                  "action"
+                ],
+                "properties": {
+                  "repo_name": {
+                    "type": "string",
+                    "description": "Repository name where the task lives"
+                  },
+                  "action": {
+                    "type": "string",
+                    "enum": [
+                      "update_metadata",
+                      "clone"
+                    ],
+                    "description": "`update_metadata` for metadata edits, `clone` to copy a task"
+                  },
+                  "task_id": {
+                    "type": "string",
+                    "description": "ID of the task to update (required for `update_metadata`)"
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "prompt": {
+                    "type": "string"
+                  },
+                  "inputs": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "outputs": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "ready": {
+                    "type": "boolean"
+                  },
+                  "done": {
+                    "type": "boolean"
+                  },
+                  "original_task_id": {
+                    "type": "string",
+                    "description": "ID of the task to clone (required for `clone`)"
+                  },
+                  "descriptor": {
+                    "type": "string",
+                    "description": "Descriptor of the cloned task’s purpose"
+                  }
+                },
+                "examples": {
+                  "update_metadata": {
+                    "summary": "Update task metadata",
+                    "value": {
+                      "repo_name": "ai-delivery-framework",
+                      "action": "update_metadata",
+                      "task_id": "2.1_design_feature_and_tech_spec",
+                      "description": "Refactor metadata tool",
+                      "ready": true
+                    }
+                  },
+                  "clone": {
+                    "summary": "Clone a task",
+                    "value": {
+                      "repo_name": "ai-delivery-framework",
+                      "action": "clone",
+                      "original_task_id": "2.1_design_feature_and_tech_spec",
+                      "descriptor": "for task 2.1 follow-up"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Task metadata updated or cloned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tasks/lifecycle": {
+      "post": {
+        "operationId": "manageTaskLifecycle",
+        "summary": "Manage task lifecycle: start, complete, reopen, next, scale out, or create",
+        "tags": [
+          "Tasks"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "repo_name",
+                  "action"
+                ],
+                "properties": {
+                  "action": {
+                    "type": "string",
+                    "enum": [
+                      "activate",
+                      "start",
+                      "complete",
+                      "reopen",
+                      "next",
+                      "scale_out",
+                      "create"
+                    ],
+                    "description": "Lifecycle action to perform. Each action has specific required fields.\n\n- `activate`: Mark task(s) as `planned`\n- `start`: Mark as `in_progress` and log prompt\n- `complete`: Finalize task and store outputs\n- `reopen`: Reopen completed task\n- `next`: Get next available task for a Pod\n- `scale_out`: Clone and continue task\n- `create`: Generate new task from template"
+                  },
+                  "repo_name": {
+                    "type": "string",
+                    "description": "GitHub repository where the task is defined (required for all actions)"
+                  },
+                  "task_id": {
+                    "type": "string",
+                    "description": "ID of the task (required for: start, complete, reopen, scale_out)"
+                  },
+                  "prompt_used": {
+                    "type": "string",
+                    "description": "Prompt content used to start the task (required for: start)"
+                  },
+                  "outputs": {
+                    "type": "array",
+                    "description": "Files generated by the task (required for: complete)",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "path": {
+                          "type": "string"
+                        },
+                        "content": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "path",
+                        "content"
+                      ]
+                    }
+                  },
+                  "reasoning_trace": {
+                    "type": "object",
+                    "description": "Reasoning trace for the task (optional for: complete)",
+                    "properties": {
+                      "task_id": {
+                        "type": "string"
+                      },
+                      "thoughts": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "thought": {
+                              "type": "string"
+                            },
+                            "tags": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "scoring": {
+                        "type": "object",
+                        "properties": {
+                          "thought_quality": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 5
+                          },
+                          "recall_used": {
+                            "type": "boolean"
+                          },
+                          "novel_insight": {
+                            "type": "boolean"
+                          }
+                        }
+                      },
+                      "summary": {
+                        "type": "string"
+                      },
+                      "improvement_opportunities": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "alternatives": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  },
+                  "handoff_note": {
+                    "type": "object",
+                    "description": "Structured note passed to next pod or task (optional for: complete, scale_out)",
+                    "properties": {
+                      "timestamp": {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      "from_pod": {
+                        "type": "string"
+                      },
+                      "to_pod": {
+                        "type": "string"
+                      },
+                      "reason": {
+                        "type": "string"
+                      },
+                      "token_count": {
+                        "type": "integer"
+                      },
+                      "next_prompt": {
+                        "type": "string"
+                      },
+                      "reference_files": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "notes": {
+                        "type": "string"
+                      },
+                      "ways_of_working": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "handoff_to_same_pod": {
+                    "type": "boolean",
+                    "description": "Optional flag used in 'complete' to indicate scale continuation"
+                  },
+                  "token_count": {
+                    "type": "integer",
+                    "description": "Estimated token usage (used in complete/scale_out)"
+                  },
+                  "reason": {
+                    "type": "string",
+                    "description": "Explanation for 'reopen' or 'scale_out'"
+                  },
+                  "pod_owner": {
+                    "type": "string",
+                    "description": "Which pod to query for next task (used in: next)"
+                  },
+                  "phase": {
+                    "type": "string",
+                    "description": "Phase where new task is created (used in: create)"
+                  },
+                  "task_key": {
+                    "type": "string",
+                    "description": "Task template path in framework (used in: create)"
+                  },
+                  "assigned_pod": {
+                    "type": "string",
+                    "description": "Assigned Pod name (used in: create)"
+                  },
+                  "prompt_variables": {
+                    "type": "object",
+                    "description": "Optional inputs for prompt customization (used in: create)"
+                  }
+                },
+                "examples": {
+                  "activate": {
+                    "summary": "Activate tasks",
+                    "value": {
+                      "action": "activate",
+                      "repo_name": "ai-delivery-framework",
+                      "task_id": ["1.1_capture_project_goals_prompt", "1.2_define_user_and_delivery_flows", "1.3_define_architecture"]
+                    }
+                  },
+                  "start": {
+                    "summary": "Start task",
+                    "value": {
+                      "action": "start",
+                      "repo_name": "ai-delivery-framework",
+                      "task_id": "2.1",
+                      "prompt_used": "Design the system architecture..."
+                    }
+                  },
+                  "complete": {
+                    "summary": "Complete task",
+                    "value": {
+                      "action": "complete",
+                      "repo_name": "ai-delivery-framework",
+                      "task_id": "2.1",
+                      "outputs": [
+                        {
+                          "path": "outputs/2.1/summary.md",
+                          "content": "Architecture defined."
+                        }
+                      ],
+                      "reasoning_trace": {
+                        "task_id": "2.1",
+                        "thoughts": [
+                          {
+                            "thought": "Used persona constraints.",
+                            "tags": [
+                              "planning"
+                            ]
+                          }
+                        ],
+                        "scoring": {
+                          "thought_quality": 5,
+                          "recall_used": true,
+                          "novel_insight": true
+                        },
+                        "summary": "Clear, reusable design.",
+                        "improvement_opportunities": [
+                          "Consider edge cases"
+                        ],
+                        "alternatives": [
+                          "Use microservices"
+                        ]
+                      },
+                      "handoff_note": {
+                        "timestamp": "2025-05-01T12:00:00Z",
+                        "from_pod": "ProductPod",
+                        "to_pod": "DevPod",
+                        "reason": "Implementation next",
+                        "token_count": 14000
+                      }
+                    }
+                  },
+                  "reopen": {
+                    "summary": "Reopen task",
+                    "value": {
+                      "action": "reopen",
+                      "repo_name": "ai-delivery-framework",
+                      "task_id": "2.1",
+                      "reason": "QA failed"
+                    }
+                  },
+                  "next": {
+                    "summary": "Get next task for pod",
+                    "value": {
+                      "action": "next",
+                      "repo_name": "ai-delivery-framework",
+                      "pod_owner": "DevPod"
+                    }
+                  },
+                  "scale_out": {
+                    "summary": "Scale out task",
+                    "value": {
+                      "action": "scale_out",
+                      "repo_name": "ai-delivery-framework",
+                      "task_id": "2.2",
+                      "reason": "Token limit exceeded",
+                      "handoff_note": {
+                        "from_pod": "DevPod",
+                        "to_pod": "DevPod",
+                        "reason": "Split task for scale",
+                        "notes": "Continue generating tests"
+                      }
+                    }
+                  },
+                  "create": {
+                    "summary": "Create new task from template",
+                    "value": {
+                      "action": "create",
+                      "repo_name": "ai-delivery-framework",
+                      "phase": "phase3",
+                      "task_key": "3.1a_write_docs",
+                      "task_id": "3.1a",
+                      "assigned_pod": "WriterPod",
+                      "prompt_variables": {
+                        "doc_type": "README",
+                        "target_audience": "Developers"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Task lifecycle action completed successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tasks/handoff": {
+      "post": {
+        "operationId": "manageTaskHandoff",
+        "summary": "Manage task handoffs (append, fetch, auto-generate, execute)",
+        "tags": [
+          "Tasks"
+        ],
+        "x-gpt-action": {
+          "name": "Manage Task Handoff",
+          "instructions": "Use this to manage handoffs between tasks or pods. Set `action` to one of: `append`, `fetch`, `generate_auto`, or `execute_auto`.",
+          "summary_keywords": [
+            "handoff",
+            "transition",
+            "note",
+            "next task"
+          ]
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "repo_name",
+                  "action"
+                ],
+                "properties": {
+                  "action": {
+                    "type": "string",
+                    "enum": [
+                      "append",
+                      "fetch",
+                      "generate_auto",
+                      "execute_auto"
+                    ],
+                    "description": "`append`: manually add a handoff note\n`fetch`: retrieve last handoff\n`generate_auto`: GPT generates note\n`execute_auto`: log + link to next task"
+                  },
+                  "repo_name": {
+                    "type": "string",
+                    "description": "GitHub repository name (required for all actions)"
+                  },
+                  "task_id": {
+                    "type": "string",
+                    "description": "Task ID (required for all except `append`, which takes it in path)"
+                  },
+                  "from_pod": {
+                    "type": "string",
+                    "description": "Sender pod (required for `append`)"
+                  },
+                  "to_pod": {
+                    "type": "string",
+                    "description": "Receiver pod (required for `append` and `execute_auto`)"
+                  },
+                  "reason": {
+                    "type": "string",
+                    "description": "Reason for handoff (used in `append`, `execute_auto`)"
+                  },
+                  "token_count": {
+                    "type": "integer",
+                    "description": "Tokens used so far (used in `append`)"
+                  },
+                  "next_prompt": {
+                    "type": "string",
+                    "description": "Suggested next GPT prompt (used in `append`)"
+                  },
+                  "reference_files": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "Relevant files (optional, used in `append`)"
+                  },
+                  "notes": {
+                    "type": "string",
+                    "description": "Extra notes for the next pod (optional)"
+                  },
+                  "ways_of_working": {
+                    "type": "string",
+                    "description": "How the pod intends to collaborate (optional)"
+                  },
+                  "next_task_id": {
+                    "type": "string",
+                    "description": "ID of the downstream task to receive the handoff (required in `execute_auto`)"
+                  },
+                  "handoff_mode": {
+                    "type": "string",
+                    "description": "e.g., `async` or `sync` (optional in `execute_auto`)"
+                  }
+                },
+                "examples": {
+                  "append": {
+                    "summary": "Append a manual handoff note",
+                    "value": {
+                      "action": "append",
+                      "repo_name": "ai-delivery-framework",
+                      "task_id": "2.3",
+                      "from_pod": "DevPod",
+                      "to_pod": "QAPod",
+                      "reason": "Feature complete, ready for QA",
+                      "token_count": 13200,
+                      "next_prompt": "Please test component A and validate edge case B",
+                      "reference_files": [
+                        "src/main.py",
+                        "test/test_main.py"
+                      ],
+                      "notes": "Watch out for flakiness in test X",
+                      "ways_of_working": "Continue async updates via chain_of_thought.yaml"
+                    }
+                  },
+                  "fetch": {
+                    "summary": "Fetch latest handoff note",
+                    "value": {
+                      "action": "fetch",
+                      "repo_name": "ai-delivery-framework",
+                      "task_id": "3.1"
+                    }
+                  },
+                  "generate_auto": {
+                    "summary": "Auto-generate handoff from reasoning",
+                    "value": {
+                      "action": "generate_auto",
+                      "repo_name": "ai-delivery-framework",
+                      "task_id": "2.4"
+                    }
+                  },
+                  "execute_auto": {
+                    "summary": "Auto handoff to downstream task",
+                    "value": {
+                      "action": "execute_auto",
+                      "repo_name": "ai-delivery-framework",
+                      "task_id": "3.1",
+                      "next_task_id": "3.2",
+                      "handoff_mode": "async"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Handoff action completed successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tasks/chain_of_thought": {
+      "post": {
+        "operationId": "manageChainOfThought",
+        "summary": "Manage chain_of_thought logging (append or fetch)",
+        "tags": [
+          "Tasks"
+        ],
+        "x-gpt-action": {
+          "name": "Manage Chain of Thought",
+          "instructions": "Use this to append thoughts, issues, or lessons to a task or fetch an existing chain_of_thought.yaml.",
+          "summary_keywords": [
+            "task",
+            "chain of thought",
+            "log",
+            "issues",
+            "lessons",
+            "fetch"
+          ]
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "action",
+                  "repo_name",
+                  "task_id"
+                ],
+                "properties": {
+                  "action": {
+                    "type": "string",
+                    "enum": [
+                      "append",
+                      "fetch"
+                    ],
+                    "description": "`append` = log new thought, `fetch` = retrieve thoughts for a task"
+                  },
+                  "repo_name": {
+                    "type": "string",
+                    "description": "Name of the GitHub repository"
+                  },
+                  "task_id": {
+                    "type": "string",
+                    "description": "ID of the task to log or retrieve chain of thought for"
+                  },
+                  "message": {
+                    "type": "string",
+                    "description": "Main message or thought (required for `append`)"
+                  },
+                  "tags": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "Optional list of tags (e.g., tool, phase, issue-type)"
+                  },
+                  "issues": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "Optional list of issues observed during the task"
+                  },
+                  "lessons": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "Optional list of lessons learned from the experience"
+                  }
+                },
+                "examples": {
+                  "append": {
+                    "summary": "Append new thought with issues and tags",
+                    "value": {
+                      "action": "append",
+                      "repo_name": "ai-delivery-framework",
+                      "task_id": "2.1_model_inputs",
+                      "message": "We encountered retry issues on GitHub PATCH.",
+                      "tags": [
+                        "retry",
+                        "infra"
+                      ],
+                      "issues": [
+                        "GitHub API rate limit caused retry delays"
+                      ],
+                      "lessons": [
+                        "Preload or cache common files",
+                        "Add sleep between commits"
+                      ]
+                    }
+                  },
+                  "fetch": {
+                    "summary": "Fetch existing chain of thought for a task",
+                    "value": {
+                      "action": "fetch",
+                      "repo_name": "ai-delivery-framework",
+                      "task_id": "2.1_model_inputs"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully handled chain of thought action",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tasks/reasoning_trace": {
+      "post": {
+        "operationId": "manageReasoningTrace",
+        "summary": "Fetch reasoning trace for a task or summarize reasoning across tasks",
+        "tags": [
+          "Tasks",
+          "Metrics"
+        ],
+        "x-gpt-action": {
+          "name": "Reasoning Trace Manager",
+          "instructions": "Use this to fetch the final or full reasoning trace for a task (`fetch`), or get a reasoning quality report across all tasks (`summary`).",
+          "summary_keywords": [
+            "reasoning",
+            "trace",
+            "summary",
+            "quality",
+            "task",
+            "metrics"
+          ]
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "action",
+                  "repo_name"
+                ],
+                "properties": {
+                  "action": {
+                    "type": "string",
+                    "enum": [
+                      "fetch",
+                      "summary"
+                    ],
+                    "description": "`fetch`: Get reasoning trace for a task\n`summary`: Get reasoning quality report across all tasks"
+                  },
+                  "repo_name": {
+                    "type": "string",
+                    "description": "GitHub repository name"
+                  },
+                  "task_id": {
+                    "type": "string",
+                    "description": "Required for `fetch` to specify which task's trace to retrieve"
+                  },
+                  "full": {
+                    "type": "boolean",
+                    "description": "**Used in `fetch`.** If `true`, includes `prompt_used`, `chain_of_thought`, and the `reasoning_trace`. If `false`, returns only the structured `reasoning_trace` object."
+                  },
+                  "format": {
+                    "type": "string",
+                    "description": "**Used in `summary`.** If set to `csv`, returns the reasoning summary as a CSV string. Otherwise, returns JSON."
+                  }
+                },
+                "examples": {
+                  "fetch": {
+                    "summary": "Fetch final reasoning trace for a task",
+                    "value": {
+                      "action": "fetch",
+                      "repo_name": "ai-delivery-framework",
+                      "task_id": "2.1_model_inputs",
+                      "full": false
+                    }
+                  },
+                  "fetch_full": {
+                    "summary": "Fetch full trace with prompt and chain_of_thought",
+                    "value": {
+                      "action": "fetch",
+                      "repo_name": "ai-delivery-framework",
+                      "task_id": "2.1_model_inputs",
+                      "full": true
+                    }
+                  },
+                  "summary_json": {
+                    "summary": "Get reasoning summary in JSON",
+                    "value": {
+                      "action": "summary",
+                      "repo_name": "ai-delivery-framework"
+                    }
+                  },
+                  "summary_csv": {
+                    "summary": "Get reasoning summary as CSV",
+                    "value": {
+                      "action": "summary",
+                      "repo_name": "ai-delivery-framework",
+                      "format": "csv"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Reasoning trace data or summary",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              },
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tasks/query": {
+      "post": {
+        "operationId": "queryTasks",
+        "summary": "Query task metadata, dependencies, phases, or graph",
+        "tags": ["Tasks"],
+        "x-gpt-action": {
+          "name": "Query Tasks",
+          "instructions": "Use this to list, group, or fetch task metadata. Set `mode` to one of: `list`, `list_phases`, `graph`, `dependencies`, `get_details`.",
+          "summary_keywords": ["task", "query", "graph", "phases", "metadata", "dependencies"]
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["mode", "repo_name"],
+                "properties": {
+                  "mode": {
+                    "type": "string",
+                    "enum": ["list", "list_phases", "graph", "dependencies", "get_details"],
+                    "description": "Which query to run:\n- `list`: List all tasks\n- `list_phases`: Group tasks by SDLC phase\n- `graph`: Return dependency graph\n- `dependencies`: Show up/downstream of a task\n- `get_details`: Return metadata for a specific task"
+                  },
+                  "repo_name": {
+                    "type": "string",
+                    "description": "GitHub repo where task.yaml lives"
+                  },
+                  "task_id": {
+                    "type": "string",
+                    "description": "Required for `get_details` or `dependencies`"
+                  },
+                  "status": {
+                    "type": "string",
+                    "description": "Optional filter for `list` (e.g., `done`, `in_progress`)"
+                  },
+                  "pod_owner": {
+                    "type": "string",
+                    "description": "Optional filter for `list` by pod (e.g., `DevPod`)"
+                  },
+                  "category": {
+                    "type": "string",
+                    "description": "Optional filter for `list` by task category"
+                  }
+                },
+                "examples": {
+                  "list_all": {
+                    "summary": "List all tasks",
+                    "value": {
+                      "mode": "list",
+                      "repo_name": "ai-delivery-framework"
+                    }
+                  },
+                  "list_filtered": {
+                    "summary": "List in-progress tasks for ProductPod",
+                    "value": {
+                      "mode": "list",
+                      "repo_name": "ai-delivery-framework",
+                      "status": "in_progress",
+                      "pod_owner": "ProductPod"
+                    }
+                  },
+                  "list_phases": {
+                    "summary": "Group tasks by SDLC phase",
+                    "value": {
+                      "mode": "list_phases",
+                      "repo_name": "ai-delivery-framework"
+                    }
+                  },
+                  "graph": {
+                    "summary": "Get task dependency graph",
+                    "value": {
+                      "mode": "graph",
+                      "repo_name": "ai-delivery-framework"
+                    }
+                  },
+                  "dependencies": {
+                    "summary": "Show upstream/downstream for a task",
+                    "value": {
+                      "mode": "dependencies",
+                      "repo_name": "ai-delivery-framework",
+                      "task_id": "1.3_define_architecture"
+                    }
+                  },
+                  "get_details": {
+                    "summary": "Get metadata for a task",
+                    "value": {
+                      "mode": "get_details",
+                      "repo_name": "ai-delivery-framework",
+                      "task_id": "3.2_write_tests"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Query results for the selected task mode",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/system/manage_issues": {
+      "post": {
+        "operationId": "manageIssues",
+        "summary": "Log, fetch, or update bugs and enhancements in the system tracker",
+        "tags": ["System"],
+        "x-gpt-action": {
+          "name": "Manage Issues or Enhancements",
+          "instructions": "Use this to log a bug/enhancement, fetch tracker entries, or update status. Choose an action from: `log`, `fetch`, `update_status`.",
+          "summary_keywords": ["bug", "enhancement", "issue", "status", "tracker"]
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["repo_name", "action"],
+                "properties": {
+                  "action": {
+                    "type": "string",
+                    "enum": ["log", "fetch", "update_status"],
+                    "description": "What kind of operation to perform."
+                  },
+                  "repo_name": {
+                    "type": "string",
+                    "description": "Target GitHub repository name"
+                  },
+                  "scope": {
+                    "type": "string",
+                    "enum": ["framework", "project"],
+                    "description": "Where the issue applies (required for log, update_status, optional for fetch)"
+                  },
+                  "type": {
+                    "type": "string",
+                    "enum": ["bug", "enhancement"],
+                    "description": "Type of issue (required for log, optional for fetch)"
+                  },
+                  "task_id": {
+                    "type": "string",
+                    "description": "Optional task this issue relates to"
+                  },
+                  "title": {
+                    "type": "string",
+                    "description": "Issue or enhancement title (required for log)"
+                  },
+                  "detail": {
+                    "type": "string",
+                    "description": "Optional details (used in log)"
+                  },
+                  "suggested_fix": {
+                    "type": "string",
+                    "description": "Optional recommended fix"
+                  },
+                  "tags": {
+                    "type": "array",
+                    "items": { "type": "string" },
+                    "description": "Optional categorization tags"
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": ["open", "closed"],
+                    "description": "Issue status (optional for log and fetch; required for update_status)"
+                  },
+                  "issue_id": {
+                    "type": "string",
+                    "description": "Unique ID for issue (required for update_status, optional for fetch)"
+                  },
+                  "tag": {
+                    "type": "string",
+                    "description": "Filter tag (used in fetch)"
+                  },
+                  "new_status": {
+                    "type": "string",
+                    "enum": ["open", "closed"],
+                    "description": "New status value (used in update_status)"
+                  }
+                },
+                "examples": {
+                  "log": {
+                    "summary": "Log a bug",
+                    "value": {
+                      "action": "log",
+                      "repo_name": "ai-delivery-framework",
+                      "scope": "framework",
+                      "type": "bug",
+                      "task_id": "2.1_model_inputs",
+                      "title": "Retry logic failed silently",
+                      "detail": "API returned 200 but file did not update",
+                      "suggested_fix": "Add retry logging visibility",
+                      "tags": ["infra", "retry"],
+                      "status": "open"
+                    }
+                  },
+                  "fetch": {
+                    "summary": "Fetch framework enhancements",
+                    "value": {
+                      "action": "fetch",
+                      "repo_name": "ai-delivery-framework",
+                      "scope": "framework",
+                      "type": "enhancement",
+                      "tag": "ui",
+                      "status": "open"
+                    }
+                  },
+                  "update_status": {
+                    "summary": "Mark issue closed",
+                    "value": {
+                      "action": "update_status",
+                      "repo_name": "ai-delivery-framework",
+                      "scope": "project",
+                      "issue_id": "abc123-def456",
+                      "new_status": "closed"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Operation completed successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Entry not found (only applies to update_status)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "detail": { "type": "string" }
+                  },
+                  "example": {
+                    "detail": "Entry with issue_id 'abc123' not found."
                   }
                 }
               }
