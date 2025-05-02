@@ -305,6 +305,9 @@ def generate_project_reasoning_summary(repo_name: str = "nhl-predictor"):
 
     merged_thoughts = "\n".join(all_thoughts[:100])
 
+    if not merged_thoughts:
+        return "No reasoning available as no thoughts found."
+
     prompt = f"""
 You are summarizing the collective reasoning across multiple AI tasks.
 
