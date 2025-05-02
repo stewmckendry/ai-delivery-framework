@@ -2646,7 +2646,7 @@ async def handle_fetch_issues(
         filtered = [
             d for d in data
             if (not issue_id or d.get("issue_id") == issue_id)
-            and (not type or d.get("type") == type)
+            and (not type_ or d.get("type") == type_)
             and (not task_id or d.get("task_id") == task_id)
             and (not tag or tag in (d.get("tags") or []))
             and (not status or d.get("status") == status)
