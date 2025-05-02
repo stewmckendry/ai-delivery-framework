@@ -263,77 +263,6 @@
         }
       }
     },
-    "/project/init_project": {
-      "post": {
-        "operationId": "initProject",
-        "summary": "Initialize a new project in the given repo",
-        "tags": [
-          "Project"
-        ],
-        "x-gpt-action": {
-          "name": "Initialize Project",
-          "instructions": "Use this to set up a new project in the specified GitHub repository.",
-          "summary_keywords": [
-            "project",
-            "initialize",
-            "setup"
-          ]
-        },
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "project_name",
-                  "repo_name",
-                  "project_description"
-                ],
-                "properties": {
-                  "project_name": {
-                    "type": "string"
-                  },
-                  "repo_name": {
-                    "type": "string"
-                  },
-                  "branch": {
-                    "type": "string",
-                    "description": "Git branch to initialize the project in (default is 'main')"
-                  },
-                  "project_description": {
-                    "type": "string"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful project initialization",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "message"
-                  ]
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Framework folder missing"
-          }
-        }
-      }
-    },
     "/tasks/commit_and_log_output": {
       "post": {
         "summary": "Commit and log a single output file for a task",
@@ -2441,15 +2370,15 @@
         }
       }
     },
-    "/sandbox/init_branch": {
+    "/sandbox/init": {
       "post": {
-        "operationId": "initSandboxBranch",
-        "summary": "Initialize or reuse a sandbox Git branch for a user",
-        "tags": ["Sandbox", "Branching"],
+        "operationId": "initSandbox",
+        "summary": "Initialize or reuse a sandbox branch and optionally scaffold a project",
+        "tags": ["Sandbox", "Project"],
         "x-gpt-action": {
-          "name": "Initialize Sandbox Branch",
-          "instructions": "Use this to initialize a safe workspace branch for a user. You can optionally provide a `reuse_token` to reconnect to a previous session. This tool ensures every user works in an isolated branch forked from `sandbox`.",
-          "summary_keywords": ["sandbox", "branch", "initialize", "workspace", "token"]
+          "name": "Initialize Sandbox or Project",
+          "instructions": "Use this tool to initialize a sandbox workspace. Start with `mode = branch` to create or reuse a branch. Then, optionally call with `mode = project` to scaffold memory and task files into that branch.",
+          "summary_keywords": ["sandbox", "branch", "init", "project", "token", "workspace"]
         },
         "requestBody": {
           "required": true,
@@ -2457,42 +2386,63 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["repo_name"],
+                "required": ["repo_name", "mode"],
                 "properties": {
+                  "mode": {
+                    "type": "string",
+                    "enum": ["branch", "project"],
+                    "description": "Whether to initialize a branch or scaffold a project"
+                  },
                   "repo_name": {
                     "type": "string",
                     "description": "GitHub repo name (e.g., nhl-predictor)"
                   },
                   "reuse_token": {
                     "type": "string",
-                    "description": "Optional secure token from a previous session to reuse an existing sandbox branch"
+                    "description": "Optional secure token to reconnect to an existing branch (branch mode only)"
                   },
                   "force_new": {
                     "type": "boolean",
-                    "description": "Set to true to ignore `reuse_token` and create a fresh sandbox branch"
+                    "description": "If true, ignores reuse_token and forces creation of a new branch"
+                  },
+                  "branch": {
+                    "type": "string",
+                    "description": "Git branch to initialize the project into (required for mode = project)"
+                  },
+                  "project_name": {
+                    "type": "string",
+                    "description": "Name of the user's project (required for mode = project)"
+                  },
+                  "project_description": {
+                    "type": "string",
+                    "description": "Description of what the project is and what it aims to do (required for mode = project)"
                   }
                 }
               },
               "examples": {
-                "new_user": {
-                  "summary": "Create a new sandbox branch",
+                "create_branch": {
+                  "summary": "Start a new sandbox branch",
                   "value": {
+                    "mode": "branch",
                     "repo_name": "nhl-predictor"
                   }
                 },
-                "reuse_existing": {
-                  "summary": "Reconnect to a prior sandbox branch",
+                "reuse_branch": {
+                  "summary": "Reuse an existing sandbox branch with a token",
                   "value": {
+                    "mode": "branch",
                     "repo_name": "nhl-predictor",
-                    "reuse_token": "c2FuZGJveC1jb3NtaWMtZWFnbGU="
+                    "reuse_token": "c2FuZGJveC1lbWVyYWxkLWZveA=="
                   }
                 },
-                "force_new": {
-                  "summary": "Ignore token and create new",
+                "init_project": {
+                  "summary": "Scaffold project files into a given branch",
                   "value": {
+                    "mode": "project",
                     "repo_name": "nhl-predictor",
-                    "reuse_token": "c2FuZGJveC1vbGQ=",
-                    "force_new": true
+                    "branch": "sandbox-emerald-fox",
+                    "project_name": "Smart NHL Predictor",
+                    "project_description": "An app that forecasts NHL game outcomes"
                   }
                 }
               }
@@ -2501,7 +2451,7 @@
         },
         "responses": {
           "200": {
-            "description": "Returns a usable sandbox branch name and token for future access",
+            "description": "Returns a sandbox context or project setup confirmation",
             "content": {
               "application/json": {
                 "schema": {
@@ -2509,23 +2459,19 @@
                   "properties": {
                     "branch": {
                       "type": "string",
-                      "description": "The Git branch assigned to this user"
-                    },
-                    "reuse_token": {
-                      "type": "string",
-                      "description": "Token to resume this sandbox session later"
+                      "description": "The branch created or reused"
                     },
                     "repo_name": {
                       "type": "string",
-                      "description": "The repo name used for this sandbox"
+                      "description": "The GitHub repo name"
                     },
-                    "created": {
-                      "type": "boolean",
-                      "description": "Whether a new branch was created or an existing one reused"
+                    "reuse_token": {
+                      "type": "string",
+                      "description": "Token for reusing this branch later (returned only for branch mode)"
                     },
                     "message": {
                       "type": "string",
-                      "description": "User-friendly status or welcome message"
+                      "description": "User-facing success message"
                     }
                   }
                 }

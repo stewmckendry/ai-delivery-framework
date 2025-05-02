@@ -84,10 +84,15 @@ class TaskMetadataUpdate(BaseModel):
     ready: Optional[bool] = None
     done: Optional[bool] = None
 
-class InitBranchPayload(BaseModel):
+class InitSandboxPayload(BaseModel):
+    mode: str
     repo_name: str
     reuse_token: Optional[str] = None
     force_new: Optional[bool] = False
+    branch: Optional[str] = None
+    project_name: Optional[str] = None
+    project_description: Optional[str] = None
+
 
 class PromotePatchRequest(BaseModel):
     task_id: str
@@ -2578,14 +2583,32 @@ def rollback_commit(
 
 from fastapi import BackgroundTasks
 
-@app.post("/project/init_project")
-async def init_project(
-    background_tasks: BackgroundTasks,
-    project_name: str = Body(...),
-    repo_name: str = Body(...),
-    project_description: str = Body(...),
-    branch: str = Body(...)
-):
+@app.post("/sandbox/init")
+async def init_sandbox(payload: InitSandboxPayload, background_tasks: BackgroundTasks):
+    mode = payload.mode
+    repo_name = payload.repo_name
+
+    if mode == "branch":
+        return await handle_init_branch(repo_name=repo_name, reuse_token=payload.reuse_token, force_new=payload.force_new)
+
+    elif mode == "project":
+        # Required fields
+        if not payload.branch or not payload.project_name or not payload.project_description:
+            raise HTTPException(status_code=400, detail="For project mode, 'branch', 'project_name', and 'project_description' are required.")
+
+        return await handle_init_project(
+            background_tasks=background_tasks,
+            repo_name=repo_name,
+            branch=payload.branch,
+            project_name=payload.project_name,
+            project_description=payload.project_description
+        )
+
+    raise HTTPException(status_code=400, detail=f"Unsupported mode: {mode}")
+
+
+async def handle_init_project(background_tasks: BackgroundTasks, repo_name: str, branch: str, project_name: str, project_description: str):
+    """Initialize a new project in the specified GitHub repo."""
     try:
         print(f"🚀 Project init requested for {project_name} into repo {repo_name}")
 
@@ -2601,19 +2624,17 @@ async def init_project(
         )
 
 
-@app.post("/sandbox/init_branch")
-def init_sandbox_branch(data: InitBranchPayload):
-    repo_name = data.repo_name
-    force_new = data.force_new
-    base_branch = "sandbox"
+async def handle_init_branch(repo_name: str, reuse_token: Optional[str] = None, force_new: Optional[bool] = False):
+    """Initialize a new branch in the specified GitHub repo."""
 
     repo = get_repo(repo_name)
+    base_branch = "sandbox"
 
     # Decode reuse_token if present
     branch = None
-    if data.reuse_token and not force_new:
+    if reuse_token and not force_new:
         try:
-            decoded = base64.urlsafe_b64decode(data.reuse_token.encode()).decode()
+            decoded = base64.urlsafe_b64decode(reuse_token.encode()).decode()
             if decoded.startswith("sandbox-"):
                 # check if branch exists
                 repo.get_branch(decoded)
@@ -2654,7 +2675,7 @@ def init_sandbox_branch(data: InitBranchPayload):
         "branch": branch,
         "reuse_token": reuse_token,
         "repo_name": repo_name,
-        "created": not data.reuse_token,
+        "created": not reuse_token,
         "message": (
     f"✅ Your personal sandbox is `{branch}` in the GitHub repo `{repo_name}`.\n\n"
     f"🔐 To return to this workspace later, save this token:\n\n"

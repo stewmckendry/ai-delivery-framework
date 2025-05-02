@@ -636,3 +636,143 @@ We’ll eventually migrate to stronger models:
 |------|--------------------------------------------------|------------|--------|-----------------------------------------------------------------------|
 | 4.2  | Define infrastructure plan for full adoption     | ProductPod | ⬜️     | Includes auth model: GitHub App, token-branch binding, repo mapping  |
 
+---
+
+## ✅ COMPLETED IN THIS PHASE
+
+- ✅ `commit_and_log()` is now **branch-aware**
+- ✅ `branch` support added to `/commit_and_log_output` and **all FastAPI handlers**
+- ✅ OpenAPI spec updated to include `branch` parameter
+- ✅ GPT now **stores and reuses** `repo_name`, `branch`, and `reuse_token` across sessions
+- ✅ File creation logic is **safe and idempotent**
+- ✅ `/sandbox/init_branch` implemented with:
+  - Support for **reuse_token**
+  - Generation of **unique, traceable sandbox branches**
+
+---
+
+## 🧪 QA HANDOFF: Multi-Branch Sandbox + Regression Test
+
+Hey QAPod 👋  
+We’ve just shipped a **major update** to support sandboxed GPT sessions via user-specific Git branches.  
+Please run your **full tool testing suite** and add **targeted checks** for our new multi-branch capability.
+
+---
+
+### ✅ What’s New (Needs Explicit Testing)
+
+#### 🔹 Branch-Aware Tooling
+
+- All tools now **accept a `branch` param**
+- Writes must go **only to the specified branch** (not `main`)
+- Git reads should **respect `ref=branch`**
+
+#### 🔹 Init Route: `/sandbox/init_branch`
+
+- Returns: `repo_name`, `branch`, `reuse_token`
+- Creates or reuses user-specific branch from base `sandbox`
+
+#### 🔹 Rollback: `/git/rollback_commit`
+
+- Reverts files **only in the specified branch**
+- Optionally scoped by file `paths`
+- Appends rollback log to `.logs/reverted_commits.yaml`
+
+---
+
+### 🧪 QA Instructions
+
+#### ✅ Run Targeted Sandbox Tests
+
+1. Call `/sandbox/init_branch`
+2. Use returned `branch` in **all tool calls**
+3. Confirm correct behavior for:
+   - `commit_and_log_output`
+   - Memory and changelog updates
+   - Rollback logic within sandbox branch
+   - Token reuse (idempotent return of same branch)
+
+#### 🔁 Run Full Regression Suite
+
+- Run through **every tool** in the framework
+- Confirm all tools behave **identically with and without `branch` param**
+- Validate that `branch="main"` still works as default fallback
+
+---
+
+### 📎 Special Notes
+
+- Test target repo: `nhl-predictor`
+- Expect new `sandbox-*` branches to be created during test
+- Let us know if you hit **any inconsistencies or edge cases** — this is a **critical stability pass** before public launch
+
+---
+
+## 🔎 IMPACT ASSESSMENT: `init_branch` vs `init_project`
+
+### 🧩 Parameter Comparison
+
+| Parameter            | `/sandbox/init_branch` | `/project/init_project` | Notes                                  |
+|----------------------|------------------------|--------------------------|----------------------------------------|
+| `repo_name`          | ✅ required            | ✅ required              | Shared input                           |
+| `branch`             | ❌ generated + returned | ✅ input (defaults to "main") | Can be harmonized                    |
+| `reuse_token`        | ✅ optional            | ❌ not used              | Branch-specific                        |
+| `force_new`          | ✅ optional            | ❌ not used              | Branch-specific                        |
+| `project_name`       | ❌ not used            | ✅ required              | Project-scaffolding only               |
+| `project_description`| ❌ not used            | ✅ required              | Project-scaffolding only               |
+
+---
+
+### 🔁 Behavioral Differences
+
+| Functionality                   | `init_branch` | `init_project` |
+|---------------------------------|---------------|----------------|
+| Creates or reuses branch        | ✅ yes        | ❌ assumes branch exists |
+| Sets up repo metadata/files     | ❌ no         | ✅ yes          |
+| Uses token for sandboxing       | ✅ yes        | ❌ none         |
+| Can function standalone         | ✅ yes        | ❌ no           |
+
+---
+
+## ✅ RECOMMENDED MERGE PLAN
+
+### 📌 Unified Route: `/sandbox/init`
+
+A single endpoint for initializing a sandbox environment with **two modes**:
+
+| Mode     | Description                                                                 |
+|----------|-----------------------------------------------------------------------------|
+| `branch` | Creates or reuses a branch; returns `branch`, `repo_name`, `reuse_token`   |
+| `project`| Uses an existing branch to create files (`task.yaml`, `memory.yaml`, etc.) |
+
+---
+
+### 🔧 Unified Schema
+
+```json
+{
+  "mode": "branch",  // or "project"
+  "repo_name": "nhl-predictor",
+  "reuse_token": "...",                  // optional, for branch mode
+  "force_new": false,                    // optional, for branch mode
+  "branch": "sandbox-owl-emerald",       // required for project mode
+  "project_name": "Smart NHL Predictor", // required for project mode
+  "project_description": "An app that forecasts NHL game outcomes" // required for project mode
+}
+```
+---
+## 🚦 Enforcement & Validation
+
+- **Always call `mode: branch` first**
+- If `mode: project` is called **without a valid branch**, raise a `400` with:
+
+> `"You must create or reuse a sandbox branch before initializing a project."`
+
+---
+
+## ✅ BENEFITS OF MERGE
+
+- **Fewer tools = lower cognitive load**
+- Clear, logical progression: **branch → project**
+- **Easier onboarding**: single entrypoint for GPT setup
+- **Simplified OpenAPI** configuration and reuse of tags and tool structure
