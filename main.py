@@ -27,6 +27,9 @@ import time
 import io
 import uuid
 import csv
+import base64
+import random
+import string
 from github import Github, GithubException
 from openai import OpenAI
 from dotenv import load_dotenv
@@ -81,16 +84,10 @@ class TaskMetadataUpdate(BaseModel):
     ready: Optional[bool] = None
     done: Optional[bool] = None
 
-"""  # <<< OLD
-class PromotePatchRequest(BaseModel):
-    task_id: str
-    summary: str
-    output_files: Dict[str, str]  # filename -> content mapping
-    reasoning_trace: str
-    prompt_path: Optional[str] = None
-    output_folder: Optional[str] = None
-    handoff_notes: Optional[str] = None  # <<< NEW
-"""
+class InitBranchPayload(BaseModel):
+    repo_name: str
+    reuse_token: Optional[str] = None
+    force_new: Optional[bool] = False
 
 class PromotePatchRequest(BaseModel):
     task_id: str
@@ -416,18 +413,69 @@ def get_repo(repo_name: str):
     github_client = Github(GITHUB_TOKEN)
     return github_client.get_repo(f"stewmckendry/{repo_name}")
 
-def commit_and_log(repo, file_path, content, commit_message, task_id: Optional[str] = None, committed_by: Optional[str] = None):
+@app.post("/tasks/commit_and_log_output")
+async def commit_and_log_output(
+    repo_name: str = Body(...),
+    task_id: str = Body(...),
+    file_path: str = Body(...),
+    content: str = Body(...),
+    message: str = Body(...),
+    committed_by: Optional[str] = Body("GPTPod"),
+    branch: str = Body("main")
+):
+    try:
+        repo = get_repo(repo_name)
+
+        # Update file and changelog
+        commit_and_log(
+            repo,
+            file_path=file_path,
+            content=content,
+            commit_message=message,
+            task_id=task_id,
+            committed_by=committed_by,
+            branch=branch
+        )
+
+        # Append path to task.yaml[outputs]
+        task_file = repo.get_contents("project/task.yaml")
+        task_data = yaml.safe_load(task_file.decoded_content)
+        task = task_data["tasks"].get(task_id, {})
+        outputs = task.get("outputs", [])
+        if file_path not in outputs:
+            outputs.append(file_path)
+            task["outputs"] = outputs
+            updated_yaml = yaml.dump(task_data, sort_keys=False)
+            commit_and_log(
+                repo,
+                file_path="project/task.yaml",
+                content=updated_yaml,
+                commit_message=f"Append output file to {task_id}",
+                task_id=task_id,
+                committed_by=committed_by,
+                branch=branch
+            )
+
+        return {"message": f"Output file {file_path} committed to {repo_name}@{branch} and logged for task {task_id}."}
+
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"detail": f"Commit failed: {str(e)}"})
+
+def commit_and_log(repo, file_path, content, commit_message, task_id: Optional[str] = None, committed_by: Optional[str] = None, branch: str = "main"):
     try:
         changelog_path = "project/outputs/changelog.yaml"
+        memory_path = "project/memory.yaml"
+        timestamp = datetime.utcnow().isoformat()
+
+        # Fetch changelog
         try:
-            changelog_file = repo.get_contents(changelog_path)
+            changelog_file = repo.get_contents(changelog_path, ref=branch)
             changelog = yaml.safe_load(changelog_file.decoded_content) or []
             changelog_sha = changelog_file.sha
         except Exception:
             changelog = []
             changelog_sha = None
 
-        timestamp = datetime.utcnow().isoformat()
         output_log_entry = {
             "timestamp": timestamp,
             "path": file_path,
@@ -436,26 +484,26 @@ def commit_and_log(repo, file_path, content, commit_message, task_id: Optional[s
             "message": commit_message
         }
 
+        # Write or update file
         try:
-            existing_file = repo.get_contents(file_path)
-            repo.update_file(file_path, commit_message, content, existing_file.sha)
+            existing_file = repo.get_contents(file_path, ref=branch)
+            repo.update_file(file_path, commit_message, content, existing_file.sha, branch=branch)
         except Exception:
-            repo.create_file(file_path, commit_message, content)
+            repo.create_file(file_path, commit_message, content, branch=branch)
 
         changelog.append(output_log_entry)
 
-        # --- PATCH: update memory.yaml if missing or outdated ---
-        memory_path = "project/memory.yaml"
         if file_path == memory_path:
             changelog_content = yaml.dump(changelog, sort_keys=False)
             if changelog_sha:
-                repo.update_file(changelog_path, f"Update changelog at {timestamp}", changelog_content, changelog_sha)
+                repo.update_file(changelog_path, f"Update changelog at {timestamp}", changelog_content, changelog_sha, branch=branch)
             else:
-                repo.create_file(changelog_path, f"Create changelog at {timestamp}", changelog_content)
-            return  # Skip memory indexing for memory.yaml itself
+                repo.create_file(changelog_path, f"Create changelog at {timestamp}", changelog_content, branch=branch)
+            return
 
+        # Fetch memory
         try:
-            memory_file = repo.get_contents(memory_path)
+            memory_file = repo.get_contents(memory_path, ref=branch)
             memory = yaml.safe_load(memory_file.decoded_content) or []
             memory_sha = memory_file.sha
         except Exception:
@@ -469,7 +517,7 @@ def commit_and_log(repo, file_path, content, commit_message, task_id: Optional[s
                 already_indexed = True
                 if not entry.get("description") or not entry.get("tags") or not entry.get("pod_owner"):
                     try:
-                        file_content = repo.get_contents(file_path).decoded_content.decode("utf-8")
+                        file_content = repo.get_contents(file_path, ref=branch).decoded_content.decode("utf-8")
                         enriched = describe_file_for_memory(file_path, file_content)
                         entry.update(enriched)
                         memory_updated = True
@@ -479,11 +527,12 @@ def commit_and_log(repo, file_path, content, commit_message, task_id: Optional[s
 
         if not already_indexed:
             try:
-                file_content = repo.get_contents(file_path).decoded_content.decode("utf-8")
+                file_info = repo.get_contents(file_path, ref=branch)
+                file_content = file_info.decoded_content.decode("utf-8")
                 enriched = describe_file_for_memory(file_path, file_content)
                 new_entry = {
                     "path": file_path,
-                    "raw_url": f"https://raw.githubusercontent.com/{GITHUB_USERNAME}/{repo.name}/main/{file_path}",
+                    "raw_url": file_info.download_url,
                     "file_type": file_path.split(".")[-1] if "." in file_path else "unknown",
                     "description": enriched["description"],
                     "tags": enriched["tags"],
@@ -500,11 +549,10 @@ def commit_and_log(repo, file_path, content, commit_message, task_id: Optional[s
         if memory_updated:
             updated_memory = yaml.dump(memory, sort_keys=False)
             if memory_sha:
-                repo.update_file(memory_path, f"Update memory.yaml for {file_path}", updated_memory, memory_sha)
+                repo.update_file(memory_path, f"Update memory.yaml for {file_path}", updated_memory, memory_sha, branch=branch)
             else:
-                repo.create_file(memory_path, f"Create memory.yaml for {file_path}", updated_memory)
+                repo.create_file(memory_path, f"Create memory.yaml for {file_path}", updated_memory, branch=branch)
 
-            # add separate changelog entry
             memory_log_entry = {
                 "timestamp": timestamp,
                 "path": memory_path,
@@ -516,12 +564,13 @@ def commit_and_log(repo, file_path, content, commit_message, task_id: Optional[s
 
         changelog_content = yaml.dump(changelog, sort_keys=False)
         if changelog_sha:
-            repo.update_file(changelog_path, f"Update changelog at {timestamp}", changelog_content, changelog_sha)
+            repo.update_file(changelog_path, f"Update changelog at {timestamp}", changelog_content, changelog_sha, branch=branch)
         else:
-            repo.create_file(changelog_path, f"Create changelog at {timestamp}", changelog_content)
+            repo.create_file(changelog_path, f"Create changelog at {timestamp}", changelog_content, branch=branch)
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Commit and changelog failed: {str(e)}")
+
 
 
 def generate_handoff_note(task_id: str, repo) -> dict:
@@ -1771,51 +1820,6 @@ async def handle_activate_task(repo_name: str, task_id: Union[str, List[str]]) -
         raise HTTPException(status_code=500, detail=f"Failed to activate task(s): {str(e)}")
 
 
-@app.post("/tasks/commit_and_log_output")
-async def commit_and_log_output(
-    repo_name: str = Body(...),
-    task_id: str = Body(...),
-    file_path: str = Body(...),
-    content: str = Body(...),
-    message: str = Body(...),
-    committed_by: Optional[str] = Body("GPTPod")
-):
-    try:
-        repo = get_repo(repo_name)
-
-        # Update file and changelog
-        commit_and_log(
-            repo,
-            file_path=file_path,
-            content=content,
-            commit_message=message,
-            task_id=task_id,
-            committed_by=committed_by
-        )
-
-        # Append path to task.yaml[outputs]
-        task_file = repo.get_contents("project/task.yaml")
-        task_data = yaml.safe_load(task_file.decoded_content)
-        task = task_data["tasks"].get(task_id, {})
-        outputs = task.get("outputs", [])
-        if file_path not in outputs:
-            outputs.append(file_path)
-            task["outputs"] = outputs
-            updated_yaml = yaml.dump(task_data, sort_keys=False)
-            commit_and_log(
-                repo,
-                file_path="project/task.yaml",
-                content=updated_yaml,
-                commit_message=f"Append output file to {task_id}",
-                task_id=task_id,
-                committed_by=committed_by
-            )
-
-        return {"message": f"Output file {file_path} committed and logged for task {task_id}."}
-
-    except Exception as e:
-        return JSONResponse(status_code=500, content={"detail": f"Commit failed: {str(e)}"})
-
 @app.post("/system/changelog")
 async def manage_changelog(payload: dict = Body(...)):
     action = payload.get("action")
@@ -2517,6 +2521,58 @@ async def init_project(
             content={"detail": f"Internal Server Error: {type(e).__name__}: {e}"}
         )
 
+
+@app.post("/sandbox/init_branch")
+def init_sandbox_branch(data: InitBranchPayload):
+    repo_name = data.repo_name
+    force_new = data.force_new
+    base_branch = "sandbox"
+
+    repo = get_repo(repo_name)
+
+    # Decode reuse_token if present
+    branch = None
+    if data.reuse_token and not force_new:
+        try:
+            decoded = base64.urlsafe_b64decode(data.reuse_token.encode()).decode()
+            if decoded.startswith("sandbox-"):
+                # check if branch exists
+                repo.get_branch(decoded)
+                branch = decoded
+        except Exception:
+            pass  # Invalid token or branch doesn't exist
+
+    # If no valid reuse, generate a new one
+    if not branch:
+        adjectives = ["emerald", "cosmic", "velvet", "silent", "curious", "ancient", "golden", "crimson", "silver", "mystic"]
+        animals = ["hawk", "otter", "wave", "eagle", "fox", "lynx", "falcon", "whale", "tiger", "puma"]
+        for _ in range(5):  # try up to 5 unique names
+            candidate = f"sandbox-{random.choice(adjectives)}-{random.choice(animals)}"
+            try:
+                repo.get_branch(candidate)
+            except:
+                # create new branch from base
+                source = repo.get_branch(base_branch).commit.sha
+                repo.create_git_ref(ref=f"refs/heads/{candidate}", sha=source)
+                branch = candidate
+                break
+
+        if not branch:
+            raise HTTPException(status_code=500, detail="Unable to create unique sandbox branch.")
+
+    reuse_token = base64.urlsafe_b64encode(branch.encode()).decode()
+    return {
+        "branch": branch,
+        "reuse_token": reuse_token,
+        "repo_name": repo_name,
+        "created": not data.reuse_token,
+        "message": (
+    f"✅ Your personal sandbox is `{branch}` in the GitHub repo `{repo_name}`.\n\n"
+    f"🔐 To return to this workspace later, save this token:\n\n"
+    f"`{reuse_token}`\n\n"
+    "Keep this safe — it links back to your work!"
+    ) 
+    }
 
 # ---- OpenAPI JSON Schema ----
 

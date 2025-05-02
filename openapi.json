@@ -49,6 +49,10 @@
                     "type": "string",
                     "description": "Repo name containing task outputs"
                   },
+                  "branch": {
+                    "type": "string",
+                    "description": "Git branch to fetch metrics from (default is 'main')"
+                  },
                   "mode": {
                     "type": "string",
                     "enum": ["summary", "export"],
@@ -66,6 +70,7 @@
                   "summary": "Get delivery reasoning summary",
                   "value": {
                     "repo_name": "ai-delivery-framework",
+                    "branch": "sandbox-emarald-hawk",
                     "mode": "summary"
                   }
                 },
@@ -73,6 +78,7 @@
                   "summary": "Export reasoning metrics as CSV",
                   "value": {
                     "repo_name": "ai-delivery-framework",
+                    "branch": "sandbox-emerald-owl",
                     "mode": "export",
                     "format": "csv"
                   }
@@ -193,6 +199,10 @@
                     "type": "string",
                     "description": "GitHub repo name (e.g., ai-delivery-framework)"
                   },
+                  "branch": {
+                    "type": "string",
+                    "description": "Git branch to fetch from (default is 'main')"
+                  },
                   "path": {
                     "type": "string",
                     "description": "Path to a single file (required for mode=single)"
@@ -210,6 +220,7 @@
                   "value": {
                     "mode": "single",
                     "repo_name": "ai-delivery-framework",
+                    "branch": "sandbox-emerald-owl",
                     "path": "framework/prompt_template.md"
                   }
                 },
@@ -218,6 +229,7 @@
                   "value": {
                     "mode": "batch",
                     "repo_name": "ai-delivery-framework",
+                    "branch": "sandbox-emerald-owl",
                     "paths": [
                       "project/task.yaml",
                       "project/memory.yaml"
@@ -284,6 +296,10 @@
                   },
                   "repo_name": {
                     "type": "string"
+                  },
+                  "branch": {
+                    "type": "string",
+                    "description": "Git branch to initialize the project in (default is 'main')"
                   },
                   "project_description": {
                     "type": "string"
@@ -372,6 +388,10 @@
                     "type": "string",
                     "description": "The name of the person or gpt pod committing the file",
                     "default": "GPTPod"
+                  },
+                  "branch": {
+                    "type": "string",
+                    "description": "Git branch to write to (default is 'main')"
                   }
                 }
               },
@@ -381,7 +401,8 @@
                 "file_path": "project/outputs/2.4_build/spec.yaml",
                 "content": "output file content here...",
                 "message": "Add feature spec",
-                "committed_by": "DevPod"
+                "committed_by": "DevPod",
+                "branch": "sandbox-emarald-hawk"  
               }
             }
           }
@@ -435,6 +456,10 @@
                   "repo_name": {
                     "type": "string",
                     "description": "The name of the GitHub repository (e.g. nhl-predictor)"
+                  },
+                  "branch": {
+                    "type": "string",
+                    "description": "Git branch to rollback (default is 'main')"
                   },
                   "commit_sha": {
                     "type": "string",
@@ -511,6 +536,10 @@
                     "type": "string",
                     "description": "GitHub repository name (e.g. 'nhl-predictor')"
                   },
+                  "branch": {
+                    "type": "string",
+                    "description": "Git branch to fetch from (default is 'main')"
+                  },
                   "simple": {
                     "type": "boolean",
                     "default": false,
@@ -571,6 +600,15 @@
             },
             "description": "The GitHub repository name",
             "example": "ai-delivery-framework"
+          },
+          {
+            "name": "branch",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Git branch to fetch from (default is 'main')"
           }
         ],
         "responses": {
@@ -667,6 +705,10 @@
                     "type": "string",
                     "description": "Name of the GitHub repository"
                   },
+                  "branch": {
+                    "type": "string",
+                    "description": "Git branch to operate on (default is 'main')"
+                  },
                   "action": {
                     "type": "string",
                     "enum": [
@@ -725,6 +767,7 @@
                   "summary": "Add memory files",
                   "value": {
                     "repo_name": "nhl-predictor",
+                    "branch": "main",
                     "action": "add",
                     "files": [
                       {
@@ -737,6 +780,7 @@
                   "summary": "Index new files",
                   "value": {
                     "repo_name": "nhl-predictor",
+                    "branch": "sandbox-emerald-owl",
                     "action": "index",
                     "base_paths": [
                       "src/"
@@ -747,6 +791,7 @@
                   "summary": "Compare memory to GitHub files",
                   "value": {
                     "repo_name": "nhl-predictor",
+                    "branch": "sandbox-emerald-owl",
                     "action": "diff",
                     "base_paths": [
                       "src/",
@@ -758,6 +803,7 @@
                   "summary": "Validate file existence",
                   "value": {
                     "repo_name": "nhl-predictor",
+                    "branch": "sandbox-emerald-owl",
                     "action": "validate",
                     "files": [
                       "README.md",
@@ -825,6 +871,10 @@
                     "type": "string",
                     "description": "Name of the GitHub repository"
                   },
+                  "branch": {
+                    "type": "string",
+                    "description": "Git branch to query (default is 'main')"
+                  },
                   "mode": {
                     "type": "string",
                     "enum": [
@@ -856,7 +906,8 @@
                 "search": {
                   "summary": "Search memory index",
                   "value": {
-                    "repo_name": "ai-delivery-framework",
+                    "repo_name": "nhl-predictor",
+                    "branch": "sandbox-emerald-owl",
                     "mode": "search",
                     "keyword": "task prompt"
                   }
@@ -864,7 +915,8 @@
                 "list": {
                   "summary": "List memory entries by tag",
                   "value": {
-                    "repo_name": "ai-delivery-framework",
+                    "repo_name": "nhl-predictor",
+                    "branch": "sandbox-emerald-owl",
                     "mode": "list",
                     "tag": "prompt"
                   }
@@ -872,7 +924,8 @@
                 "stats": {
                   "summary": "Get memory stats",
                   "value": {
-                    "repo_name": "ai-delivery-framework",
+                    "repo_name": "nhl-predictor",
+                    "branch": "sandbox-emerald-owl",
                     "mode": "stats"
                   }
                 }
@@ -934,6 +987,10 @@
                     "type": "string",
                     "description": "Name of the GitHub repository"
                   },
+                  "branch": {
+                    "type": "string",
+                    "description": "Git branch to operate on (default is 'main')"
+                  },
                   "path": {
                     "type": "string",
                     "description": "Path of the file to update or remove"
@@ -967,7 +1024,8 @@
                 "update": {
                   "summary": "Update memory entry",
                   "value": {
-                    "repo_name": "ai-delivery-framework",
+                    "repo_name": "nhl-predictor",
+                    "branch": "sandbox-emerald-owl",
                     "path": "project/outputs/task.yaml",
                     "action": "update",
                     "description": "Tracks task definitions",
@@ -981,7 +1039,8 @@
                 "remove": {
                   "summary": "Remove memory entry",
                   "value": {
-                    "repo_name": "ai-delivery-framework",
+                    "repo_name": "nhl-predictor",
+                    "branch": "sandbox-emerald-owl",
                     "path": "docs/old_doc.md",
                     "action": "remove"
                   }
@@ -1041,6 +1100,10 @@
                     "type": "string",
                     "description": "Repository name where the task lives"
                   },
+                  "branch": {
+                    "type": "string",
+                    "description": "Git branch to operate on (default is 'main')"
+                  },
                   "action": {
                     "type": "string",
                     "enum": [
@@ -1091,7 +1154,8 @@
                 "update_metadata": {
                   "summary": "Update task metadata",
                   "value": {
-                    "repo_name": "ai-delivery-framework",
+                    "repo_name": "nhl-predictor",
+                    "branch": "sandbox-emerald-owl",
                     "action": "update_metadata",
                     "task_id": "2.1_design_feature_and_tech_spec",
                     "description": "Refactor metadata tool",
@@ -1101,7 +1165,8 @@
                 "clone": {
                   "summary": "Clone a task",
                   "value": {
-                    "repo_name": "ai-delivery-framework",
+                    "repo_name": "nhl-predictor",
+                    "branch": "sandbox-emerald-owl",
                     "action": "clone",
                     "original_task_id": "2.1_design_feature_and_tech_spec",
                     "descriptor": "for task 2.1 follow-up"
@@ -1168,6 +1233,10 @@
                   "repo_name": {
                     "type": "string",
                     "description": "GitHub repository where the task is defined (required for all actions)"
+                  },
+                  "branch": {
+                    "type": "string",
+                    "description": "Git branch to operate on (default is 'main')"
                   },
                   "task_id": {
                     "type": "string",
@@ -1329,7 +1398,8 @@
                   "summary": "Activate tasks",
                   "value": {
                     "action": "activate",
-                    "repo_name": "ai-delivery-framework",
+                    "repo_name": "nhl-predictor",
+                    "branch": "sandbox-emarald-hawk",
                     "task_id": ["1.1_capture_project_goals_prompt", "1.2_define_user_and_delivery_flows", "1.3_define_architecture"]
                   }
                 },
@@ -1337,7 +1407,8 @@
                   "summary": "Start task",
                   "value": {
                     "action": "start",
-                    "repo_name": "ai-delivery-framework",
+                    "repo_name": "nhl-predictor",
+                    "branch": "sandbox-emerald-hawk",
                     "task_id": "2.1",
                     "prompt_used": "Design the system architecture..."
                   }
@@ -1346,7 +1417,8 @@
                   "summary": "Complete task",
                   "value": {
                     "action": "complete",
-                    "repo_name": "ai-delivery-framework",
+                    "repo_name": "nhl-predictor",
+                    "branch": "sandbox-emerald-hawk",
                     "task_id": "2.1",
                     "outputs": [
                       {
@@ -1390,7 +1462,8 @@
                   "summary": "Reopen task",
                   "value": {
                     "action": "reopen",
-                    "repo_name": "ai-delivery-framework",
+                    "repo_name": "nhl-predictor",
+                    "branch": "sandbox-emerald-hawk",
                     "task_id": "2.1",
                     "reason": "QA failed"
                   }
@@ -1399,7 +1472,8 @@
                   "summary": "Get next task for pod",
                   "value": {
                     "action": "next",
-                    "repo_name": "ai-delivery-framework",
+                    "repo_name": "nhl-predictor",
+                    "branch": "sandbox-emerald-hawk",
                     "pod_owner": "DevPod"
                   }
                 },
@@ -1407,7 +1481,8 @@
                   "summary": "Scale out task",
                   "value": {
                     "action": "scale_out",
-                    "repo_name": "ai-delivery-framework",
+                    "repo_name": "nhl-predictor",
+                    "branch": "sandbox-emerald-hawk",
                     "task_id": "2.2",
                     "reason": "Token limit exceeded",
                     "handoff_note": {
@@ -1422,7 +1497,8 @@
                   "summary": "Create new task from template",
                   "value": {
                     "action": "create",
-                    "repo_name": "ai-delivery-framework",
+                    "repo_name": "nhl-predictor",
+                    "branch": "sandbox-emerald-hawk",
                     "phase": "phase3",
                     "task_key": "3.1a_write_docs",
                     "task_id": "3.1a",
@@ -1503,6 +1579,10 @@
                     "type": "string",
                     "description": "GitHub repository name (required for all actions)"
                   },
+                  "branch": {
+                    "type": "string",
+                    "description": "Git branch to operate on (default is 'main')"
+                  },
                   "task_id": {
                     "type": "string",
                     "description": "Task ID (required for all except `append`, which takes it in path)"
@@ -1557,7 +1637,8 @@
                   "summary": "Append a manual handoff note",
                   "value": {
                     "action": "append",
-                    "repo_name": "ai-delivery-framework",
+                    "repo_name": "nhl-predictor",
+                    "branch": "sandbox-emerald-hawk",
                     "task_id": "2.3",
                     "from_pod": "DevPod",
                     "to_pod": "QAPod",
@@ -1576,7 +1657,8 @@
                   "summary": "Fetch latest handoff note",
                   "value": {
                     "action": "fetch",
-                    "repo_name": "ai-delivery-framework",
+                    "repo_name": "nhl-predictor",
+                    "branch": "sandbox-emerald-owl",
                     "task_id": "3.1"
                   }
                 },
@@ -1584,7 +1666,8 @@
                   "summary": "Auto-generate handoff from reasoning",
                   "value": {
                     "action": "generate_auto",
-                    "repo_name": "ai-delivery-framework",
+                    "repo_name": "nhl-predictor",
+                    "branch": "sandbox-emerald-owl",
                     "task_id": "2.4"
                   }
                 },
@@ -1592,7 +1675,8 @@
                   "summary": "Auto handoff to downstream task",
                   "value": {
                     "action": "execute_auto",
-                    "repo_name": "ai-delivery-framework",
+                    "repo_name": "nhl-predictor",
+                    "branch": "sandbox-emerald-owl",
                     "task_id": "3.1",
                     "next_task_id": "3.2",
                     "handoff_mode": "async"
@@ -1670,6 +1754,10 @@
                     "type": "string",
                     "description": "Name of the GitHub repository"
                   },
+                  "branch": {
+                    "type": "string",
+                    "description": "Git branch to operate on (default is 'main')"
+                  },
                   "task_id": {
                     "type": "string",
                     "description": "ID of the task to log or retrieve chain of thought for"
@@ -1706,7 +1794,8 @@
                   "summary": "Append new thought with issues and tags",
                   "value": {
                     "action": "append",
-                    "repo_name": "ai-delivery-framework",
+                    "repo_name": "nhl-predictor",
+                    "branch": "sandbox-emerald-hawk",
                     "task_id": "2.1_model_inputs",
                     "message": "We encountered retry issues on GitHub PATCH.",
                     "tags": [
@@ -1802,6 +1891,10 @@
                     "type": "string",
                     "description": "GitHub repository name"
                   },
+                  "branch": {
+                    "type": "string",
+                    "description": "Git branch to operate on (default is 'main')"
+                  },
                   "task_id": {
                     "type": "string",
                     "description": "Required for `fetch` to specify which task's trace to retrieve"
@@ -1821,7 +1914,8 @@
                   "summary": "Fetch final reasoning trace for a task",
                   "value": {
                     "action": "fetch",
-                    "repo_name": "ai-delivery-framework",
+                    "repo_name": "nhl-predictor",
+                    "branch": "sandbox-emerald-owl",
                     "task_id": "2.1_model_inputs",
                     "full": false
                   }
@@ -1830,7 +1924,8 @@
                   "summary": "Fetch full trace with prompt and chain_of_thought",
                   "value": {
                     "action": "fetch",
-                    "repo_name": "ai-delivery-framework",
+                    "repo_name": "nhl-predictor",
+                    "branch": "sandbox-emerald-owl",
                     "task_id": "2.1_model_inputs",
                     "full": true
                   }
@@ -1839,14 +1934,16 @@
                   "summary": "Get reasoning summary in JSON",
                   "value": {
                     "action": "summary",
-                    "repo_name": "ai-delivery-framework"
+                    "repo_name": "nhl-predictor",
+                    "branch": "sandbox-emerald-owl"
                   }
                 },
                 "summary_csv": {
                   "summary": "Get reasoning summary as CSV",
                   "value": {
                     "action": "summary",
-                    "repo_name": "ai-delivery-framework",
+                    "repo_name": "nhl-predictor",
+                    "branch": "sandbox-emerald-owl",
                     "format": "csv"
                   }
                 }
@@ -1907,6 +2004,10 @@
                     "type": "string",
                     "description": "GitHub repo where task.yaml lives"
                   },
+                  "branch": {
+                    "type": "string",
+                    "description": "Git branch to operate on (default is 'main')"
+                  },
                   "task_id": {
                     "type": "string",
                     "description": "Required for `get_details` or `dependencies`"
@@ -1930,14 +2031,16 @@
                   "summary": "List all tasks",
                   "value": {
                     "mode": "list",
-                    "repo_name": "ai-delivery-framework"
+                    "repo_name": "nhl-predictor",
+                    "branch": "sandbox-emerald-owl"
                   }
                 },
                 "list_filtered": {
                   "summary": "List in-progress tasks for ProductPod",
                   "value": {
                     "mode": "list",
-                    "repo_name": "ai-delivery-framework",
+                    "repo_name": "nhl-predictor",
+                    "branch": "sandbox-emerald-owl",
                     "status": "in_progress",
                     "pod_owner": "ProductPod"
                   }
@@ -1946,21 +2049,24 @@
                   "summary": "Group tasks by SDLC phase",
                   "value": {
                     "mode": "list_phases",
-                    "repo_name": "ai-delivery-framework"
+                    "repo_name": "nhl-predictor",
+                    "branch": "sandbox-emerald-owl"
                   }
                 },
                 "graph": {
                   "summary": "Get task dependency graph",
                   "value": {
                     "mode": "graph",
-                    "repo_name": "ai-delivery-framework"
+                    "repo_name": "nhl-predictor",
+                    "branch": "sandbox-emerald-owl"
                   }
                 },
                 "dependencies": {
                   "summary": "Show upstream/downstream for a task",
                   "value": {
                     "mode": "dependencies",
-                    "repo_name": "ai-delivery-framework",
+                    "repo_name": "nhl-predictor",
+                    "branch": "sandbox-emerald-owl",
                     "task_id": "1.3_define_architecture"
                   }
                 },
@@ -1968,7 +2074,8 @@
                   "summary": "Get metadata for a task",
                   "value": {
                     "mode": "get_details",
-                    "repo_name": "ai-delivery-framework",
+                    "repo_name": "nhl-predictor",
+                    "branch": "sandbox-emerald-owl",
                     "task_id": "3.2_write_tests"
                   }
                 }
@@ -2023,6 +2130,10 @@
                   "repo_name": {
                     "type": "string",
                     "description": "Target GitHub repository name"
+                  },
+                  "branch": {
+                    "type": "string",
+                    "description": "Git branch to operate on (default is 'main')"
                   },
                   "scope": {
                     "type": "string",
@@ -2080,7 +2191,8 @@
                   "summary": "Log a bug",
                   "value": {
                     "action": "log",
-                    "repo_name": "ai-delivery-framework",
+                    "repo_name": "nhl-predictor",
+                    "branch": "sandbox-emarald-hawk",
                     "scope": "framework",
                     "type": "bug",
                     "task_id": "2.1_model_inputs",
@@ -2095,7 +2207,8 @@
                   "summary": "Fetch framework enhancements",
                   "value": {
                     "action": "fetch",
-                    "repo_name": "ai-delivery-framework",
+                    "repo_name": "nhl-predictor",
+                    "branch": "sandbox-emarald-hawk",
                     "scope": "framework",
                     "type": "enhancement",
                     "tag": "ui",
@@ -2106,7 +2219,8 @@
                   "summary": "Mark issue closed",
                   "value": {
                     "action": "update_status",
-                    "repo_name": "ai-delivery-framework",
+                    "repo_name": "nhl-predictor",
+                    "branch": "sandbox-emarald-hawk",
                     "scope": "project",
                     "issue_id": "abc123-def456",
                     "new_status": "closed",
@@ -2183,6 +2297,10 @@
                     "type": "string",
                     "description": "GitHub repo where the changelog is tracked"
                   },
+                  "branch": {
+                    "type": "string",
+                    "description": "Git branch to operate on (default is 'main')"
+                  },
                   "dry_run": {
                     "type": "boolean",
                     "description": "If true, performs validation without writing changes (only applies to action=validate)"
@@ -2202,7 +2320,8 @@
                   "summary": "Dry run changelog validation",
                   "value": {
                     "action": "validate",
-                    "repo_name": "ai-delivery-framework",
+                    "repo_name": "nhl-predictor",
+                    "branch": "sandbox-emarald-hawk",
                     "dry_run": true
                   }
                 },
@@ -2248,6 +2367,100 @@
                   "properties": {
                     "detail": {
                       "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sandbox/init_branch": {
+      "post": {
+        "operationId": "initSandboxBranch",
+        "summary": "Initialize or reuse a sandbox Git branch for a user",
+        "tags": ["Sandbox", "Branching"],
+        "x-gpt-action": {
+          "name": "Initialize Sandbox Branch",
+          "instructions": "Use this to initialize a safe workspace branch for a user. You can optionally provide a `reuse_token` to reconnect to a previous session. This tool ensures every user works in an isolated branch forked from `sandbox`.",
+          "summary_keywords": ["sandbox", "branch", "initialize", "workspace", "token"]
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["repo_name"],
+                "properties": {
+                  "repo_name": {
+                    "type": "string",
+                    "description": "GitHub repo name (e.g., nhl-predictor)"
+                  },
+                  "reuse_token": {
+                    "type": "string",
+                    "description": "Optional secure token from a previous session to reuse an existing sandbox branch"
+                  },
+                  "force_new": {
+                    "type": "boolean",
+                    "description": "Set to true to ignore `reuse_token` and create a fresh sandbox branch"
+                  }
+                }
+              },
+              "examples": {
+                "new_user": {
+                  "summary": "Create a new sandbox branch",
+                  "value": {
+                    "repo_name": "nhl-predictor"
+                  }
+                },
+                "reuse_existing": {
+                  "summary": "Reconnect to a prior sandbox branch",
+                  "value": {
+                    "repo_name": "nhl-predictor",
+                    "reuse_token": "c2FuZGJveC1jb3NtaWMtZWFnbGU="
+                  }
+                },
+                "force_new": {
+                  "summary": "Ignore token and create new",
+                  "value": {
+                    "repo_name": "nhl-predictor",
+                    "reuse_token": "c2FuZGJveC1vbGQ=",
+                    "force_new": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Returns a usable sandbox branch name and token for future access",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "branch": {
+                      "type": "string",
+                      "description": "The Git branch assigned to this user"
+                    },
+                    "reuse_token": {
+                      "type": "string",
+                      "description": "Token to resume this sandbox session later"
+                    },
+                    "repo_name": {
+                      "type": "string",
+                      "description": "The repo name used for this sandbox"
+                    },
+                    "created": {
+                      "type": "boolean",
+                      "description": "Whether a new branch was created or an existing one reused"
+                    },
+                    "message": {
+                      "type": "string",
+                      "description": "User-friendly status or welcome message"
                     }
                   }
                 }
