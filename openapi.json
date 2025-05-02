@@ -88,7 +88,13 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "additionalProperties": true
+                  "properties": {
+                    "metrics": {
+                      "type": "object",
+                      "description": "Contains either a summary or full export of metrics",
+                      "additionalProperties": true
+                    }
+                  }
                 }
               }
             }
@@ -229,7 +235,15 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "additionalProperties": true
+                  "properties": {
+                    "files": {
+                      "type": "object",
+                      "description": "Mapping of file paths to content",
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  }
                 }
               }
             }
@@ -762,7 +776,16 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "additionalProperties": true
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "results": {
+                      "type": "object",
+                      "description": "Details about the memory operation",
+                      "additionalProperties": true
+                    }
+                  }
                 }
               }
             }
@@ -864,7 +887,13 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "additionalProperties": true
+                  "properties": {
+                    "results": {
+                      "type": "object",
+                      "description": "Query results (search hits, list of entries, or stats)",
+                      "additionalProperties": true
+                    }
+                  }
                 }
               }
             }
@@ -1089,7 +1118,15 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "additionalProperties": true
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "updated_metadata": {
+                      "type": "object",
+                      "additionalProperties": true
+                    }
+                  }
                 }
               }
             }
@@ -1407,7 +1444,16 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "additionalProperties": true
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "result": {
+                      "type": "object",
+                      "description": "Lifecycle result summary",
+                      "additionalProperties": true
+                    }
+                  }
                 }
               }
             }
@@ -1563,8 +1609,18 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "additionalProperties": true
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "handoff_result": {
+                      "type": "object",
+                      "description": "Handoff action result",
+                      "additionalProperties": true
+                    }
+                  }
                 }
+
               }
             }
           }
@@ -1685,7 +1741,17 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "additionalProperties": true
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "chain_of_thought": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    }
+                  }
                 }
               }
             }
@@ -1795,7 +1861,13 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "additionalProperties": true
+                  "properties": {
+                    "result": {
+                      "type": "object",
+                      "description": "Reasoning trace result or summary",
+                      "additionalProperties": true
+                    }
+                  }
                 }
               },
               "text/csv": {
@@ -1911,7 +1983,13 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "additionalProperties": true
+                  "properties": {
+                    "query_result": {
+                      "type": "object",
+                      "description": "Query result content",
+                      "additionalProperties": true
+                    }
+                  }
                 }
               }
             }
@@ -2045,7 +2123,15 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "additionalProperties": true
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "issue_data": {
+                      "type": "object",
+                      "additionalProperties": true
+                    }
+                  }
                 }
               }
             }
@@ -2139,7 +2225,15 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "additionalProperties": true
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "changelog_result": {
+                      "type": "object",
+                      "additionalProperties": true
+                    }
+                  }
                 }
               }
             }
