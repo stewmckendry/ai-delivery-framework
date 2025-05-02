@@ -836,18 +836,19 @@
     "/memory/query": {
       "post": {
         "operationId": "queryMemory",
-        "summary": "Query memory index (search, list, or stats)",
+        "summary": "Query memory index (search, list, summary, or stats)",
         "tags": [
           "Memory"
         ],
         "x-gpt-action": {
           "name": "Query Memory Index",
-          "instructions": "Use this to search, list, or summarize the memory index. Set `mode` to one of: `search`, `list`, or `stats`, and include required fields per mode.",
+          "instructions": "Use this to search, list, summarize, or get stats from the memory index. Set `mode` to one of: `search`, `list`, `summary`, or `stats`, and include required fields per mode. Use `offset` and `limit` with `list` to page through results.",
           "summary_keywords": [
             "memory",
             "search",
             "list",
-            "stats"
+            "stats",
+            "summary"
           ]
         },
         "requestBody": {
@@ -856,10 +857,7 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": [
-                  "repo_name",
-                  "mode"
-                ],
+                "required": ["repo_name", "mode"],
                 "properties": {
                   "repo_name": {
                     "type": "string",
@@ -871,12 +869,8 @@
                   },
                   "mode": {
                     "type": "string",
-                    "enum": [
-                      "search",
-                      "list",
-                      "stats"
-                    ],
-                    "description": "Query type: `search`, `list`, or `stats`"
+                    "enum": ["search", "list", "summary", "stats"],
+                    "description": "Query type: `search`, `list`, `summary`, or `stats`"
                   },
                   "keyword": {
                     "type": "string",
@@ -893,6 +887,14 @@
                   "file_type": {
                     "type": "string",
                     "description": "Optional filter for `list` mode"
+                  },
+                  "offset": {
+                    "type": "integer",
+                    "description": "Index to start listing from (used in `list` mode)"
+                  },
+                  "limit": {
+                    "type": "integer",
+                    "description": "Maximum number of entries to return (used in `list` mode)"
                   }
                 }
               },
@@ -912,7 +914,17 @@
                     "repo_name": "nhl-predictor",
                     "branch": "sandbox-emerald-owl",
                     "mode": "list",
-                    "tag": "prompt"
+                    "tag": "prompt",
+                    "offset": 0,
+                    "limit": 50
+                  }
+                },
+                "summary": {
+                  "summary": "Summarize memory index",
+                  "value": {
+                    "repo_name": "nhl-predictor",
+                    "branch": "sandbox-emerald-owl",
+                    "mode": "summary"
                   }
                 },
                 "stats": {
@@ -937,7 +949,7 @@
                   "properties": {
                     "results": {
                       "type": "object",
-                      "description": "Query results (search hits, list of entries, or stats)",
+                      "description": "Query results (search hits, list of entries, summary, or stats)",
                       "additionalProperties": true
                     }
                   }

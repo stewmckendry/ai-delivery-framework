@@ -2034,9 +2034,11 @@ async def manage_memory(background_tasks: BackgroundTasks, payload: dict = Body(
 
 @app.post("/memory/query")
 async def query_memory(payload: dict = Body(...)):
-    mode = payload.get("mode")
+    mode = payload.get("mode", "summary")
     repo_name = payload.get("repo_name")
     branch = payload.get("branch")
+    offset = int(payload.get("offset", 0))
+    limit = int(payload.get("limit", 100))
 
     if not repo_name or not branch:
         raise HTTPException(status_code=400, detail="'repo_name' and 'branch' are required")
@@ -2053,8 +2055,13 @@ async def query_memory(payload: dict = Body(...)):
             pod_owner=payload.get("pod_owner"),
             tag=payload.get("tag"),
             file_type=payload.get("file_type"),
-            branch=branch
+            branch=branch,
+            offset=offset,
+            limit=limit
         )
+
+    elif mode == "summary":
+        return handle_memory_summary(repo_name=repo_name, branch=branch)
 
     elif mode == "stats":
         return handle_get_memory_stats(repo_name=repo_name, branch=branch)
@@ -2388,8 +2395,16 @@ async def handle_remove_entry(
     except Exception as e:
         return JSONResponse(status_code=500, content={"detail": f"Internal Server Error: {type(e).__name__}: {e}"})
 
-def handle_list_memory_entries(repo_name: str, pod_owner: Optional[str] = None, tag: Optional[str] = None, file_type: Optional[str] = None, branch: str = "unknown") -> dict:
-    """List memory entries with optional filters like owner, tag, or file type."""
+def handle_list_memory_entries(
+    repo_name: str,
+    pod_owner: Optional[str] = None,
+    tag: Optional[str] = None,
+    file_type: Optional[str] = None,
+    branch: str = "unknown",
+    offset: int = 0,
+    limit: int = 100
+) -> dict:
+    """List memory entries with optional filters like owner, tag, or file type, and apply pagination."""
     try:
         repo = get_repo(repo_name)
         memory_path = "project/memory.yaml"
@@ -2403,10 +2418,34 @@ def handle_list_memory_entries(repo_name: str, pod_owner: Optional[str] = None, 
             and (not file_type or entry.get("file_type") == file_type)
         ]
 
-        return {"total": len(results), "results": results}
+        paged = results[offset:offset + limit]
+        return {
+            "total": len(results),
+            "offset": offset,
+            "limit": limit,
+            "results": paged
+        }
 
     except Exception as e:
         return JSONResponse(status_code=500, content={"detail": f"Internal Server Error: {type(e).__name__}: {e}"})
+
+def handle_memory_summary(repo_name: str, branch: str) -> dict:
+    """Return summary info only (count and top paths) to avoid response size issues."""
+    try:
+        repo = get_repo(repo_name)
+        memory_path = "project/memory.yaml"
+        memory_file = repo.get_contents(memory_path, ref=branch)
+        memory = yaml.safe_load(memory_file.decoded_content) or []
+
+        return {
+            "count": len(memory),
+            "sample_paths": [entry.get("path") for entry in memory[:10]],
+            "tip": "Use mode: list with filters or pagination to view full entries."
+        }
+
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"detail": f"Internal Server Error: {type(e).__name__}: {e}"})
+
 
 def handle_get_memory_stats(repo_name: str, branch: str = "unknown") -> dict:
     """Return memory statistics including totals, gaps, and ownership breakdown."""
