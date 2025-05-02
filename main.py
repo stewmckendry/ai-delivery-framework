@@ -1107,6 +1107,11 @@ async def handle_reopen_task(repo_name: str, task_id: str, reason: str) -> dict:
 
         task_data["tasks"][task_id]["status"] = "in_progress"
         task_data["tasks"][task_id]["updated_at"] = datetime.utcnow().isoformat()
+        
+        # Set pod_owner if missing
+        pod_owner = task_data["tasks"][task_id].get("owner_pod") or "GPTPod"
+        task_data["tasks"][task_id]["assigned_pod"] = pod_owner  # ensure it's written back
+
         updated_content = yaml.dump(task_data)
         commit_and_log(repo, task_path, updated_content, f"Reopen task {task_id}", task_id=task_id, committed_by=task_data["tasks"][task_id]["pod_owner"])
 
@@ -1250,7 +1255,7 @@ async def handle_create_task(repo_name: str, phase: str, task_key: str, task_id:
         if not task_id:
             suffix = uuid.uuid4().hex[:6]
             task_id = f"{task_key}-{suffix}"
-            
+
         if task_id in task_data.get("tasks", {}):
             raise HTTPException(status_code=400, detail=f"Task ID {task_id} already exists")
 
@@ -1261,6 +1266,7 @@ async def handle_create_task(repo_name: str, phase: str, task_key: str, task_id:
 
         # Set metadata
         new_task["assigned_pod"] = assigned_pod
+        new_task["pod_owner"] = assigned_pod
         new_task["created_at"] = datetime.utcnow().isoformat()
         new_task["updated_at"] = None
         new_task["done"] = False
