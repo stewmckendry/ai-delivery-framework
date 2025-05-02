@@ -136,11 +136,32 @@ def fetch_file_content_from_github(repo_name: str, path: str):
         print(f"Error fetching file content from {path}: {e}")
         return ""
     
-def list_files_from_github(repo_name: str, path: str):
+def list_files_from_github(repo_name: str, path: str, recursive: bool = False):
+    """List file paths under the given path in the GitHub repo. Recurses if `recursive` is True."""
     try:
         repo = get_repo(repo_name)
-        contents = repo.get_contents(path)
-        return [file.path for file in contents]
+        all_files = []
+
+        def recurse(current_path):
+            items = repo.get_contents(current_path)
+            if not isinstance(items, list):
+                items = [items]
+            for item in items:
+                if item.type == "file":
+                    all_files.append(item.path)
+                elif item.type == "dir":
+                    recurse(item.path)
+
+        if recursive:
+            recurse(path)
+        else:
+            items = repo.get_contents(path)
+            if not isinstance(items, list):
+                items = [items]
+            all_files = [item.path for item in items if item.type == "file"]
+
+        return all_files
+
     except Exception as e:
         print(f"Error listing files from {path}: {e}")
         return []
@@ -234,7 +255,7 @@ def generate_metrics_summary(repo_name: str = "nhl-predictor"):
     novelties = 0
     total_logs = 0
 
-    trace_paths = list_files_from_github(repo_name, REASONING_FOLDER_PATH)
+    trace_paths = list_files_from_github(repo_name, REASONING_FOLDER_PATH, recursive=True)
     for path in trace_paths:
         if path.endswith("reasoning_trace.yaml"):
             try:
@@ -268,7 +289,7 @@ def generate_metrics_summary(repo_name: str = "nhl-predictor"):
     }
 
 def generate_project_reasoning_summary(repo_name: str = "nhl-predictor"):
-    trace_paths = list_files_from_github(repo_name, REASONING_FOLDER_PATH)
+    trace_paths = list_files_from_github(repo_name, REASONING_FOLDER_PATH, recursive=True)
     all_thoughts = []  # Includes thoughts, alternatives, improvements
 
     for path in trace_paths:
