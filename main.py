@@ -1109,8 +1109,8 @@ async def handle_reopen_task(repo_name: str, task_id: str, reason: str) -> dict:
         task_data["tasks"][task_id]["updated_at"] = datetime.utcnow().isoformat()
         
         # Set pod_owner if missing
-        pod_owner = task_data["tasks"][task_id].get("owner_pod") or "GPTPod"
-        task_data["tasks"][task_id]["assigned_pod"] = pod_owner  # ensure it's written back
+        pod_owner = task_data["tasks"][task_id].get("pod_owner") or "GPTPod"
+        task_data["tasks"][task_id]["pod_owner"] = pod_owner  # ensure it's written back
 
         updated_content = yaml.dump(task_data)
         commit_and_log(repo, task_path, updated_content, f"Reopen task {task_id}", task_id=task_id, committed_by=task_data["tasks"][task_id]["pod_owner"])
