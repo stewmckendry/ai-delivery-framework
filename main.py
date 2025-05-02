@@ -25,6 +25,7 @@ import base64
 import os
 import time
 import io
+import uuid
 import csv
 from github import Github, GithubException
 from openai import OpenAI
@@ -2603,6 +2604,7 @@ async def handle_log_issue(
         entry = {
             "type": type_,
             "scope": scope,
+            "issue_id": str(uuid.uuid4()),
             "task_id": task_id,
             "title": title,
             "detail": detail,

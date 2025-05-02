@@ -720,4 +720,69 @@ Consolidate the following 5 metadata routes into one unified query interface:
 
 ---
 
+🧠 **Batch 7: Impact Assessment — `/system/manage_issues`**
+
+🎯 **Goal**  
+Unify the issue tracking routes into a single endpoint:
+
+**Original Route** | **Action** | **Description**  
+--- | --- | ---  
+`/system/log_issue_or_enhancement` | `log` | Add a new bug/enhancement to issue tracker  
+`/system/fetch_issues_or_enhancements` | `fetch` | Query issues by filter (tag, type, etc.)  
+`/system/update_issue_status` | `update_status` | Change status to open or closed  
+
+---
+
+🧩 **Proposed Unified Route**
+
+**New Endpoint**:  
+`POST /system/manage_issues`  
+
+**Required Parameter**:  
+- `action`: `"log"` | `"fetch"` | `"update_status"`  
+
+---
+
+**Field Requirements by Action**
+
+| **Field**            | **log** | **fetch** | **update_status** | **Notes**                                |
+|----------------------|---------|-----------|--------------------|------------------------------------------|
+| `repo_name`          | ✅      | ✅        | ✅                 | Required for all                         |
+| `scope`              | ✅      | ✅        | ✅                 | `"framework"` or `"project"`             |
+| `type`               | ✅      | ✅        | ❌                 | `"bug"` or `"enhancement"`               |
+| `title`              | ✅      | ❌        | ❌                 | Required for `log`                       |
+| `detail`, `suggested_fix`, `tags` | optional | ❌ | ❌         | Optional metadata for `log`              |
+| `issue_id`           | ❌      | optional  | ✅                 | Required for `update_status`             |
+| `new_status`         | ❌      | ❌        | ✅                 | `"open"` or `"closed"`                   |
+| `task_id`            | optional | optional | ❌                | Optional for traceability or linkage     |
+
+---
+
+🔁 **Consolidation Plan: Batch 10A**
+
+---
+
+🗂 **Group 1: File Access**
+
+**Original Route** | **Mode**  
+--- | ---  
+`/getFile` | `single`  
+`/batch-files` | `batch`  
+
+**Proposed Unified Endpoint**:  
+`POST /system/file_access`  
+**Param**: `"mode"` with values: `single` | `batch`  
+
+---
+
+📊 **Group 2: Metrics**
+
+**Original Route** | **Mode**  
+--- | ---  
+`/metrics/summary` | `summary`  
+`/metrics/export` | `export`  
+
+**Proposed Unified Endpoint**:  
+`POST /system/metrics`  
+**Param**: `"mode"` with values: `summary` | `export`  
 
