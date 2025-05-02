@@ -2048,7 +2048,7 @@
                   },
                   "suggested_fix": {
                     "type": "string",
-                    "description": "Optional recommended fix"
+                    "description": "Optional recommended fix (used in log and update)"
                   },
                   "tags": {
                     "type": "array",
@@ -2109,7 +2109,8 @@
                     "repo_name": "ai-delivery-framework",
                     "scope": "project",
                     "issue_id": "abc123-def456",
-                    "new_status": "closed"
+                    "new_status": "closed",
+                    "suggested_fix": "Add retry logging visibility"
                   }
                 }
               }

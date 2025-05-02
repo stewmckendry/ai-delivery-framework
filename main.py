@@ -2587,7 +2587,8 @@ async def manage_issues(payload: dict = Body(...)):
             repo_name=repo_name,
             scope=payload.get("scope"),
             issue_id=payload.get("issue_id"),
-            new_status=payload.get("new_status")
+            new_status=payload.get("new_status"),
+            suggested_fix=payload.get("suggested_fix")
         )
 
     raise HTTPException(status_code=400, detail=f"Unsupported action: {action}")
@@ -2671,7 +2672,7 @@ async def handle_fetch_issues(
     except Exception as e:
         return JSONResponse(status_code=404, content={"detail": f"Could not fetch issues or enhancements: {type(e).__name__}: {e}"})
 
-async def handle_update_issue_status(repo_name: str, scope: str, issue_id: str, new_status: str):
+async def handle_update_issue_status(repo_name: str, scope: str, issue_id: str, new_status: str, suggested_fix: str = None):
     """Update status of an issue or enhancement."""
     try:
         repo = get_repo(repo_name)
@@ -2683,6 +2684,8 @@ async def handle_update_issue_status(repo_name: str, scope: str, issue_id: str, 
         for entry in data:
             if entry.get("issue_id") == issue_id:
                 entry["status"] = new_status
+                if suggested_fix is not None:
+                    entry["suggested_fix"] = suggested_fix
                 found = True
 
         if not found:
