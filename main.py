@@ -3,7 +3,7 @@
 # ---- (1) Imports ----
 from fastapi import FastAPI, HTTPException, Request, Body, Query, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, FileResponse, PlainTextResponse, Response
+from fastapi.responses import JSONResponse, FileResponse, PlainTextResponse, Response, StreamingResponse
 from fastapi.openapi.utils import get_openapi
 from fastapi import BackgroundTasks
 from pydantic import BaseModel
@@ -2393,8 +2393,8 @@ async def handle_metrics_summary(repo_name: str):
     return summary
 
 async def handle_metrics_export(repo_name: str, format: str):
-    """Export full metrics report in requested format."""
-    trace_paths = list_files_from_github(repo_name, REASONING_FOLDER_PATH)
+    """Export full metrics report in requested format (json or csv)."""
+    trace_paths = list_files_from_github(repo_name, REASONING_FOLDER_PATH, recursive=True)
     exported = []
 
     for path in trace_paths:
@@ -2404,6 +2404,18 @@ async def handle_metrics_export(repo_name: str, format: str):
                 exported.append({"task_id": trace.get("task_id", path.split("/")[-2]), **trace})
             except Exception:
                 continue
+
+    if format == "csv":
+        if not exported:
+            return StreamingResponse(io.StringIO(""), media_type="text/csv")
+
+        keys = sorted(set().union(*(d.keys() for d in exported)))
+        output = io.StringIO()
+        writer = csv.DictWriter(output, fieldnames=keys)
+        writer.writeheader()
+        writer.writerows(exported)
+        output.seek(0)
+        return StreamingResponse(output, media_type="text/csv", headers={"Content-Disposition": "attachment; filename=metrics_export.csv"})
 
     return {"entries": exported, "count": len(exported)}
 
