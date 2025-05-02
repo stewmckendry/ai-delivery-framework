@@ -2968,3 +2968,56 @@ async def handle_update_issue_status(repo_name: str, scope: str, issue_id: str, 
 
     except Exception as e:
         return JSONResponse(status_code=500, content={"detail": f"Internal Server Error: {type(e).__name__}: {e}"})
+
+@app.post("/admin/sandbox_usage")
+def get_sandbox_usage(repo_name: str = Body(...)):
+    import re
+    repo = get_repo(repo_name)
+    try:
+        # Get all branches
+        branches = repo.get_branches()
+        sandbox_branches = [b.name for b in branches if b.name.startswith("sandbox-")]
+
+        # Try to read changelog.yaml from each sandbox branch
+        usage = []
+        for branch in sandbox_branches:
+            try:
+                changelog_file = repo.get_contents("project/outputs/changelog.yaml", ref=branch)
+                changelog = yaml.safe_load(changelog_file.decoded_content) or []
+
+                files = set()
+                last_commit = None
+                trace_count = 0
+                for entry in changelog:
+                    path = entry.get("path")
+                    timestamp = entry.get("timestamp")
+                    if path:
+                        files.add(path)
+                        if path.endswith("reasoning_trace.md"):
+                            trace_count += 1
+                    if timestamp and (not last_commit or timestamp > last_commit):
+                        last_commit = timestamp
+
+                usage.append({
+                    "branch": branch,
+                    "repo_name": repo_name,
+                    "created": changelog[0].get("timestamp") if changelog else None,
+                    "last_commit": last_commit,
+                    "files_committed": len(files),
+                    "reasoning_traces": trace_count
+                })
+
+            except Exception as e:
+                usage.append({
+                    "branch": branch,
+                    "repo_name": repo_name,
+                    "error": f"Could not read changelog: {str(e)}"
+                })
+
+        return {
+            "active_sandboxes": len(sandbox_branches),
+            "branches": usage
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch sandbox usage: {str(e)}")

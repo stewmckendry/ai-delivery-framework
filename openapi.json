@@ -2492,6 +2492,78 @@
           }
         }
       }
+    },
+    "/admin/sandbox_usage": {
+      "post": {
+        "operationId": "getSandboxUsage",
+        "summary": "View usage metrics for sandbox branches",
+        "tags": ["Admin", "Metrics"],
+        "x-gpt-action": {
+          "name": "Admin: View Sandbox Usage",
+          "instructions": "Use this to inspect sandbox activity across branches. It returns a list of sandbox branches and usage stats (files committed, last activity, trace count). Useful for system admins to track engagement.",
+          "summary_keywords": ["sandbox", "admin", "usage", "metrics", "branches"]
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["repo_name"],
+                "properties": {
+                  "repo_name": {
+                    "type": "string",
+                    "description": "Name of the GitHub repository (e.g., nhl-predictor)"
+                  }
+                }
+              },
+              "examples": {
+                "basic": {
+                  "summary": "Get sandbox usage for nhl-predictor",
+                  "value": {
+                    "repo_name": "nhl-predictor"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Summary of sandbox branches and activity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "active_sandboxes": {
+                      "type": "integer",
+                      "description": "Number of sandbox branches detected"
+                    },
+                    "branches": {
+                      "type": "array",
+                      "description": "List of sandbox branches with usage info",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "branch": { "type": "string" },
+                          "repo_name": { "type": "string" },
+                          "created": { "type": "string" },
+                          "last_commit": { "type": "string" },
+                          "files_committed": { "type": "integer" },
+                          "reasoning_traces": { "type": "integer" },
+                          "error": { "type": "string" }
+                        },
+                        "required": ["branch", "repo_name"]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   }
 }

@@ -776,3 +776,30 @@ A single endpoint for initializing a sandbox environment with **two modes**:
 - Clear, logical progression: **branch → project**
 - **Easier onboarding**: single entrypoint for GPT setup
 - **Simplified OpenAPI** configuration and reuse of tags and tool structure
+
+---
+
+## ✅ Completed Tasks
+
+| ID   | Task                                               | Owner        | Status | Notes                                              |
+|------|----------------------------------------------------|--------------|--------|----------------------------------------------------|
+| 1.1  | Create `sandbox` branch on GitHub                  | Human Lead   | ✅     | `sandbox` branch created manually                  |
+| 1.2  | Patch `commit_and_log()` to accept `branch`        | ProductPod   | ✅     | Fully branch-aware                                 |
+| 1.3  | Add `branch` param to API tool routes              | ProductPod   | ✅     | FastAPI + OpenAPI patched                          |
+| 1.4  | Update tool OpenAPI specs with `branch` examples   | ProductPod   | ✅     | Confirmed by QA                                    |
+| 2.1  | Create sandbox init tool (`/sandbox/init_branch`)  | ProductPod   | ✅     | Supports `reuse_token`, `force_new`                |
+| 2.2  | Add `reuse_token` auth logic                       | ProductPod   | ✅     | Enforced token uniqueness                          |
+| 2.3  | Patch GPT prompt to include `branch` + `repo_name` | ProductPod   | ✅     | System prompt + examples updated                   |
+| 2.4  | Improve GPT messaging (tool + system prompt)       | ProductPod   | ✅     | GPT now reminds user of repo/branch/token          |
+| 2.5  | Add OpenAPI schema for `/sandbox/init_branch`      | ProductPod   | ✅     | Passed tool invocation testing                     |
+| 3.1  | Add rollback tool with branch support              | ProductPod   | ✅     | `/git/rollback_commit` implemented                 |
+| 4.1  | Write blog to announce sandbox                     | Human Lead   | ⬜️     | [Next up?]                                         |
+| 4.2  | Define infrastructure plan for full adoption       | ProductPod   | ⬜️     | Needs sketching                                    |
+| 4.3  | Rename `nhl-predictor` repo to generic name        | Human Lead   | ⬜️     | Improves clarity                                   |
+| 4.4  | QA testing checklist and handoff flow              | ProductPod   | ✅     | Used in 5.1                                        |
+| 4.5  | Merge `init_branch` and `init_project` into one    | ProductPod   | ✅     | `/sandbox/init` with mode dispatch                |
+| 4.6  | Optionally hide or alias `init_project`            | ProductPod   | ✅     | Now unified; old route can be deprecated           |
+| 5.1  | QA full test run of sandbox tools                  | QAPod        | ✅     | All pass!                                          |
+| 5.2  | Bugfix: 500 on `/system/metrics` export w/ branch  | ProductPod   | ✅     | Branch respected + error guard added               |
+| 5.3  | Bugfix: Memory query too large                     | ProductPod   | ✅     | Added pagination; summary default applied          |
+| 5.4  | Add alias `/sandbox/init` for unified tool         | ProductPod   | ✅     | Used as the merged entrypoint                      |
