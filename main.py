@@ -2109,11 +2109,12 @@ async def handle_add_to_memory(payload: dict) -> dict:
         for f in files:
             path = f["path"]
             try:
-                file_content = repo.get_contents(path).decoded_content.decode("utf-8")
+                file_info = repo.get_contents(path)
+                file_content = file_info.decoded_content.decode("utf-8")
                 meta = describe_file_for_memory(path, file_content)
                 new_entries.append({
                     "path": path,
-                    "raw_url": f"https://raw.githubusercontent.com/{GITHUB_USERNAME}/{repo.name}/main/{path}",
+                    "raw_url": file_info.download_url,
                     "file_type": path.split(".")[-1] if "." in path else "unknown",
                     "description": meta["description"],
                     "tags": meta["tags"],
@@ -2122,7 +2123,7 @@ async def handle_add_to_memory(payload: dict) -> dict:
                 })
             except Exception:
                 continue
-
+                    
         memory.extend(new_entries)
         memory_content = yaml.dump(memory, sort_keys=False)
 
