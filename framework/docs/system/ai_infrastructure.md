@@ -603,3 +603,36 @@ This ensures clear user orientation and reliable reuse of context across session
 | 4.3  | Rename `nhl-predictor` repo to a more generic name | Human  | ⬜️     | Suggested: `gpt-sandbox`, `ai-builder-lab`, `gpt-devspace`         |
 
 ---
+
+## 🔒 AUTH: Are Users Authenticated by Branch Name?
+
+### Current Behavior
+
+Right now, **having the `branch` + `repo_name`** is sufficient to write to that branch.
+
+✅ **That’s OK for Sandbox Use:**
+
+- Each branch is **randomized and non-discoverable**
+- `reuse_token` provides convenience, **not additional security**
+- This is effectively a **private link** model — secure by obscurity
+
+---
+
+### For Production
+
+We’ll eventually migrate to stronger models:
+
+- GitHub App installation with per-user access  
+- **Token-bound branch validation**  
+- Server-side **mapping of tokens → allowed branches**
+
+✅ **Added to long-term security plan** (see backlog Task 4.2)
+
+---
+
+## 🧾 BACKLOG UPDATE
+
+| ID   | Task                                            | Owner      | Status | Notes                                                                 |
+|------|--------------------------------------------------|------------|--------|-----------------------------------------------------------------------|
+| 4.2  | Define infrastructure plan for full adoption     | ProductPod | ⬜️     | Includes auth model: GitHub App, token-branch binding, repo mapping  |
+
