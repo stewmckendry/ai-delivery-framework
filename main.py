@@ -2601,7 +2601,7 @@ async def handle_log_issue(
             data = []
 
         entry = {
-            "type": type,
+            "type": type_,
             "scope": scope,
             "task_id": task_id,
             "title": title,
