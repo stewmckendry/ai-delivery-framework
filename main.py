@@ -1246,6 +1246,11 @@ async def handle_create_task(repo_name: str, phase: str, task_key: str, task_id:
         task_path = "project/task.yaml"
         task_data = fetch_yaml_from_github(repo_name, task_path)
 
+        # Generate a task_id if not provided
+        if not task_id:
+            suffix = uuid.uuid4().hex[:6]
+            task_id = f"{task_key}-{suffix}"
+            
         if task_id in task_data.get("tasks", {}):
             raise HTTPException(status_code=400, detail=f"Task ID {task_id} already exists")
 
