@@ -2678,7 +2678,7 @@ async def handle_init_branch(repo_name: str, reuse_token: Optional[str] = None, 
     """Initialize a new branch in the specified GitHub repo."""
 
     repo = get_repo(repo_name)
-    base_branch = "sandbox"
+    base_branch = "main"
 
     # Decode reuse_token if present
     branch = None
