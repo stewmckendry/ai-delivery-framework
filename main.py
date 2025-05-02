@@ -2476,22 +2476,28 @@ async def handle_metrics_summary(repo_name: str, branch: str):
 
     return summary
 
+
 async def handle_metrics_export(repo_name: str, format: str, branch: str):
     """Export full metrics report in requested format (json or csv)."""
-    trace_paths = list_files_from_github(repo_name, REASONING_FOLDER_PATH, recursive=True)
+    try:
+        trace_paths = list_files_from_github(repo_name, REASONING_FOLDER_PATH, recursive=True, branch=branch)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to list files from branch {branch}: {str(e)}")
+
     exported = []
 
     for path in trace_paths:
         if path.endswith("reasoning_trace.yaml"):
             try:
                 trace = fetch_yaml_from_github(repo_name, path, branch)
-                exported.append({"task_id": trace.get("task_id", path.split("/")[-2]), **trace})
+                if isinstance(trace, dict):
+                    exported.append({"task_id": trace.get("task_id", path.split("/")[-2]), **trace})
             except Exception:
-                continue
+                continue  # skip problematic trace
 
     if format == "csv":
         if not exported:
-            return StreamingResponse(io.StringIO(""), media_type="text/csv")
+            return StreamingResponse(io.StringIO("No entries to export."), media_type="text/csv")
 
         keys = sorted(set().union(*(d.keys() for d in exported)))
         output = io.StringIO()
@@ -2499,9 +2505,14 @@ async def handle_metrics_export(repo_name: str, format: str, branch: str):
         writer.writeheader()
         writer.writerows(exported)
         output.seek(0)
-        return StreamingResponse(output, media_type="text/csv", headers={"Content-Disposition": "attachment; filename=metrics_export.csv"})
+        return StreamingResponse(
+            output,
+            media_type="text/csv",
+            headers={"Content-Disposition": "attachment; filename=metrics_export.csv"}
+        )
 
     return {"entries": exported, "count": len(exported)}
+
 
 # ---- Git Rollback ----
 
