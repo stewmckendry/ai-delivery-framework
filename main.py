@@ -2625,20 +2625,30 @@ def init_sandbox_branch(data: InitBranchPayload):
     if not branch:
         adjectives = ["emerald", "cosmic", "velvet", "silent", "curious", "ancient", "golden", "crimson", "silver", "mystic"]
         animals = ["hawk", "otter", "wave", "eagle", "fox", "lynx", "falcon", "whale", "tiger", "puma"]
+
+        creation_error = None  # capture error in case all fail
+
         for _ in range(5):  # try up to 5 unique names
             candidate = f"sandbox-{random.choice(adjectives)}-{random.choice(animals)}"
             try:
+                # Check if branch already exists
                 repo.get_branch(candidate)
-            except:
-                # create new branch from base
-                source = repo.get_branch(base_branch).commit.sha
-                repo.create_git_ref(ref=f"refs/heads/{candidate}", sha=source)
-                branch = candidate
-                break
+            except Exception:
+                try:
+                    # Try creating new branch from base
+                    source = repo.get_branch(base_branch).commit.sha
+                    repo.create_git_ref(ref=f"refs/heads/{candidate}", sha=source)
+                    branch = candidate
+                    break
+                except Exception as e:
+                    creation_error = e
 
         if not branch:
-            raise HTTPException(status_code=500, detail="Unable to create unique sandbox branch.")
-
+            raise HTTPException(
+                status_code=500,
+                detail=f"Unable to create unique sandbox branch. Last error: {str(creation_error)}"
+            )
+    
     reuse_token = base64.urlsafe_b64encode(branch.encode()).decode()
     return {
         "branch": branch,
