@@ -1,0 +1,13 @@
+- path: docs/coaching_the_machine_identity.md
+  raw_url: https://raw.githubusercontent.com/stewmckendry/ai-delivery-framework/main/docs/coaching_the_machine_identity.md
+  file_type: md
+  description: Overview of the blog "Coaching the Machine," focusing on AI upskilling
+    through coaching and leadership experiences, aimed at leaders and practitioners
+    interested in AI-human collaboration and responsible innovation.
+  tags:
+  - blog
+  - identity
+  - coaching
+  - AI
+  last_updated: '2025-05-06'
+  pod_owner: DeliveryPod
