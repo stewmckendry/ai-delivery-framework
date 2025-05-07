@@ -1,0 +1,211 @@
+backlog:
+  - id: ENH-001
+    title: Add task granularity and validation guides
+    description: Support better task decomposition with modular templates and validation prompts.
+    background: Vague or high-context tasks such as "define delivery flow" led to inconsistent outputs across pods.
+    impact: Misaligned assumptions, increased rework, reduced reuse.
+    replication: Assign a cross-functional task without input/output scaffolding.
+    affected_elements:
+      - task_templates
+      - chain_of_thought.yaml
+      - prompt editor
+    attachments:
+      - project/outputs/1.3_break_into_features/chain_of_thought.yaml
+    priority: high
+    batch: 1
+
+  - id: ENH-002
+    title: Introduce prompt templates and QA tools
+    description: Provide pre-built prompt formats and automatic diagnostics.
+    background: Prompt quality varied significantly due to lack of structure.
+    impact: Poor GPT outputs, role confusion, low reusability.
+    replication: Write a new prompt from scratch with no guidance.
+    affected_elements:
+      - prompt creation tool
+      - template library
+      - prompt metadata schema
+    attachments:
+      - project/outputs/prompt_creation-9fd099/chain_of_thought.yaml
+    priority: high
+    batch: 1
+
+  - id: ENH-003
+    title: Improve handoff continuity across pods
+    description: Standardize richer handoff note structure and CoT snapshots.
+    background: Pods repeatedly reestablished context, slowing flow.
+    impact: Loss of knowledge, redundant reasoning, misaligned outputs.
+    replication: Transition from research > prompt creation without structured handoff.
+    affected_elements:
+      - handoff.yaml
+      - chain_of_thought.yaml
+    attachments:
+      - project/logs/retrospectives/phase_2_retro.md
+    priority: high
+    batch: 1
+
+  - id: ENH-004
+    title: Add protections for file overwrite on task completion
+    description: Introduce write-locks or filename suffixes to prevent overwrites.
+    background: Task completions with overlapping outputs caused silent data loss.
+    impact: Broken chain_of_thoughts, unclear ownership of results.
+    replication: Complete 2 tasks with same output file path.
+    affected_elements:
+      - task commit handler
+      - file path logic
+    attachments:
+      - project/docs/process/root_cause_analysis/file_overwrite_on_task_complete.md
+    priority: medium
+    batch: 2
+
+  - id: ENH-005
+    title: Build simplified UX for non-technical personas
+    description: Enable goal-first navigation, highlight actions and summaries.
+    background: Non-technical users found prompt crafting and outcome reviews challenging.
+    impact: Low engagement, errors in handoffs.
+    replication: Ask a non-technical user to interpret a CoT or prompt from scratch.
+    affected_elements:
+      - persona views
+      - onboarding
+      - summaries
+    attachments:
+      - project/docs/public/case_study_ai_delivery_framework_non_technical.md
+    priority: high
+    batch: 2
+
+  - id: ENH-006
+    title: Add task dependency visualizer
+    description: Display task relationships and progress to support coordination.
+    background: Gaps and overlaps in pod tasking reported in retrospectives.
+    impact: Blocked pods, duplicated work.
+    replication: Assign tasks to multiple pods for the same user goal without coordination.
+    affected_elements:
+      - task planner
+      - dependency mapper
+    attachments:
+      - project/logs/retrospectives/phase_2_retro.md
+    priority: medium
+    batch: 2
+
+  - id: ENH-007
+    title: Auto-summarize phase insights
+    description: Automatically synthesize phase results into accessible digests.
+    background: Key patterns and learnings were trapped in unstructured YAML.
+    impact: Lost learning, missed reuse.
+    replication: Search for prior strategies across multiple YAML files.
+    affected_elements:
+      - summary generator
+      - digest publisher
+    attachments:
+      - project/outputs/2.1_design_feature_and_tech_spec/chain_of_thought.yaml
+    priority: medium
+    batch: 3
+
+  - id: ENH-008
+    title: Add YAML content validation on commit
+    description: Prevent commits of empty or malformed YAML grounding files.
+    background: A blank YAML file was committed, causing data issues downstream.
+    impact: Broken task inputs and downstream failure.
+    replication: Commit an empty YAML file with task output.
+    affected_elements:
+      - commit tool
+      - grounding file schema
+    attachments:
+      - .logs/issues/framework.yaml
+    priority: high
+    batch: 1
+
+  - id: ENH-009
+    title: Support wildcards in file references
+    description: Simplify task inputs and handoffs using glob-style patterns.
+    background: Tasks had to list each input file manually, leading to long messages.
+    impact: High manual effort, brittle reference handling.
+    replication: Define a task using more than five input files.
+    affected_elements:
+      - task.yaml metadata
+      - prompt setup
+    attachments:
+      - .logs/issues/framework.yaml
+    priority: medium
+    batch: 2
+
+  - id: ENH-010
+    title: Enable post-task reasoning trace logging
+    description: Allow reasoning trace to be written after task completion.
+    background: Missed traces couldn’t be added after task completion.
+    impact: Gaps in auditability and review.
+    replication: Complete task, then attempt to add a trace.
+    affected_elements:
+      - reasoning_trace API
+    attachments:
+      - .logs/issues/framework.yaml
+    priority: medium
+    batch: 3
+
+  - id: ENH-011
+    title: Add persistent context support for long chat pods
+    description: Maintain file context and delivery state across long-running sessions.
+    background: ProductPod experienced context loss and state confusion during extended sessions.
+    impact: Incomplete commits, broken reasoning chains.
+    replication: Work across 10+ tasks in one chat thread.
+    affected_elements:
+      - canvas state manager
+      - context recovery logic
+    attachments:
+      - .logs/issues/framework.yaml
+    priority: high
+    batch: 2
+
+  - id: ENH-012
+    title: Add prompt linting and preview support
+    description: Validate prompt schema and provide preview UI for structured prompts.
+    background: PromptPod authored prompts manually, increasing risk of invalid formatting.
+    impact: Prompt rework, lower GPT quality.
+    replication: Commit malformed prompt content without warning.
+    affected_elements:
+      - prompt UI
+      - prompt templates
+    attachments:
+      - .logs/issues/framework.yaml
+    priority: high
+    batch: 2
+
+  - id: ENH-013
+    title: Auto-target working branch for commits
+    description: Prevent accidental commits to `main` by defaulting to the current working sandbox.
+    background: Prompt files were committed to `main` instead of the correct sandbox branch.
+    impact: Misplaced files, version confusion.
+    replication: Commit a file without specifying the target branch.
+    affected_elements:
+      - commit tool default behavior
+    attachments:
+      - .logs/issues/project.yaml
+    priority: medium
+    batch: 1
+
+  - id: ENH-014
+    title: Standardize file organization structure
+    description: Adopt and enforce standard folder layout and metadata rules.
+    background: Inconsistent folder usage led to confusion across pods.
+    impact: Hard to locate files, higher onboarding friction.
+    replication: Search for a task retro or output spec.
+    affected_elements:
+      - repo file tree
+      - metadata checker
+    attachments:
+      - .logs/issues/project.yaml
+    priority: high
+    batch: 2
+
+  - id: ENH-015
+    title: Add FastAPI pre-deploy validation
+    description: Prevent deploy errors via route, environment, and dependency checks.
+    background: Missing routes and unlisted packages caused deployment failures.
+    impact: Broken endpoints, failed GPT actions.
+    replication: Deploy a FastAPI app without validating routes or environment files.
+    affected_elements:
+      - deployment script
+      - GitHub Action
+    attachments:
+      - .logs/issues/project.yaml
+    priority: high
+    batch: 3
