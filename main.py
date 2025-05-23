@@ -445,7 +445,7 @@ async def commit_and_log_output(
     branch: str = Body("main")
 ):
     try:
-        github, repo = get_repo(repo_name)
+        repo = get_repo(repo_name)
 
         # Update file and changelog
         commit_and_log(
