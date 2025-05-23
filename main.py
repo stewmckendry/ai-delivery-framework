@@ -430,7 +430,9 @@ def create_initial_files(project_repo, project_base_path, project_name, project_
 
 def get_repo(repo_name: str):
     github_client = Github(GITHUB_TOKEN)
-    return github_client.get_repo(f"stewmckendry/{repo_name}")
+    repo = github_client.get_repo(f"stewmckendry/{repo_name}")
+    repo._github_client = github_client  # 💡 add client as hidden attribute
+    return repo
 
 @app.post("/tasks/commit_and_log_output")
 async def commit_and_log_output(
@@ -443,7 +445,7 @@ async def commit_and_log_output(
     branch: str = Body("main")
 ):
     try:
-        repo = get_repo(repo_name)
+        github, repo = get_repo(repo_name)
 
         # Update file and changelog
         commit_and_log(
@@ -482,14 +484,16 @@ async def commit_and_log_output(
 
 def commit_and_log(repo, file_path, content, commit_message, task_id: Optional[str] = None, committed_by: Optional[str] = None, branch: str = "main"):
     try:
-        # Get the parent Github object from PyGitHub internals
-        g = repo._requester._Github__github
-        rate = g.get_rate_limit().core
-
-        if rate.remaining < 10:
-            wait_time = int((rate.reset - datetime.utcnow()).total_seconds()) + 1
-            logger.warning(f"⚠️ GitHub rate limit is low ({rate.remaining} remaining). Sleeping for {wait_time} seconds until reset at {rate.reset.isoformat()}")
-            sleep(wait_time)
+        # 💡 access github client from the repo object
+        github = getattr(repo, "_github_client", None)
+        if github:
+            rate = github.get_rate_limit().core
+            if rate.remaining < 10:
+                wait_time = int((rate.reset - datetime.utcnow()).total_seconds()) + 1
+                logger.warning(f"⚠️ GitHub rate limit low ({rate.remaining}). Sleeping {wait_time}s until reset at {rate.reset.isoformat()}")
+                sleep(wait_time)
+        else:
+            logger.warning("⚠️ GitHub client not available on repo object; skipping rate limit check.")
 
         changelog_path = "project/outputs/changelog.yaml"
         memory_path = "project/memory.yaml"
