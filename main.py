@@ -34,6 +34,10 @@ from github import Github, GithubException
 from openai import OpenAI
 from dotenv import load_dotenv
 from utils.github_retry import with_retries
+import logging
+from time import sleep
+
+logger = logging.getLogger(__name__)
 
 # ---- (2) Global Variables ----
 load_dotenv()
@@ -478,6 +482,15 @@ async def commit_and_log_output(
 
 def commit_and_log(repo, file_path, content, commit_message, task_id: Optional[str] = None, committed_by: Optional[str] = None, branch: str = "main"):
     try:
+        # Get the parent Github object from PyGitHub internals
+        g = repo._requester._Github__github
+        rate = g.get_rate_limit().core
+
+        if rate.remaining < 10:
+            wait_time = int((rate.reset - datetime.utcnow()).total_seconds()) + 1
+            logger.warning(f"⚠️ GitHub rate limit is low ({rate.remaining} remaining). Sleeping for {wait_time} seconds until reset at {rate.reset.isoformat()}")
+            sleep(wait_time)
+
         changelog_path = "project/outputs/changelog.yaml"
         memory_path = "project/memory.yaml"
         timestamp = datetime.utcnow().isoformat()
