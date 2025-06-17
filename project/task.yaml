@@ -62,3 +62,12 @@ tasks:
     status: backlog
     instance_of: framework/task_templates/delivery/delivery/feature-build.md/task.yaml
     prompt: framework/task_templates/delivery/delivery/feature-build.md/prompt_template.md
+  validation/test-plan.md-bdf40e:
+    assigned_pod: ProductPod
+    pod_owner: ProductPod
+    created_at: '2025-06-17T20:29:15.583573'
+    updated_at: null
+    done: false
+    status: backlog
+    instance_of: framework/task_templates/validation/validation/test-plan.md/task.yaml
+    prompt: framework/task_templates/validation/validation/test-plan.md/prompt_template.md
