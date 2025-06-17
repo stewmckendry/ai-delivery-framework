@@ -17,3 +17,12 @@ tasks:
     status: backlog
     instance_of: framework/task_templates/discovery/discovery/success-metrics.md/task.yaml
     prompt: framework/task_templates/discovery/discovery/success-metrics.md/prompt_template.md
+  discovery/stakeholder-map.md-c41a62:
+    assigned_pod: ProductPod
+    pod_owner: ProductPod
+    created_at: '2025-06-17T20:28:46.699033'
+    updated_at: null
+    done: false
+    status: backlog
+    instance_of: framework/task_templates/discovery/discovery/stakeholder-map.md/task.yaml
+    prompt: framework/task_templates/discovery/discovery/stakeholder-map.md/prompt_template.md
