@@ -8,3 +8,12 @@ tasks:
     status: backlog
     instance_of: framework/task_templates/discovery/discovery/problem-statement.md/task.yaml
     prompt: framework/task_templates/discovery/discovery/problem-statement.md/prompt_template.md
+  discovery/success-metrics.md-d6a3ee:
+    assigned_pod: ProductPod
+    pod_owner: ProductPod
+    created_at: '2025-06-17T20:28:38.831606'
+    updated_at: null
+    done: false
+    status: backlog
+    instance_of: framework/task_templates/discovery/discovery/success-metrics.md/task.yaml
+    prompt: framework/task_templates/discovery/discovery/success-metrics.md/prompt_template.md
