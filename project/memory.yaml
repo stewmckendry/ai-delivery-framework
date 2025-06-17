@@ -11,3 +11,14 @@
   - AI
   last_updated: '2025-05-06'
   pod_owner: DeliveryPod
+- path: project/task.yaml
+  raw_url: https://raw.githubusercontent.com/stewmckendry/ai-delivery-framework/main/project/task.yaml
+  file_type: yaml
+  description: Configuration for managing the discovery phase task related to problem
+    statements, including assignment and status tracking.
+  tags:
+  - task
+  - config
+  - discovery
+  last_updated: '2025-06-17'
+  pod_owner: DeliveryPod
