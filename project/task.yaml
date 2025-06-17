@@ -53,3 +53,12 @@ tasks:
     status: backlog
     instance_of: framework/task_templates/delivery/delivery/scaffold.md/task.yaml
     prompt: framework/task_templates/delivery/delivery/scaffold.md/prompt_template.md
+  delivery/feature-build.md-a6eece:
+    assigned_pod: ProductPod
+    pod_owner: ProductPod
+    created_at: '2025-06-17T20:29:08.833107'
+    updated_at: null
+    done: false
+    status: backlog
+    instance_of: framework/task_templates/delivery/delivery/feature-build.md/task.yaml
+    prompt: framework/task_templates/delivery/delivery/feature-build.md/prompt_template.md
