@@ -71,3 +71,12 @@ tasks:
     status: backlog
     instance_of: framework/task_templates/validation/validation/test-plan.md/task.yaml
     prompt: framework/task_templates/validation/validation/test-plan.md/prompt_template.md
+  launch/deployment.md-a14d7f:
+    assigned_pod: ProductPod
+    pod_owner: ProductPod
+    created_at: '2025-06-17T20:29:20.890866'
+    updated_at: null
+    done: false
+    status: backlog
+    instance_of: framework/task_templates/launch/launch/deployment.md/task.yaml
+    prompt: framework/task_templates/launch/launch/deployment.md/prompt_template.md
