@@ -459,6 +459,7 @@ async def commit_and_log_output(
         )
 
         # Append path to task.yaml[outputs]
+        """
         task_file = repo.get_contents("project/task.yaml", ref=branch)
         task_data = yaml.safe_load(task_file.decoded_content)
         task = task_data["tasks"].get(task_id, {})
@@ -476,6 +477,7 @@ async def commit_and_log_output(
                 committed_by=committed_by,
                 branch=branch
             )
+        """
 
         return {"message": f"Output file {file_path} committed to {repo_name}@{branch} and logged for task {task_id}."}
 
